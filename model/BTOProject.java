@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import config.FlatType;
 import config.UserRole;
 import dto.BTOProjectDTO;
 import exception.BTOProjectException;
@@ -120,6 +121,16 @@ public class BTOProject {
 
     public String getNeighborhood() {
         return neighborhood;
+    }
+
+    public int getFlatNumByType(FlatType flatType){
+        if(flatType == FlatType.TWO_ROOM_FLAT) return twoRoomFlatNum;
+        else return threeRoomFlatNum;
+    }
+
+    public int getFlatPriceByType(FlatType flatType){
+        if(flatType == FlatType.TWO_ROOM_FLAT) return twoRoomFlatPrice;
+        else return threeRoomFlatPrice;
     }
 
     public int getTwoRoomFlatNum() {

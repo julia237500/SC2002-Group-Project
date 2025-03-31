@@ -1,10 +1,12 @@
 package manager;
 
 import controller.DefaultAuthController;
+import controller.DefaultBTOApplicationController;
 import controller.DefaultBTOProjectController;
 import controller.DefaultCommandController;
 import controller.DefaultFormController;
 import controller.interfaces.AuthController;
+import controller.interfaces.BTOApplicationController;
 import controller.interfaces.BTOProjectController;
 import controller.interfaces.CommandController;
 import controller.interfaces.FormController;
@@ -13,8 +15,10 @@ import manager.interfaces.ApplicationManager;
 import manager.interfaces.MenuManager;
 import manager.interfaces.SessionManager;
 import service.DefaultAuthService;
+import service.DefaultBTOApplicationService;
 import service.DefaultBTOProjectService;
 import service.interfaces.AuthService;
+import service.interfaces.BTOApplicationService;
 import service.interfaces.BTOProjectService;
 import util.interfaces.DIContainer;
 import view.interfaces.BTOProjectView;
@@ -73,6 +77,9 @@ public class DIManager{
         container.register(BTOProjectController.class, DefaultBTOProjectController.class);
         container.register(BTOProjectService.class, DefaultBTOProjectService.class);
         container.register(BTOProjectView.class, TerminalBTOProjectView.class);
+
+        container.register(BTOApplicationController.class, DefaultBTOApplicationController.class);
+        container.register(BTOApplicationService.class, DefaultBTOApplicationService.class);
 
         container.register(MessageView.class, TerminalMessageView.class);
         container.register(ConfirmationView.class, TerminalConfirmationView.class);
