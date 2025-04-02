@@ -12,6 +12,8 @@ import exception.DependencyInjectorException;
 import manager.interfaces.ApplicationManager;
 import manager.interfaces.MenuManager;
 import manager.interfaces.SessionManager;
+import repository.FileUserRepository;
+import repository.interfaces.UserRepository;
 import service.DefaultAuthService;
 import service.DefaultBTOProjectService;
 import service.interfaces.AuthService;
@@ -61,8 +63,9 @@ public class DIManager{
         container.register(SessionManager.class, DefaultSessionManager.class);
         container.register(MenuManager.class, DefaultMenuManager.class);
 
-        container.register(AuthService.class, DefaultAuthService.class);
         container.register(AuthController.class, DefaultAuthController.class);
+        container.register(AuthService.class, DefaultAuthService.class);
+        container.register(UserRepository.class, FileUserRepository.class);
 
         container.register(FormController.class, DefaultFormController.class);
         container.register(FormView.class, TerminalFormView.class);

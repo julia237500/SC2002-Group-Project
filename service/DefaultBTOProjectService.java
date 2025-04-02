@@ -15,7 +15,7 @@ import model.User;
 import service.interfaces.BTOProjectService;
 
 public class DefaultBTOProjectService implements BTOProjectService{
-    private final static List<BTOProject> btoProjects = new ArrayList<>();
+    private final static Map<String, BTOProject> btoProjects = new HashMap<>();
     private final static Map<User, List<BTOProject>> btoProjectManager = new HashMap<>();
 
     private ServiceResponse<?> validate(User HDBManager, BTOProjectDTO btoProjectDTO, BTOProject editingBTOProject){

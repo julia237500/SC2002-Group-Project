@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class CSVFileReaderUtil {
+public class CSVFileReader {
     public static List<List<String>> readFile(String filePath) throws IOException{
         List<List<String>> lines = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
