@@ -1,25 +1,27 @@
 package dto;
 
 import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.Map;
+
+import config.FlatType;
 
 public class BTOProjectDTO {
     private String name;
     private String neighborhood;
-    private int twoRoomFlatNum;
-    private int twoRoomFlatPrice;
-    private int threeRoomFlatNum;
-    private int threeRoomFlatPrice;
+    
+    private Map<FlatType, Integer> flatNum = new HashMap<>();
+    private Map<FlatType, Integer> flatPrice = new HashMap<>();
+
     private LocalDate openingDate;
     private LocalDate closingDate;
     private int HDBOfficerLimit;
 
-    public BTOProjectDTO(String name, String neighborhood, int twoRoomFlatNum, int twoRoomFlatPrice, int threeRoomFlatNum, int threeRoomFlatPrice, LocalDate openingDate, LocalDate closingDate, int HDBOfficerLimit){
+    public BTOProjectDTO(String name, String neighborhood, Map<FlatType, Integer> flatNum, Map<FlatType, Integer> flatPrice, LocalDate openingDate, LocalDate closingDate, int HDBOfficerLimit){
         this.name = name;
         this.neighborhood = neighborhood;
-        this.twoRoomFlatNum = twoRoomFlatNum;
-        this.twoRoomFlatPrice = twoRoomFlatPrice;
-        this.threeRoomFlatNum = threeRoomFlatNum;
-        this.threeRoomFlatPrice = threeRoomFlatPrice;
+        this.flatNum = flatNum;
+        this.flatPrice = flatPrice;
         this.openingDate = openingDate;
         this.closingDate = closingDate;
         this.HDBOfficerLimit = HDBOfficerLimit;
@@ -33,20 +35,12 @@ public class BTOProjectDTO {
         return neighborhood;
     }
 
-    public int getTwoRoomFlatNum() {
-        return twoRoomFlatNum;
+    public Map<FlatType, Integer> getFlatNum() {
+        return flatNum;
     }
 
-    public int getTwoRoomFlatPrice() {
-        return twoRoomFlatPrice;
-    }
-
-    public int getThreeRoomFlatNum() {
-        return threeRoomFlatNum;
-    }
-
-    public int getThreeRoomFlatPrice() {
-        return threeRoomFlatPrice;
+    public Map<FlatType, Integer> getFlatPrice() {
+        return flatPrice;
     }
 
     public LocalDate getOpeningDate() {

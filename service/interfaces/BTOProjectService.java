@@ -8,7 +8,7 @@ import model.ServiceResponse;
 import model.User;
 
 public interface BTOProjectService {
-    ServiceResponse<?> addBTOProject(User HDBManager, BTOProjectDTO btoProjectDTO);
+    ServiceResponse<?> addBTOProject(User requestedUser, BTOProjectDTO btoProjectDTO);
     ServiceResponse<List<BTOProject>> getBTOProjects();
     ServiceResponse<?> editBTOProject(User user, BTOProjectDTO btoProjectDTO, BTOProject btoProject);
     ServiceResponse<?> toggleBTOProjectVisibilty(BTOProject btoProject);

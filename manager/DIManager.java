@@ -12,7 +12,9 @@ import exception.DependencyInjectorException;
 import manager.interfaces.ApplicationManager;
 import manager.interfaces.MenuManager;
 import manager.interfaces.SessionManager;
+import repository.FileBTOProjectRepository;
 import repository.FileUserRepository;
+import repository.interfaces.BTOProjectRepository;
 import repository.interfaces.UserRepository;
 import service.DefaultAuthService;
 import service.DefaultBTOProjectService;
@@ -75,6 +77,7 @@ public class DIManager{
 
         container.register(BTOProjectController.class, DefaultBTOProjectController.class);
         container.register(BTOProjectService.class, DefaultBTOProjectService.class);
+        container.register(BTOProjectRepository.class, FileBTOProjectRepository.class);
         container.register(BTOProjectView.class, TerminalBTOProjectView.class);
 
         container.register(MessageView.class, TerminalMessageView.class);

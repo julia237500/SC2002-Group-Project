@@ -13,7 +13,7 @@ public class CSVFileReader {
         try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
             String line;
             while ((line = br.readLine()) != null) {
-                String[] values = line.split(",");
+                String[] values = line.split(",(?![^\\[]*\\])");
                 lines.add(Arrays.asList(values));
             }
         }
