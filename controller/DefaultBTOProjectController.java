@@ -63,7 +63,7 @@ public class DefaultBTOProjectController extends AbstractDefaultController imple
             int flatNum = (Integer) data.get(flatType.getNumFormField()).getData();
             flatNums.put(flatType, flatNum);
 
-            int flatPrice = (Integer) data.get(flatType.getNumFormField()).getData();
+            int flatPrice = (Integer) data.get(flatType.getPriceFormField()).getData();
             flatPrices.put(flatType, flatPrice);
         }
 

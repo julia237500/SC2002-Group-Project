@@ -167,7 +167,7 @@ public class BTOProject {
                 Closing Date          : %s
                 HDB Officer Limit     : %d
                 Visibility            : %s
-                """, name, neighborhood, flatNum.get(FlatType.TWO_ROOM_FLAT), flatNum.get(FlatType.THREE_ROOM_FLAT), flatPrice.get(FlatType.TWO_ROOM_FLAT), flatPrice.get(FlatType.THREE_ROOM_FLAT), openingDate, closingDate, HDBOfficerLimit, visible ? "Visible" : "Hidden");
+                """, name, neighborhood, flatNum.get(FlatType.TWO_ROOM_FLAT), flatPrice.get(FlatType.TWO_ROOM_FLAT), flatNum.get(FlatType.THREE_ROOM_FLAT), flatPrice.get(FlatType.THREE_ROOM_FLAT), openingDate, closingDate, HDBOfficerLimit, visible ? "Visible" : "Hidden");
     }
 
     public boolean isActive(){
@@ -176,6 +176,18 @@ public class BTOProject {
 
     public boolean isOverlappingWith(LocalDate openingDate, LocalDate closingDate){
         return !(openingDate.isAfter(this.closingDate) || closingDate.isBefore(this.openingDate));
+    }
+
+    public void addHDBOfficer(User HDBOfficer){
+        if(HDBOfficer.getUserRole() != UserRole.HDB_OFFICER){
+            throw new BTOProjectException("User added is not HDB Officer.");
+        }
+
+        if(HDBOfficers.size() >= HDBOfficerLimit){
+            throw new BTOProjectException("Number of HDB Officers exceed limit (%d).".formatted(MAX_HDB_OFFICER_LIMIT));
+        }
+
+        HDBOfficers.add(HDBOfficer);
     }
 
     private static class Memento {

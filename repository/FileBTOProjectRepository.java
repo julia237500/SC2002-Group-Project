@@ -1,5 +1,7 @@
 package repository;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -13,6 +15,7 @@ import parser.BTOProjectParser;
 import repository.interfaces.BTOProjectRepository;
 import repository.interfaces.UserRepository;
 import util.CSVFileReader;
+import util.CSVFileWriter;
 
 public class FileBTOProjectRepository implements BTOProjectRepository{
     private final static String FILE_PATH = "./data/ProjectList.csv";
@@ -63,8 +66,12 @@ public class FileBTOProjectRepository implements BTOProjectRepository{
         }
     }
 
-    private void saveAll(){
-        
+    private void saveAll() throws IOException{
+        List<List<String>> lines = new ArrayList<>(); 
+        for(BTOProject btoProject:btoProjects.values()){
+            lines.add(BTOProjectParser.toListOfString(btoProject));
+        }
+        CSVFileWriter.writeFile(FILE_PATH, lines);
     }
 
     @Override

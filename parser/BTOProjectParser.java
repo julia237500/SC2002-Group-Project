@@ -1,6 +1,7 @@
 package parser;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -73,12 +74,71 @@ public class BTOProjectParser {
             throw new ModelParsingException("Invalid HDB Officer Limit: %s".formatted(line.get(8)));
         }
 
-        return new BTOProject(HDBManager, name, neighbourhood, flatNums, flatPrices, openingDate, closingDate, HDBOfficerLimit);
+        BTOProject btoProject = new BTOProject(HDBManager, name, neighbourhood, flatNums, flatPrices, openingDate, closingDate, HDBOfficerLimit);        
+        List<String> HDBOfficerNRICs = splitList(line.get(9));
+
+        for(String NRIC:HDBOfficerNRICs){
+            try {
+                User HDBOfficer = userRepository.getByNRIC(NRIC);
+                btoProject.addHDBOfficer(HDBOfficer);
+            } catch (Exception e) {
+                throw new ModelParsingException("Internal error: %s".formatted(e.getMessage()));
+            }
+        }
+
+        return btoProject;
     }
 
     private static List<String> splitList(String s){
         s = s.substring(1, s.length()-1);
+
+        if(s.length() == 0) return List.of();
+
         String[] values = s.split(",");
         return Arrays.asList(values);
+    }
+
+    public static List<String> toListOfString(BTOProject btoProject){
+        List<String> list = new ArrayList<>();
+
+        list.add(btoProject.getName());
+        list.add(btoProject.getNeighborhood());
+
+        StringBuilder flatTypeString = new StringBuilder("[");
+        StringBuilder flatNumString = new StringBuilder("[");
+        StringBuilder flatPriceString = new StringBuilder("[");
+
+        for(FlatType flatType:FlatType.values()){
+            flatTypeString.append(flatType.getStoredString() + ",");
+            flatNumString.append(btoProject.getFlatNum(flatType) + ",");
+            flatPriceString.append(btoProject.getFlatPrice(flatType) + ",");
+        }   
+        
+        flatTypeString.setCharAt(flatTypeString.length() - 1, ']');
+        flatNumString.setCharAt(flatNumString.length() - 1, ']');
+        flatPriceString.setCharAt(flatPriceString.length() - 1, ']');
+
+        list.add(flatTypeString.toString());
+        list.add(flatNumString.toString());
+        list.add(flatPriceString.toString());
+
+        list.add(btoProject.getOpeningDate().toString());
+        list.add(btoProject.getClosingDate().toString());
+        
+        list.add(btoProject.getHDBManager().getNRIC());
+        list.add(Integer.toString(btoProject.getHDBOfficerLimit()));
+
+        StringBuilder HDBOfficerNRICs = new StringBuilder("[");
+        for(User HDBOfficer:btoProject.getHDBOfficers()){
+            HDBOfficerNRICs.append(HDBOfficer.getNRIC() + ",");
+        }
+        if(HDBOfficerNRICs.length() != 1){
+            HDBOfficerNRICs.setLength(HDBOfficerNRICs.length() - 1);
+        }
+        HDBOfficerNRICs.append(']');
+        
+        list.add(HDBOfficerNRICs.toString());
+        
+        return list;
     }
 }
