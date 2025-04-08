@@ -61,7 +61,7 @@ public class DefaultBTOProjectService implements BTOProjectService{
         }
 
         for(BTOProject btoProject:btoProjects){
-            if(btoProject.isActive()) return new ServiceResponse<>(ResponseStatus.ERROR, "You are involving in active project: %s. This action cannot be performed.");
+            if(btoProject.isActive()) return new ServiceResponse<>(ResponseStatus.ERROR, "You are involving in active project: %s. This action cannot be performed.".formatted(btoProject.getName()));
         }
 
         return new ServiceResponse<>(ResponseStatus.SUCCESS);
@@ -78,27 +78,30 @@ public class DefaultBTOProjectService implements BTOProjectService{
 
     public ServiceResponse<?> editBTOProject(User requestedUser, BTOProjectDTO btoProjectDTO, BTOProject editingBTOProject){
         if(requestedUser.getUserRole() != UserRole.HDB_MANAGER){
-            return new ServiceResponse<>(ResponseStatus.ERROR, "Access Denied. Only HDB Manager can create BTO Project");
+            return new ServiceResponse<>(ResponseStatus.ERROR, "Access Denied. Only HDB Manager can edit BTO Project");
         }
 
-        ServiceResponse<?> response = hassOverlappingActiveProject(requestedUser, btoProjectDTO, editingBTOProject);
-        if(response.getResponseStatus() != ResponseStatus.SUCCESS) return response;
+        if(requestedUser != editingBTOProject.getHDBManager()){
+            return new ServiceResponse<>(ResponseStatus.ERROR, "Access Denied. Only Responsible HDB Manager can edit this BTO Project");
+        }
+
+        if(editingBTOProject.isVisible()){
+            ServiceResponse<?> response = hasOverlappingVisibleProject(requestedUser, btoProjectDTO.getOpeningDate(), btoProjectDTO.getClosingDate(), editingBTOProject);
+            if(response.getResponseStatus() != ResponseStatus.SUCCESS) return response;
+        }
 
         try {
             editingBTOProject.edit(btoProjectDTO);
+            btoProjectRepository.save(editingBTOProject);
         } catch (Exception e) {
+            editingBTOProject.revertEdit();
             return new ServiceResponse<>(ResponseStatus.ERROR, e.getMessage());
         }
         
         return new ServiceResponse<>(ResponseStatus.SUCCESS, "BTO Project edited successfully.");
     }
 
-    private ServiceResponse<?> hassOverlappingActiveProject(User requestedUser, BTOProjectDTO btoProjectDTO, BTOProject editingBTOProject){
-        if(!editingBTOProject.isVisible()) return new ServiceResponse<>(ResponseStatus.SUCCESS);
-
-        LocalDate openingDate = btoProjectDTO.getOpeningDate();
-        LocalDate closingDate = btoProjectDTO.getClosingDate();
-        
+    private ServiceResponse<?> hasOverlappingVisibleProject(User requestedUser, LocalDate openingDate, LocalDate closingDate, BTOProject editingBTOProject){
         List<BTOProject> btoProjects = null;
 
         try {
@@ -108,11 +111,11 @@ public class DefaultBTOProjectService implements BTOProjectService{
         }
 
         for(BTOProject btoProject:btoProjects){
-            if(btoProject.isActive() && btoProject.isOverlappingWith(openingDate, closingDate)){
-                if(btoProject == editingBTOProject) break;
+            if(btoProject.isVisible() && btoProject.isOverlappingWith(openingDate, closingDate)){
+                if(btoProject == editingBTOProject) continue;
 
                 return new ServiceResponse<>(ResponseStatus.ERROR, 
-                    "Application period (%s to %s) overlap with active project: %s (%s to %s)".formatted(
+                    "Application period (%s to %s) overlap with other project: %s (%s to %s). No two project can be visible at the same time".formatted(
                         openingDate, closingDate, btoProject.getName(), btoProject.getOpeningDate(), btoProject.getClosingDate()
                     )
                 );
@@ -122,13 +125,41 @@ public class DefaultBTOProjectService implements BTOProjectService{
         return new ServiceResponse<>(ResponseStatus.SUCCESS);
     }
 
-    public ServiceResponse<?> toggleBTOProjectVisibilty(BTOProject btoProject){
+    public ServiceResponse<?> toggleBTOProjectVisibilty(User requestedUser, BTOProject btoProject){
+        if(requestedUser.getUserRole() != UserRole.HDB_MANAGER){
+            return new ServiceResponse<>(ResponseStatus.ERROR, "Access Denied. Only HDB Manager can edit BTO Project");
+        }
+
+        if(requestedUser != btoProject.getHDBManager()){
+            return new ServiceResponse<>(ResponseStatus.ERROR, "Access Denied. Only Responsible HDB Manager can edit this BTO Project");
+        }
+
+        if(!btoProject.isVisible()){
+            ServiceResponse<?> response = hasOverlappingVisibleProject(requestedUser, btoProject.getOpeningDate(), btoProject.getClosingDate(), btoProject);
+            if(response.getResponseStatus() != ResponseStatus.SUCCESS) return response;
+        }
+        
         btoProject.toggleVisibility();
+        
+        try {
+            btoProjectRepository.save(btoProject);
+        } catch (Exception e) {
+            btoProject.toggleVisibility();
+            return new ServiceResponse<>(ResponseStatus.ERROR, e.getMessage());
+        }
 
         return new ServiceResponse<>(ResponseStatus.SUCCESS, "BTO Project visibility toggled successfully.");
     }
 
-    public ServiceResponse<?> deleteBTOProject(BTOProject btoProject){
+    public ServiceResponse<?> deleteBTOProject(User requestedUser, BTOProject btoProject){
+        if(requestedUser.getUserRole() != UserRole.HDB_MANAGER){
+            return new ServiceResponse<>(ResponseStatus.ERROR, "Access Denied. Only HDB Manager can delete BTO Project");
+        }
+
+        if(requestedUser != btoProject.getHDBManager()){
+            return new ServiceResponse<>(ResponseStatus.ERROR, "Access Denied. Only Responsible HDB Manager can delete this BTO Project");
+        }
+
         try {
             btoProjectRepository.delete(btoProject);
         } catch (Exception e) {

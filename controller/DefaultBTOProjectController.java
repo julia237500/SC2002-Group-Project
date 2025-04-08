@@ -115,12 +115,14 @@ public class DefaultBTOProjectController extends AbstractDefaultController imple
     }
 
     public void toggleBTOProjectVisibilty(BTOProject btoProject){
-        ServiceResponse<?> serviceResponse = btoProjectService.toggleBTOProjectVisibilty(btoProject);
+        User user = sessionManager.getUser();
+        ServiceResponse<?> serviceResponse = btoProjectService.toggleBTOProjectVisibilty(user, btoProject);
         defaultShowServiceResponse(serviceResponse);
     }
 
     public void deleteBTOProject(BTOProject btoProject){
-        ServiceResponse<?> serviceResponse = btoProjectService.deleteBTOProject(btoProject);
+        User user = sessionManager.getUser();
+        ServiceResponse<?> serviceResponse = btoProjectService.deleteBTOProject(user, btoProject);
         defaultShowServiceResponse(serviceResponse);
     }
 }

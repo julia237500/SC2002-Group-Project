@@ -86,6 +86,8 @@ public class BTOProjectParser {
             }
         }
 
+        if(line.get(10).equals("1")) btoProject.toggleVisibility();
+
         return btoProject;
     }
 
@@ -138,6 +140,7 @@ public class BTOProjectParser {
         HDBOfficerNRICs.append(']');
         
         list.add(HDBOfficerNRICs.toString());
+        list.add(btoProject.isVisible()?"1":"0");
         
         return list;
     }

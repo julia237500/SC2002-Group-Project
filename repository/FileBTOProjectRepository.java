@@ -109,9 +109,9 @@ public class FileBTOProjectRepository implements BTOProjectRepository{
         btoProjects.remove(btoProject.getName());
 
         try {
-            btoProjects.put(btoProject.getName(), btoProject);
             saveAll();
         } catch (Exception e) {
+            btoProjects.put(btoProject.getName(), btoProject);
             throw new RepositoryException(e.getMessage());
         }
 
