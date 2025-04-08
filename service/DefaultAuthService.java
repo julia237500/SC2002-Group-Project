@@ -1,7 +1,6 @@
 package service;
 
 import config.ResponseStatus;
-import model.ServiceResponse;
 import model.User;
 import repository.interfaces.UserRepository;
 import service.interfaces.AuthService;

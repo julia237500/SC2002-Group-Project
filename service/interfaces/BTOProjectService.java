@@ -4,8 +4,8 @@ import java.util.List;
 
 import dto.BTOProjectDTO;
 import model.BTOProject;
-import model.ServiceResponse;
 import model.User;
+import service.ServiceResponse;
 
 public interface BTOProjectService {
     ServiceResponse<?> addBTOProject(User requestedUser, BTOProjectDTO btoProjectDTO);

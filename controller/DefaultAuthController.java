@@ -10,8 +10,8 @@ import form.ChangePasswordForm;
 import form.FieldData;
 import form.LoginForm;
 import manager.interfaces.SessionManager;
-import model.ServiceResponse;
 import model.User;
+import service.ServiceResponse;
 import service.interfaces.AuthService;
 import view.interfaces.MessageView;
 

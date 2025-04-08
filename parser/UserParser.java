@@ -5,7 +5,7 @@ import java.util.List;
 
 import config.MaritalStatus;
 import config.UserRole;
-import exception.ModelParsingException;
+import exception.DataParsingException;
 import model.User;
 
 public class UserParser {
@@ -13,7 +13,7 @@ public class UserParser {
 
     public static User parseUser(List<String> line){
         if(line.size() != USER_DATA_SIZE){
-            throw new ModelParsingException(String.format("Data size of %d is expected, but data size of %d is passed. Data: %s", USER_DATA_SIZE, line.size(), line.toString()));
+            throw new DataParsingException(String.format("Data size of %d is expected, but data size of %d is passed. Data: %s", USER_DATA_SIZE, line.size(), line.toString()));
         }
 
         String name = line.get(0);
@@ -23,14 +23,14 @@ public class UserParser {
         try {
             age = Integer.parseInt(line.get(2));
         } catch (Exception e) {
-            throw new ModelParsingException(String.format("Invalid age: %s", line.get(2)));
+            throw new DataParsingException(String.format("Invalid age: %s", line.get(2)));
         }
 
         MaritalStatus maritalStatus = null;
         try {
             maritalStatus = MaritalStatus.parseMaritalStatus(line.get(3));
         } catch (Exception e) {
-            throw new ModelParsingException(e.getMessage());
+            throw new DataParsingException(e.getMessage());
         }
 
         String password = line.get(4);
@@ -39,7 +39,7 @@ public class UserParser {
         try {
             userRole = UserRole.parseUserRole(line.get(5));
         } catch (Exception e) {
-            throw new ModelParsingException(e.getMessage());
+            throw new DataParsingException(e.getMessage());
         }
 
         return new User(name, NRIC, age, maritalStatus, password, userRole);

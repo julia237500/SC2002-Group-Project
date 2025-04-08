@@ -9,7 +9,7 @@ import java.util.Map;
 
 import config.FlatType;
 import exception.EnumParsingException;
-import exception.ModelParsingException;
+import exception.DataParsingException;
 import model.BTOProject;
 import model.User;
 import repository.interfaces.UserRepository;
@@ -37,9 +37,9 @@ public class BTOProjectParser {
                 flatPrices.put(flatType, flatPrice);
             }
         } catch (EnumParsingException e) {
-            throw new ModelParsingException("Invalid flatType: %s".formatted(line.get(2)));
+            throw new DataParsingException("Invalid flatType: %s".formatted(line.get(2)));
         } catch (Exception e) {
-            throw new ModelParsingException("Invalid flatNum: %s or flatPrice: %s. %s".formatted(
+            throw new DataParsingException("Invalid flatNum: %s or flatPrice: %s. %s".formatted(
                 line.get(3), line.get(4), e.getMessage()
             ));
         }
@@ -48,14 +48,14 @@ public class BTOProjectParser {
         try {
             openingDate = LocalDate.parse(line.get(5));
         } catch (Exception e) {
-            throw new ModelParsingException("Invalid Opening Date: %s".formatted(line.get(5)));
+            throw new DataParsingException("Invalid Opening Date: %s".formatted(line.get(5)));
         }
 
         LocalDate closingDate = null;
         try {
             closingDate = LocalDate.parse(line.get(6));
         } catch (Exception e) {
-            throw new ModelParsingException("Invalid Closing Date: %s".formatted(line.get(6)));
+            throw new DataParsingException("Invalid Closing Date: %s".formatted(line.get(6)));
         }
 
         String HDBManagerNRIC = line.get(7);
@@ -63,15 +63,15 @@ public class BTOProjectParser {
         try {
             HDBManager = userRepository.getByNRIC(HDBManagerNRIC);
         } catch (Exception e) {
-            throw new ModelParsingException("Internal error: %s".formatted(e.getMessage()));
+            throw new DataParsingException("Internal error: %s".formatted(e.getMessage()));
         }
-        if(HDBManager == null) throw new ModelParsingException("HDB Manager not found. NRIC: %s".formatted(line.get(7)));
+        if(HDBManager == null) throw new DataParsingException("HDB Manager not found. NRIC: %s".formatted(line.get(7)));
 
         int HDBOfficerLimit = 0;
         try {
             HDBOfficerLimit = Integer.parseInt(line.get(8));
         } catch (Exception e) {
-            throw new ModelParsingException("Invalid HDB Officer Limit: %s".formatted(line.get(8)));
+            throw new DataParsingException("Invalid HDB Officer Limit: %s".formatted(line.get(8)));
         }
 
         BTOProject btoProject = new BTOProject(HDBManager, name, neighbourhood, flatNums, flatPrices, openingDate, closingDate, HDBOfficerLimit);        
@@ -82,7 +82,7 @@ public class BTOProjectParser {
                 User HDBOfficer = userRepository.getByNRIC(NRIC);
                 btoProject.addHDBOfficer(HDBOfficer);
             } catch (Exception e) {
-                throw new ModelParsingException("Internal error: %s".formatted(e.getMessage()));
+                throw new DataParsingException("Internal error: %s".formatted(e.getMessage()));
             }
         }
 

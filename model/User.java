@@ -3,13 +3,26 @@ package model;
 import config.MaritalStatus;
 import config.UserRole;
 
-public class User {
+public class User implements DataModel{
+    @CSVField(index = 0) 
     private String name;
+
+    @CSVField(index = 1)
     private String NRIC;
+
+    @CSVField(index = 2)
     private int age;
-    private MaritalStatus maritalStatus; 
+
+    @CSVField(index = 3)
+    private MaritalStatus maritalStatus;
+    
+    @CSVField(index = 4)
     private String password;
+
+    @CSVField(index = 5)
     private UserRole userRole;
+
+    public User(){}
 
     public User(String name, String NRIC, int age, MaritalStatus maritalStatus, String password, UserRole userRole){
         this.name = name;
@@ -46,5 +59,10 @@ public class User {
 
     public UserRole getUserRole() {
         return userRole;
+    }
+
+    @Override
+    public String getPK() {
+        return NRIC;
     }
 }
