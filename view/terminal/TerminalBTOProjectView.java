@@ -3,6 +3,7 @@ package view.terminal;
 import java.util.List;
 
 import model.BTOProject;
+import model.User;
 import view.interfaces.BTOProjectView;
 
 public class TerminalBTOProjectView extends AbstractTerminalView implements BTOProjectView{
@@ -17,5 +18,8 @@ public class TerminalBTOProjectView extends AbstractTerminalView implements BTOP
     public void showBTOProject(BTOProject btoProject){
         showTitle("BTO Project Detail");
         System.out.println(btoProject.toString());
+        for(User user:btoProject.getHDBOfficers()){
+            System.out.println(user.getName());
+        }
     }
 }

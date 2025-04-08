@@ -1,10 +1,12 @@
 package controller;
 
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import command.Command;
+import config.FlatType;
 import config.FormField;
 import config.ResponseStatus;
 import controller.interfaces.BTOProjectController;
@@ -53,15 +55,23 @@ public class DefaultBTOProjectController extends AbstractDefaultController imple
     private BTOProjectDTO createBTOProjectDTOFromFormData(Map<FormField, FieldData<?>> data){
         String name = (String) data.get(FormField.NAME).getData();
         String neighbourhood = (String) data.get(FormField.NEIGHBORHOOD).getData();
-        int twoRoomFlatNum = (Integer) data.get(FormField.TWO_ROOM_FLAT_NUM).getData();
-        int twoRoomFlatPrice = (Integer) data.get(FormField.TWO_ROOM_FLAT_PRICE).getData();
-        int threeRoomFlatNum = (Integer) data.get(FormField.THREE_ROOM_FLAT_NUM).getData();
-        int threeRoomFlatPrice = (Integer) data.get(FormField.THREE_ROOM_FLAT_PRICE).getData();
+
+        Map<FlatType, Integer> flatNums = new HashMap<>();
+        Map<FlatType, Integer> flatPrices = new HashMap<>();
+
+        for(FlatType flatType:FlatType.values()){
+            int flatNum = (Integer) data.get(flatType.getNumFormField()).getData();
+            flatNums.put(flatType, flatNum);
+
+            int flatPrice = (Integer) data.get(flatType.getPriceFormField()).getData();
+            flatPrices.put(flatType, flatPrice);
+        }
+
         LocalDate openingDate = (LocalDate) data.get(FormField.OPENING_DATE).getData();
         LocalDate closingDate = (LocalDate) data.get(FormField.CLOSING_DATE).getData();
         int HDBOfficerLimit = (Integer) data.get(FormField.HBD_OFFICER_LIMIT).getData();
 
-        return new BTOProjectDTO(name, neighbourhood, twoRoomFlatNum, twoRoomFlatPrice, threeRoomFlatNum, threeRoomFlatPrice, openingDate, closingDate, HDBOfficerLimit);
+        return new BTOProjectDTO(name, neighbourhood, flatNums, flatPrices, openingDate, closingDate, HDBOfficerLimit);
     }
 
     public void editBTOProject(BTOProject btoProject){
@@ -105,12 +115,14 @@ public class DefaultBTOProjectController extends AbstractDefaultController imple
     }
 
     public void toggleBTOProjectVisibilty(BTOProject btoProject){
-        ServiceResponse<?> serviceResponse = btoProjectService.toggleBTOProjectVisibilty(btoProject);
+        User user = sessionManager.getUser();
+        ServiceResponse<?> serviceResponse = btoProjectService.toggleBTOProjectVisibilty(user, btoProject);
         defaultShowServiceResponse(serviceResponse);
     }
 
     public void deleteBTOProject(BTOProject btoProject){
-        ServiceResponse<?> serviceResponse = btoProjectService.deleteBTOProject(btoProject);
+        User user = sessionManager.getUser();
+        ServiceResponse<?> serviceResponse = btoProjectService.deleteBTOProject(user, btoProject);
         defaultShowServiceResponse(serviceResponse);
     }
 }

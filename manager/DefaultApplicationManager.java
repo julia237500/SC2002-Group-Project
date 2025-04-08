@@ -7,6 +7,7 @@ import manager.interfaces.ApplicationManager;
 import manager.interfaces.MenuManager;
 import manager.interfaces.SessionManager;
 import model.User;
+import repository.interfaces.UserRepository;
 import view.terminal.AbstractTerminalView;
 
 public class DefaultApplicationManager implements ApplicationManager{
@@ -23,10 +24,11 @@ public class DefaultApplicationManager implements ApplicationManager{
     public void startApplication() {
         while(true){ 
             User user = null;
+            UserRepository userRepository = DIManager.getInstance().resolve(UserRepository.class);
             // user = authController.handleLogin();
             
             User applicant1 = new User("applicant1", "1", 1, MaritalStatus.SINGLE, "1", UserRole.APPLICANT);
-            User manager1 = new User("manager1", "1", 1, MaritalStatus.SINGLE, "1", UserRole.HDB_MANAGER);
+            User manager1 = userRepository.getByNRIC("S5678901G");
             User manager2 = new User("manager2", "1", 1, MaritalStatus.SINGLE, "1", UserRole.HDB_MANAGER);
             
             System.out.println("1. Applicant 1");
@@ -47,11 +49,11 @@ public class DefaultApplicationManager implements ApplicationManager{
                 default:
                     break;
             }
-
+            
+            System.out.println(user.getName());
             sessionManager.setUser(user);
+            System.out.println(user);
             menuManager.startDashboardLoop();
-
-            System.out.println("Logout");
         }
     }
 

@@ -48,7 +48,7 @@ public class BTOProjectCommandFactory {
         ConfirmationView confirmationView = diManager.resolve(ConfirmationView.class);
         MenuManager menuManager = diManager.resolve(MenuManager.class);
 
-        if(user.getUserRole() == UserRole.HDB_MANAGER && btoProject.getHDBManager() ==  user){
+        if(user.getUserRole() == UserRole.HDB_MANAGER && btoProject.getHDBManager() == user){
             commands.put(1, new EditBTOProjectCommand(btoProjectController, btoProject));
             commands.put(2, new ToggleBTOProjectVisibilityCommand(btoProjectController, btoProject));
             commands.put(3, new DeleteBTOProjectCommand(btoProjectController, confirmationView, menuManager, btoProject));
