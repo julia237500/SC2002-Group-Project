@@ -50,4 +50,9 @@ public class BTOProjectRelationshipResolver implements LoadResolver, SaveResolve
             try {
                 dataManager.save(flatUnit);
             } catch (Exception e) {
-                thr
+                throw new RelationshipException(e.getMessage());
+            }
+        }
+    }
+    
+}

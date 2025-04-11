@@ -12,3 +12,5 @@ public interface DataManager {
     <T extends DataModel> List<T> getByQuery(Class<T> clazz, Predicate<T> predicate);
     <T extends DataModel> List<T> getByQueries(Class<T> clazz, List<Predicate<T>> predicates);
     <T extends DataModel> void save(T model) throws DataSavingException;
+    <T extends DataModel> void delete(T model) throws DataSavingException, Exception;
+}

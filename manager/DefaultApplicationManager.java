@@ -59,3 +59,4 @@ public class DefaultApplicationManager implements ApplicationManager{
         menuManager.stopDashboardLoop();
         sessionManager.resetUser();
     }
+}
