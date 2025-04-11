@@ -1,7 +1,7 @@
 package service.interfaces;
 
-import model.ServiceResponse;
 import model.User;
+import service.ServiceResponse;
 
 public interface AuthService {
     public ServiceResponse<User> login(String NRIC, String password);

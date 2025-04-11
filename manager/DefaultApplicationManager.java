@@ -4,10 +4,10 @@ import config.MaritalStatus;
 import config.UserRole;
 import controller.interfaces.AuthController;
 import manager.interfaces.ApplicationManager;
+import manager.interfaces.DataManager;
 import manager.interfaces.MenuManager;
 import manager.interfaces.SessionManager;
 import model.User;
-import repository.interfaces.UserRepository;
 import view.terminal.AbstractTerminalView;
 
 public class DefaultApplicationManager implements ApplicationManager{
@@ -24,12 +24,12 @@ public class DefaultApplicationManager implements ApplicationManager{
     public void startApplication() {
         while(true){ 
             User user = null;
-            UserRepository userRepository = DIManager.getInstance().resolve(UserRepository.class);
+            DataManager dataManager = DIManager.getInstance().resolve(DataManager.class);
             // user = authController.handleLogin();
             
             User applicant1 = new User("applicant1", "1", 1, MaritalStatus.SINGLE, "1", UserRole.APPLICANT);
-            User manager1 = userRepository.getByNRIC("S5678901G");
-            User manager2 = new User("manager2", "1", 1, MaritalStatus.SINGLE, "1", UserRole.HDB_MANAGER);
+            User manager1 = dataManager.getByPK(User.class, "S5678901G");
+            User manager2 = dataManager.getByPK(User.class, "T8765432F");
             
             System.out.println("1. Applicant 1");
             System.out.println("5. Manager 1");
@@ -50,9 +50,7 @@ public class DefaultApplicationManager implements ApplicationManager{
                     break;
             }
             
-            System.out.println(user.getName());
             sessionManager.setUser(user);
-            System.out.println(user);
             menuManager.startDashboardLoop();
         }
     }

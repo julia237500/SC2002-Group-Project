@@ -6,17 +6,16 @@ import java.util.List;
 import config.ResponseStatus;
 import config.UserRole;
 import dto.BTOProjectDTO;
+import manager.interfaces.DataManager;
 import model.BTOProject;
-import model.ServiceResponse;
 import model.User;
-import repository.interfaces.BTOProjectRepository;
 import service.interfaces.BTOProjectService;
 
 public class DefaultBTOProjectService implements BTOProjectService{
-    private BTOProjectRepository btoProjectRepository;
+    private DataManager dataManager;
     
-    public DefaultBTOProjectService(BTOProjectRepository btoProjectRepository){
-        this.btoProjectRepository = btoProjectRepository;
+    public DefaultBTOProjectService(DataManager dataManager){
+        this.dataManager = dataManager;
     }
 
     public ServiceResponse<?> addBTOProject(User requestedUser, BTOProjectDTO btoProjectDTO){
@@ -28,7 +27,7 @@ public class DefaultBTOProjectService implements BTOProjectService{
         if(response.getResponseStatus() != ResponseStatus.SUCCESS) return response;
 
         try {
-            BTOProject btoProject = btoProjectRepository.getByName(btoProjectDTO.getName());
+            BTOProject btoProject = dataManager.getByPK(BTOProject.class, btoProjectDTO.getName());
             if(btoProject != null){
                 return new ServiceResponse<>(ResponseStatus.ERROR, "Project name must be unique.");
             }
@@ -38,7 +37,7 @@ public class DefaultBTOProjectService implements BTOProjectService{
 
         try {
             BTOProject btoProject = BTOProject.fromDTO(requestedUser, btoProjectDTO);
-            btoProjectRepository.save(btoProject);
+            dataManager.save(btoProject);
         } catch (Exception e) {
             return new ServiceResponse<>(ResponseStatus.ERROR, "Internal error. %s".formatted(e));
         }
@@ -51,10 +50,9 @@ public class DefaultBTOProjectService implements BTOProjectService{
 
         try {
             if(requestedUser.getUserRole() == UserRole.HDB_MANAGER){
-                btoProjects = btoProjectRepository.getByHDBManager(requestedUser);
-            }
-            else{
-                btoProjects = btoProjectRepository.getByHDBOfficer(requestedUser);
+                btoProjects = dataManager.getByQuery(BTOProject.class, 
+                    btoProject -> btoProject.getHDBManager() == requestedUser
+                );
             }
         } catch (Exception e) {
             return new ServiceResponse<>(ResponseStatus.ERROR, "Internal error. %s".formatted(e));
@@ -69,7 +67,7 @@ public class DefaultBTOProjectService implements BTOProjectService{
 
     public ServiceResponse<List<BTOProject>> getBTOProjects(){
         try {
-            List<BTOProject> btoProjects = btoProjectRepository.getAll();
+            List<BTOProject> btoProjects = dataManager.getAll(BTOProject.class);
             return new ServiceResponse<>(ResponseStatus.SUCCESS, btoProjects);
         } catch (Exception e) {
             return new ServiceResponse<>(ResponseStatus.ERROR, "Internal error. %s".formatted(e));
@@ -92,7 +90,7 @@ public class DefaultBTOProjectService implements BTOProjectService{
 
         try {
             editingBTOProject.edit(btoProjectDTO);
-            btoProjectRepository.save(editingBTOProject);
+            dataManager.save(editingBTOProject);
         } catch (Exception e) {
             editingBTOProject.revertEdit();
             return new ServiceResponse<>(ResponseStatus.ERROR, e.getMessage());
@@ -105,7 +103,9 @@ public class DefaultBTOProjectService implements BTOProjectService{
         List<BTOProject> btoProjects = null;
 
         try {
-            btoProjects = btoProjectRepository.getByHDBManager(requestedUser);
+            btoProjects = dataManager.getByQuery(BTOProject.class, 
+                btoProject -> btoProject.getHDBManager() == requestedUser
+            );
         } catch (Exception e) {
             return new ServiceResponse<>(ResponseStatus.ERROR, "Internal error. %s".formatted(e));
         }
@@ -142,7 +142,7 @@ public class DefaultBTOProjectService implements BTOProjectService{
         btoProject.toggleVisibility();
         
         try {
-            btoProjectRepository.save(btoProject);
+            dataManager.save(btoProject);
         } catch (Exception e) {
             btoProject.toggleVisibility();
             return new ServiceResponse<>(ResponseStatus.ERROR, e.getMessage());
@@ -161,7 +161,7 @@ public class DefaultBTOProjectService implements BTOProjectService{
         }
 
         try {
-            btoProjectRepository.delete(btoProject);
+            dataManager.delete(btoProject);
         } catch (Exception e) {
             return new ServiceResponse<>(ResponseStatus.ERROR, "Internal error. %s".formatted(e));
         }

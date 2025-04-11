@@ -1,7 +1,7 @@
 package controller;
 
 import config.ResponseStatus;
-import model.ServiceResponse;
+import service.ServiceResponse;
 import view.interfaces.MessageView;
 
 public class AbstractDefaultController {
