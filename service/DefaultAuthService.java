@@ -1,21 +1,22 @@
 package service;
 
 import config.ResponseStatus;
+import manager.interfaces.DataManager;
 import model.User;
-import repository.interfaces.UserRepository;
 import service.interfaces.AuthService;
 
 public class DefaultAuthService implements AuthService{
-    private UserRepository userRepository;
+    private DataManager dataManager;
 
-    public DefaultAuthService(UserRepository userRepository){
-        this.userRepository = userRepository;
+    public DefaultAuthService(DataManager dataManager){
+        this.dataManager = dataManager;
     }
 
     public ServiceResponse<User> login(String NRIC, String password){
         User user = null;
+
         try {
-            user = userRepository.getByNRIC(NRIC);
+            user = dataManager.getByPK(User.class, NRIC);
         } catch (Exception e) {
             return new ServiceResponse<User>(ResponseStatus.ERROR, "Internal Error. " + e.getMessage());
         }
@@ -34,7 +35,7 @@ public class DefaultAuthService implements AuthService{
         user.setPassword(password);
 
         try {
-            userRepository.save(user);
+            dataManager.save(user);
         } catch (Exception e) {
             user.setPassword(oldPassword);
             return new ServiceResponse<>(ResponseStatus.ERROR, "Save to file fail. " + e.getMessage());

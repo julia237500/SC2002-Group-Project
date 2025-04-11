@@ -11,33 +11,41 @@ import config.UserRole;
 import dto.BTOProjectDTO;
 import exception.BTOProjectException;
 
-public class BTOProject {
+public class BTOProject implements DataModel{
     public static int MIN_HDB_OFFICER_LIMIT = 1;
     public static int MAX_HDB_OFFICER_LIMIT = 10;
 
-    private final String name;
+    @CSVField(index = 0)
+    private String name;
+    @CSVField(index = 1)
     private String neighborhood;
 
-    private Map<FlatType, Integer> flatNum = new HashMap<>();
-    private Map<FlatType, Integer> flatPrice = new HashMap<>();
+    private Map<FlatType, FlatUnit> flatUnits = new HashMap<>();
 
+    @CSVField(index = 2)
     private LocalDate openingDate;
+    @CSVField(index = 3)
     private LocalDate closingDate;
-   
-    private final User HDBManager;
+    
+    @CSVField(index = 4, foreignKey = true)
+    private User HDBManager;
+
+    @CSVField(index = 5)
     private int HDBOfficerLimit;
     private final List<User> HDBOfficers = new ArrayList<>();
 
+    @CSVField(index = 6)
     private boolean visible = false;
 
     private Memento memento;
 
-    public BTOProject(User HDBManager, String name, String neighborhood, Map<FlatType, Integer> flatNum, Map<FlatType, Integer> flatPrice, LocalDate openingDate, LocalDate closingDate, int HDBOfficerLimit){
+    @SuppressWarnings("unused")
+    private BTOProject(){}
+
+    public BTOProject(User HDBManager, String name, String neighborhood, LocalDate openingDate, LocalDate closingDate, int HDBOfficerLimit){
         this.HDBManager = HDBManager;
         this.name = name;
         this.neighborhood = neighborhood;
-        this.flatNum = flatNum;
-        this.flatPrice = flatPrice;
         this.openingDate = openingDate;
         this.closingDate = closingDate;
         this.HDBOfficerLimit = HDBOfficerLimit;
@@ -54,16 +62,23 @@ public class BTOProject {
         
         validate(btoProjectDTO);
 
-        return new BTOProject(
+        BTOProject btoProject = new BTOProject(
             HBDManager,
             btoProjectDTO.getName(), 
             btoProjectDTO.getNeighborhood(), 
-            btoProjectDTO.getFlatNum(),
-            btoProjectDTO.getFlatPrice(),
             btoProjectDTO.getOpeningDate(), 
             btoProjectDTO.getClosingDate(),
             btoProjectDTO.getHDBOfficerLimit()
         );
+
+        btoProject.changeFlatUnits(btoProjectDTO.getFlatNum(), btoProjectDTO.getFlatPrice());
+
+        return btoProject;
+    }
+
+    @Override
+    public String getPK() {
+        return name;
     }
 
     public void edit(BTOProjectDTO btoProjectDTO){
@@ -75,11 +90,11 @@ public class BTOProject {
         memento = new Memento(this);
 
         this.neighborhood = btoProjectDTO.getNeighborhood();
-        this.flatNum = btoProjectDTO.getFlatNum();
-        this.flatPrice = btoProjectDTO.getFlatPrice();
         this.openingDate = btoProjectDTO.getOpeningDate();
         this.closingDate = btoProjectDTO.getClosingDate();
         this.HDBOfficerLimit = btoProjectDTO.getHDBOfficerLimit();
+
+        this.changeFlatUnits(btoProjectDTO.getFlatNum(), btoProjectDTO.getFlatPrice());
     }
 
     public void revertEdit(){
@@ -127,12 +142,39 @@ public class BTOProject {
         return neighborhood;
     }
 
+    public void setFlatUnits(Map<FlatType, FlatUnit> flatUnits){
+        this.flatUnits = flatUnits;
+    }
+
+    public void changeFlatUnits(Map<FlatType, Integer> flatNums, Map<FlatType, Integer> flatPrices){
+        for(FlatType flatType:FlatType.values()){
+            FlatUnit flatUnit = flatUnits.get(flatType);
+            int flatNum = flatNums.getOrDefault(flatType, 0);
+            int flatPrice = flatPrices.getOrDefault(flatType, 0);
+
+            if(flatUnit == null){
+                flatUnit = new FlatUnit(this, flatType, flatNum, flatPrice);
+                flatUnits.put(flatType, flatUnit);
+            }
+            else{
+                flatUnit.setFlatNum(flatNum);
+                flatUnit.setFlatPrice(flatPrice);
+            }
+        }
+    }
+
+    public List<FlatUnit> getFlatUnits() {
+        return List.copyOf(flatUnits.values());
+    }
+
     public int getFlatNum(FlatType flatType) {
-        return flatNum.getOrDefault(flatType, 0);
+        FlatUnit flatUnit = flatUnits.get(flatType);
+        return flatUnit == null ? 0 : flatUnit.getFlatNum();
     }
 
     public int getFlatPrice(FlatType flatType) {
-        return flatPrice.getOrDefault(flatType, 0);
+        FlatUnit flatUnit = flatUnits.get(flatType);
+        return flatUnit == null ? 0 : flatUnit.getFlatPrice();
     }
 
     public int getHDBOfficerLimit() {
@@ -167,7 +209,7 @@ public class BTOProject {
                 Closing Date          : %s
                 HDB Officer Limit     : %d
                 Visibility            : %s
-                """, name, neighborhood, flatNum.get(FlatType.TWO_ROOM_FLAT), flatPrice.get(FlatType.TWO_ROOM_FLAT), flatNum.get(FlatType.THREE_ROOM_FLAT), flatPrice.get(FlatType.THREE_ROOM_FLAT), openingDate, closingDate, HDBOfficerLimit, visible ? "Visible" : "Hidden");
+                """, name, neighborhood, getFlatNum(FlatType.TWO_ROOM_FLAT), getFlatPrice(FlatType.TWO_ROOM_FLAT), getFlatNum(FlatType.THREE_ROOM_FLAT), getFlatPrice(FlatType.THREE_ROOM_FLAT), openingDate, closingDate, HDBOfficerLimit, visible ? "Visible" : "Hidden");
     }
 
     public boolean isActive(){
@@ -200,20 +242,34 @@ public class BTOProject {
 
         private Memento(BTOProject btoProject) {
             this.neighborhood = btoProject.neighborhood;
-            this.flatNum = new HashMap<>(btoProject.flatNum);
-            this.flatPrice = new HashMap<>(btoProject.flatPrice);
             this.openingDate = btoProject.openingDate;
             this.closingDate = btoProject.closingDate;
             this.HDBOfficerLimit = btoProject.HDBOfficerLimit;
+
+            this.flatNum = new HashMap<>();
+            this.flatPrice = new HashMap<>();
+
+            for(FlatType flatType:FlatType.values()){
+                FlatUnit flatUnit = btoProject.flatUnits.get(flatType);
+
+                if(flatUnit == null){
+                    flatNum.put(flatType, 0);
+                    flatPrice.put(flatType, 0);
+                }
+                else{
+                    flatNum.put(flatType, flatUnit.getFlatNum());
+                    flatPrice.put(flatType, flatUnit.getFlatPrice());
+                }
+            }
         }
 
         private void restore(BTOProject btoProject) {
             btoProject.neighborhood = this.neighborhood;
-            btoProject.flatNum = new HashMap<>(this.flatNum);
-            btoProject.flatPrice = new HashMap<>(this.flatPrice);
             btoProject.openingDate = this.openingDate;
             btoProject.closingDate = this.closingDate;
             btoProject.HDBOfficerLimit = this.HDBOfficerLimit;
+
+            btoProject.changeFlatUnits(flatNum, flatPrice);
         }
     }
 }

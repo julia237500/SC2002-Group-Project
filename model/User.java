@@ -22,7 +22,8 @@ public class User implements DataModel{
     @CSVField(index = 5)
     private UserRole userRole;
 
-    public User(){}
+    @SuppressWarnings("unused")
+    private User() {}
 
     public User(String name, String NRIC, int age, MaritalStatus maritalStatus, String password, UserRole userRole){
         this.name = name;
