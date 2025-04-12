@@ -28,10 +28,12 @@ public class DefaultApplicationManager implements ApplicationManager{
             // user = authController.handleLogin();
             
             User applicant1 = new User("applicant1", "1", 1, MaritalStatus.SINGLE, "1", UserRole.APPLICANT);
+            User officer1 = dataManager.getByPK(User.class, "T1234567J");
             User manager1 = dataManager.getByPK(User.class, "S5678901G");
             User manager2 = dataManager.getByPK(User.class, "T8765432F");
             
             System.out.println("1. Applicant 1");
+            System.out.println("3. Officer 1");
             System.out.println("5. Manager 1");
             System.out.println("6. Manager 2");
             System.out.print("Login Using (Debugging): ");
@@ -39,6 +41,9 @@ public class DefaultApplicationManager implements ApplicationManager{
             switch (AbstractTerminalView.getSc().nextInt()) {
                 case 1:
                     user = applicant1;
+                    break;
+                case 3:
+                    user = officer1;
                     break;
                 case 5:
                     user = manager1;

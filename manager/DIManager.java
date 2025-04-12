@@ -1,33 +1,14 @@
 package manager;
 
-import controller.DefaultAuthController;
-import controller.DefaultBTOProjectController;
-import controller.DefaultCommandController;
-import controller.DefaultFormController;
-import controller.interfaces.AuthController;
-import controller.interfaces.BTOProjectController;
-import controller.interfaces.CommandController;
-import controller.interfaces.FormController;
+import controller.*;
+import controller.interfaces.*;
 import exception.DependencyInjectorException;
-import manager.interfaces.ApplicationManager;
-import manager.interfaces.DataManager;
-import manager.interfaces.MenuManager;
-import manager.interfaces.SessionManager;
-import service.DefaultAuthService;
-import service.DefaultBTOProjectService;
-import service.interfaces.AuthService;
-import service.interfaces.BTOProjectService;
+import manager.interfaces.*;
+import service.*;
+import service.interfaces.*;
 import util.interfaces.DIContainer;
-import view.interfaces.BTOProjectView;
-import view.interfaces.CommandView;
-import view.interfaces.ConfirmationView;
-import view.interfaces.FormView;
-import view.interfaces.MessageView;
-import view.terminal.TerminalBTOProjectView;
-import view.terminal.TerminalCommandView;
-import view.terminal.TerminalConfirmationView;
-import view.terminal.TerminalFormView;
-import view.terminal.TerminalMessageView;
+import view.interfaces.*;
+import view.terminal.*;
 
 public class DIManager{
     private static DIManager instance;   
@@ -75,6 +56,10 @@ public class DIManager{
         container.register(BTOProjectController.class, DefaultBTOProjectController.class);
         container.register(BTOProjectService.class, DefaultBTOProjectService.class);
         container.register(BTOProjectView.class, TerminalBTOProjectView.class);
+
+        container.register(OfficerRegistrationController.class, DefaultOfficerRegistrationController.class);
+        container.register(OfficerRegistrationService.class, DefaultOfficerRegistrationService.class);
+        container.register(OfficerRegistrationView.class, TerminalOfficerRegistrationView.class);
 
         container.register(MessageView.class, TerminalMessageView.class);
         container.register(ConfirmationView.class, TerminalConfirmationView.class);

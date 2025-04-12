@@ -1,12 +1,14 @@
 package parser;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
 import config.FlatType;
 import config.MaritalStatus;
+import config.RegistrationStatus;
 import config.UserRole;
 import exception.DataParsingException;
 
@@ -25,10 +27,12 @@ public class DataParser {
         addParser(String.class, s -> s);
 
         addParser(LocalDate.class, LocalDate::parse);
+        addParser(LocalDateTime.class, LocalDateTime::parse);
 
         addParser(MaritalStatus.class, MaritalStatus::parseMaritalStatus);
         addParser(UserRole.class, UserRole::parseUserRole);
         addParser(FlatType.class, FlatType::parseFlatType);
+        addParser(RegistrationStatus.class, RegistrationStatus::parseRegistrationStatus);
     }
 
     private static <T> void addParser(Class<T> clazz, Function<String, T> parser){
@@ -41,10 +45,12 @@ public class DataParser {
         addStringifiers(String.class, s -> s);
         
         addStringifiers(LocalDate.class, LocalDate::toString);
+        addStringifiers(LocalDateTime.class, LocalDateTime::toString);
         
         addStringifiers(MaritalStatus.class, MaritalStatus::getStoredString);
         addStringifiers(UserRole.class, UserRole::getStoredString);
         addStringifiers(FlatType.class, FlatType::getStoredString);
+        addStringifiers(RegistrationStatus.class, RegistrationStatus::getStoredString);
     }
 
     private static <T> void addStringifiers(Class<T> clazz, Function<T, String> stringifier){
@@ -54,7 +60,7 @@ public class DataParser {
     @SuppressWarnings("unchecked")
     public static <T> T parse(Class<T> clazz, String data){
         Function<String, T> parser = (Function<String, T>) parsers.get(clazz);
-        if (parser == null) throw new DataParsingException("Unsupported Data Type: %s".formatted(clazz.getSimpleName()));
+        if (parser == null) throw new DataParsingException("Unsupported Parsing Data Type: %s".formatted(clazz.getSimpleName()));
         
         return parser.apply(data);
     }
@@ -62,7 +68,7 @@ public class DataParser {
     @SuppressWarnings("unchecked")
     public static <T> String toString(T data){
         Function<T, String> stringifier = (Function<T, String>) stringifiers.get(data.getClass());
-        if (stringifier == null) throw new DataParsingException("Unsupported Data Type: %s".formatted(data.getClass().getSimpleName()));
+        if (stringifier == null) throw new DataParsingException("Unsupported Stringifying Data Type: %s".formatted(data.getClass().getSimpleName()));
         
         return stringifier.apply(data);
     }

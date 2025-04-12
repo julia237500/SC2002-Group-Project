@@ -9,7 +9,7 @@ import java.util.Map;
 import config.FlatType;
 import config.UserRole;
 import dto.BTOProjectDTO;
-import exception.BTOProjectException;
+import exception.DataModelException;
 
 public class BTOProject implements DataModel{
     public static int MIN_HDB_OFFICER_LIMIT = 1;
@@ -53,11 +53,11 @@ public class BTOProject implements DataModel{
     
     public static BTOProject fromDTO(User HBDManager, BTOProjectDTO btoProjectDTO){
         if(HBDManager.getUserRole() != UserRole.HDB_MANAGER){
-            throw new BTOProjectException("Access Denied. Only HDB Manager can open new project.");
+            throw new DataModelException("Access Denied. Only HDB Manager can open new project.");
         }
 
         if(btoProjectDTO.getClosingDate().isBefore(LocalDate.now())){
-            throw new BTOProjectException("Closing date cannot be past.");
+            throw new DataModelException("Closing date cannot be past.");
         }
         
         validate(btoProjectDTO);
@@ -84,7 +84,7 @@ public class BTOProject implements DataModel{
     public void edit(BTOProjectDTO btoProjectDTO){
         validate(btoProjectDTO);
         if(btoProjectDTO.getHDBOfficerLimit() < HDBOfficers.size()){
-            throw new BTOProjectException("New number of HDB Officers cannot be smaller than current number of HDB Officers in charge (%d)".formatted(HDBOfficers.size()));
+            throw new DataModelException("New number of HDB Officers cannot be smaller than current number of HDB Officers in charge (%d)".formatted(HDBOfficers.size()));
         }
 
         memento = new Memento(this);
@@ -109,20 +109,20 @@ public class BTOProject implements DataModel{
 
         for(FlatType flatType:FlatType.values()){
             if(flatNum.get(flatType) < 0){
-                throw new BTOProjectException("Number of %s cannot be negative.".formatted(flatType.getStoredString()));
+                throw new DataModelException("Number of %s cannot be negative.".formatted(flatType.getStoredString()));
             }
             
             if(flatPrice.get(flatType) < 0){
-                throw new BTOProjectException("Price of %s cannot be negative.".formatted(flatType.getStoredString()));
+                throw new DataModelException("Price of %s cannot be negative.".formatted(flatType.getStoredString()));
             }
         }
 
         if(btoProjectDTO.getClosingDate().isBefore(btoProjectDTO.getOpeningDate())){
-            throw new BTOProjectException("Closing date cannot be before opening date.");
+            throw new DataModelException("Closing date cannot be before opening date.");
         }
 
         if(btoProjectDTO.getHDBOfficerLimit() < 0 || btoProjectDTO.getHDBOfficerLimit() > BTOProject.MAX_HDB_OFFICER_LIMIT){
-            throw new BTOProjectException("Number of HDB Officers must be between 0 - %d".formatted(MAX_HDB_OFFICER_LIMIT));
+            throw new DataModelException("Number of HDB Officers must be between 0 - %d".formatted(MAX_HDB_OFFICER_LIMIT));
         }
     }
 
@@ -216,20 +216,28 @@ public class BTOProject implements DataModel{
         return isOverlappingWith(LocalDate.now(), LocalDate.now()) && visible;
     }
 
+    public boolean isOverlappingWith(BTOProject btoProject){
+        return isOverlappingWith(btoProject.getOpeningDate(), btoProject.getClosingDate());
+    }
+
     public boolean isOverlappingWith(LocalDate openingDate, LocalDate closingDate){
         return !(openingDate.isAfter(this.closingDate) || closingDate.isBefore(this.openingDate));
     }
 
     public void addHDBOfficer(User HDBOfficer){
         if(HDBOfficer.getUserRole() != UserRole.HDB_OFFICER){
-            throw new BTOProjectException("User added is not HDB Officer.");
+            throw new DataModelException("User added is not HDB Officer.");
         }
 
-        if(HDBOfficers.size() >= HDBOfficerLimit){
-            throw new BTOProjectException("Number of HDB Officers exceed limit (%d).".formatted(MAX_HDB_OFFICER_LIMIT));
+        if(isExceedingHDBOfficerLimit()){
+            throw new DataModelException("Number of HDB Officers exceed limit (%d).".formatted(MAX_HDB_OFFICER_LIMIT));
         }
 
         HDBOfficers.add(HDBOfficer);
+    }
+
+    public boolean isExceedingHDBOfficerLimit(){
+        return HDBOfficers.size() >= HDBOfficerLimit;
     }
 
     private static class Memento {

@@ -5,10 +5,12 @@ import java.util.List;
 import java.util.Map;
 
 import config.FlatType;
+import config.RegistrationStatus;
 import exception.RelationshipException;
 import manager.interfaces.DataManager;
 import model.BTOProject;
 import model.FlatUnit;
+import model.OfficerRegistration;
 import relationship.resolver.DeleteResolver;
 import relationship.resolver.LoadResolver;
 import relationship.resolver.SaveResolver;
@@ -28,6 +30,15 @@ public class BTOProjectRelationshipResolver implements LoadResolver, SaveResolve
                 flatUnits.put(flatUnit.getFlatType(), flatUnit);
             }
             btoProject.setFlatUnits(flatUnits);
+
+            List<OfficerRegistration> officerRegistrations = dataManager.getByQueries(OfficerRegistration.class, List.of(
+                officerRegistration -> officerRegistration.getBTOProject() == btoProject,
+                officerRegistration -> officerRegistration.getRegistrationStatus() == RegistrationStatus.SUCCESSFUL
+            ));
+
+            for(OfficerRegistration officerRegistration:officerRegistrations){
+                btoProject.addHDBOfficer(officerRegistration.getHDBOfficer());
+            }
         }
     }
 
