@@ -1,6 +1,6 @@
 package factory;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -10,12 +10,17 @@ import command.btoproject.EditBTOProjectCommand;
 import command.btoproject.ShowBTOProjectCommand;
 import command.btoproject.ToggleBTOProjectVisibilityCommand;
 import command.general.MenuBackCommand;
+import command.officer_registration.AddOfficerRegistrationCommand;
+import command.officer_registration.ShowOfficerRegistrationCommand;
+import command.officer_registration.ShowOfficerRegistrationsByBTOProjectCommand;
 import config.UserRole;
 import controller.interfaces.BTOProjectController;
+import controller.interfaces.OfficerRegistrationController;
 import manager.DIManager;
 import manager.interfaces.MenuManager;
 import manager.interfaces.SessionManager;
 import model.BTOProject;
+import model.OfficerRegistration;
 import model.User;
 import view.interfaces.ConfirmationView;
 
@@ -23,7 +28,7 @@ public class BTOProjectCommandFactory {
      private static final DIManager diManager = DIManager.getInstance();
 
     public static Map<Integer, Command> getShowBTOProjectsCommands(List<BTOProject> btoProjects) {
-        Map<Integer, Command> commands = new HashMap<>();
+        Map<Integer, Command> commands = new LinkedHashMap<>();
 
         BTOProjectController btoProjectController = diManager.resolve(BTOProjectController.class);
         MenuManager menuManager = diManager.resolve(MenuManager.class);
@@ -39,12 +44,13 @@ public class BTOProjectCommandFactory {
     }
 
     public static Map<Integer, Command> getBTOProjectsOperationCommands(BTOProject btoProject) {
-        Map<Integer, Command> commands = new HashMap<>();
+        Map<Integer, Command> commands = new LinkedHashMap<>();
 
         SessionManager sessionManager = diManager.resolve(SessionManager.class);
         User user = sessionManager.getUser();
 
         BTOProjectController btoProjectController = diManager.resolve(BTOProjectController.class);
+        OfficerRegistrationController officerRegistrationController = diManager.resolve(OfficerRegistrationController.class);
         ConfirmationView confirmationView = diManager.resolve(ConfirmationView.class);
         MenuManager menuManager = diManager.resolve(MenuManager.class);
 
@@ -52,6 +58,17 @@ public class BTOProjectCommandFactory {
             commands.put(1, new EditBTOProjectCommand(btoProjectController, btoProject));
             commands.put(2, new ToggleBTOProjectVisibilityCommand(btoProjectController, btoProject));
             commands.put(3, new DeleteBTOProjectCommand(btoProjectController, confirmationView, menuManager, btoProject));
+            commands.put(4, new ShowOfficerRegistrationsByBTOProjectCommand(officerRegistrationController, btoProject));
+        }
+
+        if(user.getUserRole() == UserRole.HDB_OFFICER){
+            OfficerRegistration officerRegistration = officerRegistrationController.getOfficerRegistrationByOfficerAndBTOProject(btoProject);
+            if(officerRegistration == null){
+                commands.put(11, new AddOfficerRegistrationCommand(officerRegistrationController, btoProjectController, menuManager, btoProject, confirmationView));
+            }
+            else{
+                commands.put(11, new ShowOfficerRegistrationCommand(officerRegistrationController, officerRegistration, true));
+            }
         }
         commands.put(-1, new MenuBackCommand(menuManager));
 

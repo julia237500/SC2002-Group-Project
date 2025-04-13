@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import exception.DataParsingException;
 import exception.DataSavingException;
@@ -22,6 +23,7 @@ import model.BTOProject;
 import model.CSVField;
 import model.DataModel;
 import model.FlatUnit;
+import model.OfficerRegistration;
 import model.User;
 import parser.DataParser;
 import relationship.BTOProjectRelationshipResolver;
@@ -51,6 +53,7 @@ public class CSVDataManager implements DataManager{
         filePaths.put(User.class, "./data/UserList.csv");
         filePaths.put(BTOProject.class, "./data/ProjectList.csv");
         filePaths.put(FlatUnit.class, "./data/FlatUnitList.csv");
+        filePaths.put(OfficerRegistration.class, "./data/OfficerRegistrationList.csv");
     }
 
     private void configLoadResolver(){
@@ -131,6 +134,13 @@ public class CSVDataManager implements DataManager{
 
     @Override
     @SuppressWarnings("unchecked")
+    public <T extends DataModel> List<T> getAll(Class<T> clazz, Comparator<T> comparator){
+        Stream<T> stream = (Stream<T>) data.get(clazz).values().stream();
+        return stream.sorted(comparator).toList();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
     public <T extends DataModel> T getByPK(Class<T> clazz, String PK){
         return (T) data.get(clazz).get(PK);
     }
@@ -151,6 +161,21 @@ public class CSVDataManager implements DataManager{
 
     @Override
     @SuppressWarnings("unchecked")
+    public <T extends DataModel> List<T> getByQuery(Class<T> clazz, Predicate<T> query, Comparator<T> comparator) {
+        Map<String, T> classData = (Map<String, T>) data.get(clazz);
+        
+        if (classData == null) {
+            return List.of();
+        }
+
+        return classData.values().stream()
+                .filter(query)
+                .sorted(comparator)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
     public <T extends DataModel> List<T> getByQueries(Class<T> clazz, List<Predicate<T>> queries) {
         Map<String, T> classData = (Map<String, T>) data.get(clazz);
         
@@ -160,6 +185,21 @@ public class CSVDataManager implements DataManager{
 
         return classData.values().stream()
                 .filter(queries.stream().reduce(Predicate::and).orElse(_ -> true))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T extends DataModel> List<T> getByQueries(Class<T> clazz, List<Predicate<T>> queries, Comparator<T> comparator) {
+        Map<String, T> classData = (Map<String, T>) data.get(clazz);
+        
+        if (classData == null) {
+            return List.of();
+        }
+
+        return classData.values().stream()
+                .filter(queries.stream().reduce(Predicate::and).orElse(_ -> true))
+                .sorted(comparator)
                 .collect(Collectors.toList());
     }
     
