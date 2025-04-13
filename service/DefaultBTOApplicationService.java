@@ -18,11 +18,22 @@ public class DefaultBTOApplicationService implements BTOApplicationService{
     private final Map<User, BTOApplication> userToApplicationMap = new HashMap<>();
     
     private ServiceResponse<?> validate(User applicant, BTOProject btoProject, FlatType flatType){
+
         // Check if user is HDBOfficer (dont care now if HDBOfficer manage the project) or Applicant
+
         // Check if user have not apply before using the map
+        if (userToApplicationMap.containsKey(applicant)) {
+            return new ServiceResponse<>(ResponseStatus.ERROR, "User has already applied for a BTO project!");
+        }
         // Check if user can apply for the flat type
+        if (!btoProject.isEligibleFlatType(flatType, applicant)) {
+            return new ServiceResponse<>(ResponseStatus.ERROR, "User is not eligible for this flat type!")
+        }
         // Check if application the number of flat type is >0 using btoProject.getFlatNumByType(flatType)
         // If not return the ServiceResponse with ResponseStatus.ERROR and suitable message
+        if (btoProject.getFlatNumByType(flatType) <= 0) {
+            return new ServiceResponse<>(ResponseStatus.ERROR, "No flats available for the selected flat type.");
+        }
         
         return new ServiceResponse<>(ResponseStatus.SUCCESS, "");
     }
@@ -35,7 +46,11 @@ public class DefaultBTOApplicationService implements BTOApplicationService{
         }
 
         // Create new BTOApplication
+        BTOApplication application = new BTOApplication(applicant, btoProject, flatType);
+
         // Add the application to the list and map
+        applications.add(application);
+        userToApplicationMap.put(applicant, application);
 
         return new ServiceResponse<>(ResponseStatus.SUCCESS, "Application submitted successfully. Kindly wait for approval");
     }

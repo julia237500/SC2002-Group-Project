@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import config.FlatType;
+import config.MaritalStatus;
 import config.UserRole;
 import dto.BTOProjectDTO;
 import exception.BTOProjectException;
@@ -182,5 +183,19 @@ public class BTOProject {
 
     public boolean isOverlappingWith(LocalDate openingDate, LocalDate closingDate){
         return !(openingDate.isAfter(this.closingDate) || closingDate.isBefore(this.openingDate));
+    }
+
+    public boolean isEligibleFlatType(FlatType flatType, User user) {
+        // Singles , 35 yo and above can only apply for 2-room flats :(
+        if (user.getMaritalStatus() == MaritalStatus.SINGLE) {
+            return user.getAge() >= 35 && flatType == FlatType.TWO_ROOM_FLAT;
+        }
+        // Couples can get any flat, still checking if they more than 21 cos u can get married at 18 in SG
+        if (user.getMaritalStatus() == MaritalStatus.MARRIED) {
+            return user.getAge() >= 21;
+        }
+        return false;
+        
+        
     }
 }
