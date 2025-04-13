@@ -52,6 +52,19 @@ public class BTOProjectRelationshipResolver implements LoadResolver, SaveResolve
                 throw new RelationshipException(e.getMessage());
             }
         }
+
+        List<OfficerRegistration> officerRegistrations = dataManager.getByQuery(
+            OfficerRegistration.class, 
+            registration -> registration.getBTOProject() == btoProject
+        );
+
+        for(OfficerRegistration officerRegistration:officerRegistrations){
+            try{
+                dataManager.delete(officerRegistration);
+            } catch (Exception e){
+                throw new RelationshipException(e.getMessage());
+            }
+        }
     }
 
     @Override

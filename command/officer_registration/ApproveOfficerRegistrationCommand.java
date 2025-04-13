@@ -2,6 +2,7 @@ package command.officer_registration;
 
 import command.Command;
 import controller.interfaces.OfficerRegistrationController;
+import manager.interfaces.MenuManager;
 import model.OfficerRegistration;
 import view.interfaces.ConfirmationView;
 
@@ -10,19 +11,22 @@ public class ApproveOfficerRegistrationCommand implements Command{
     private OfficerRegistration officerRegistration;
     private boolean isApproving;
     private ConfirmationView confirmationView;
+    private MenuManager menuManager;
 
-    public ApproveOfficerRegistrationCommand(OfficerRegistrationController officerRegistrationController, OfficerRegistration officerRegistration, boolean isApproving, ConfirmationView confirmationView){
+    public ApproveOfficerRegistrationCommand(OfficerRegistrationController officerRegistrationController, OfficerRegistration officerRegistration, boolean isApproving, ConfirmationView confirmationView, MenuManager menuManager){
         this.officerRegistrationController = officerRegistrationController;
         this.officerRegistration = officerRegistration;
         this.isApproving = isApproving;
         this.confirmationView = confirmationView;
+        this.menuManager = menuManager;
     }
 
     @Override
     public void execute() {
         if(confirmationView.getConfirmation()){
             officerRegistrationController.approveOfficerRegistration(officerRegistration, isApproving);
-            officerRegistrationController.showOfficerRegistrationDetail(officerRegistration);
+            menuManager.back();
+            officerRegistrationController.showOfficerRegistration(officerRegistration);
         }
     }
 

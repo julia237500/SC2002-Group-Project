@@ -45,4 +45,6 @@ public class DashboardCommandFactory {
 
         commands.put(9, new LogoutCommand(applicationManager));
 
-     
+        return commands;
+    }
+}

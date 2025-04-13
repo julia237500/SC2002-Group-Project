@@ -17,4 +17,6 @@ public class ShowOfficerRegistrationsByOfficerCommand implements Command{
 
     @Override
     public String getDescription() {
-        return "List of Officer Regist
+        return "List of Officer Registrations";
+    }
+}

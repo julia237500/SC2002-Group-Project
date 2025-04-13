@@ -48,8 +48,8 @@ public class OfficerRegistrationCommandFactory {
 
         if(user.getUserRole() == UserRole.HDB_MANAGER){
             if(officerRegistration.getRegistrationStatus() == RegistrationStatus.PENDING && officerRegistration.getBTOProject().getHDBManager() == user){
-                commands.put(1, new ApproveOfficerRegistrationCommand(officerRegistrationController, officerRegistration, true, confirmationView));
-                commands.put(2, new ApproveOfficerRegistrationCommand(officerRegistrationController, officerRegistration, false, confirmationView));
+                commands.put(1, new ApproveOfficerRegistrationCommand(officerRegistrationController, officerRegistration, true, confirmationView, menuManager));
+                commands.put(2, new ApproveOfficerRegistrationCommand(officerRegistrationController, officerRegistration, false, confirmationView, menuManager));
             }
         }
 
