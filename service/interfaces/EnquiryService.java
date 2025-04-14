@@ -14,4 +14,5 @@ public interface EnquiryService {
     ServiceResponse<?> replyEnquiry(User requestedUser, Enquiry enquiry, String replyString);
     ServiceResponse<List<Enquiry>> getAllEnquiries(User requestedUser);
     ServiceResponse<List<Enquiry>> getEnquiriesByUser(User requestedUser);
-  
+    ServiceResponse<List<Enquiry>> getEnquiriesByBTOProject(User requestedUser, BTOProject btoProject);
+}

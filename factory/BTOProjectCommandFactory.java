@@ -80,4 +80,12 @@ public class BTOProjectCommandFactory {
             commands.put(20, new AddEnquiryCommand(enquiryController, btoProject));
         } 
 
-        if(user.getUserRole() == User
+        if(user.getUserRole() == UserRole.HDB_MANAGER || btoProject.isHandlingBy(user)){
+            commands.put(21, new ShowEnquiriesByBTOProjectCommand(enquiryController, btoProject));
+        }
+
+        commands.put(-1, new MenuBackCommand(menuManager));
+
+        return commands;
+    }
+}

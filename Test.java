@@ -40,4 +40,13 @@ public class Test {
         sessionManager.setUser(manager);
         // enquiryController.addEnquiry(btoProject);
         // enquiryController.replyEnquiry(enquiry1);
-        // enquiryController.replyEnquiry(enquiry
+        // enquiryController.replyEnquiry(enquiry2);
+
+        try {
+            dataManager.delete(btoProject);
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+}

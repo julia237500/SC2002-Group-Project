@@ -134,4 +134,29 @@ public class DefaultEnquiryController extends AbstractDefaultController implemen
 
         if(serviceResponse.getResponseStatus() != ResponseStatus.SUCCESS){
             messageView.error(serviceResponse.getMessage());
+            return;
+        }
+
+        List<Enquiry> enquiries = serviceResponse.getData();
+        if(enquiries.isEmpty()){
+            messageView.info("Enquiries not found.");
+            return;
+        }
         
+        Map<Integer, Command> commands = EnquiryCommandFactory.getShowEnquiriesCommands(enquiries);
+        menuManager.addCommands("Enquiries", commands);
+    }
+
+    @Override
+    public void showEnquiry(Enquiry enquiry) {
+        showEnquiryDetail(enquiry);
+
+        Map<Integer, Command> commands = EnquiryCommandFactory.getEnquiryOperationCommands(enquiry);
+        menuManager.addCommands("Operation", commands);
+    }
+
+    @Override
+    public void showEnquiryDetail(Enquiry enquiry) {
+        enquiryView.showEnquiryDetail(enquiry);
+    }    
+}

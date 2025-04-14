@@ -122,4 +122,21 @@ public class DefaultEnquiryService implements EnquiryService{
     @Override
     public ServiceResponse<?> replyEnquiry(User requestedUser, Enquiry enquiry, String replyString) {
         if(!enquiry.getBtoProject().isHandlingBy(requestedUser)){
-  
+            return new ServiceResponse<>(ResponseStatus.ERROR, "Access denied. Only Manager/Officer in-charge can performed this action.");
+        }
+
+        if(!enquiry.canBeAltered()){
+            return new ServiceResponse<>(ResponseStatus.ERROR, "Enquiries already been replied.");
+        }
+
+        try {
+            enquiry.setReply(replyString);
+            dataManager.save(enquiry);
+        } catch (Exception e) {
+            enquiry.revertReply();
+            return new ServiceResponse<>(ResponseStatus.ERROR, "Internal error. %s".formatted(e.getMessage()));
+        }
+
+        return new ServiceResponse<>(ResponseStatus.SUCCESS, "Enquiry replied successful.");
+    }
+}

@@ -73,4 +73,14 @@ public class DataParser {
         Function<T, String> stringifier = (Function<T, String>) stringifiers.get(data.getClass());
         if (stringifier == null) throw new DataParsingException("Unsupported Stringifying Data Type: %s".formatted(data.getClass().getSimpleName()));
         
-        return stringifier
+        return stringifier.apply(data);
+    }
+
+    private static String sanitize(String s){
+        return s.replace(",", "\\,");
+    }
+
+    private static String desanitize(String s){
+        return s.replace("\\,", ",");
+    }
+}
