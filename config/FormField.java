@@ -14,4 +14,8 @@ public enum FormField {
     OPENING_DATE,
     CLOSING_DATE,
     HBD_OFFICER_LIMIT,
+
+    SUBJECT,
+    ENQUIRY,
+    REPLY
 }

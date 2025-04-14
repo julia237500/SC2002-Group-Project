@@ -27,13 +27,15 @@ public class DefaultApplicationManager implements ApplicationManager{
             DataManager dataManager = DIManager.getInstance().resolve(DataManager.class);
             // user = authController.handleLogin();
             
-            User applicant1 = new User("applicant1", "1", 1, MaritalStatus.SINGLE, "1", UserRole.APPLICANT);
+            User applicant1 = dataManager.getByPK(User.class, "S3456789E");;
             User officer1 = dataManager.getByPK(User.class, "T1234567J");
+            User officer2 = dataManager.getByPK(User.class, "S6543210I");
             User manager1 = dataManager.getByPK(User.class, "S5678901G");
             User manager2 = dataManager.getByPK(User.class, "T8765432F");
             
             System.out.println("1. Applicant 1");
             System.out.println("3. Officer 1");
+            System.out.println("4. Officer 2");
             System.out.println("5. Manager 1");
             System.out.println("6. Manager 2");
             System.out.print("Login Using (Debugging): ");
@@ -44,6 +46,9 @@ public class DefaultApplicationManager implements ApplicationManager{
                     break;
                 case 3:
                     user = officer1;
+                    break;
+                case 4:
+                    user = officer2;
                     break;
                 case 5:
                     user = manager1;

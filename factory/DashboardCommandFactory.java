@@ -6,12 +6,15 @@ import java.util.Map;
 import command.Command;
 import command.btoproject.AddBTOProjectCommand;
 import command.btoproject.ShowBTOProjectsCommand;
+import command.enquiry.ShowAllEnquiriesCommand;
+import command.enquiry.ShowEnquiriesByUserCommand;
 import command.general.LogoutCommand;
 import command.officer_registration.ShowOfficerRegistrationsByOfficerCommand;
 import command.user.ChangePasswordCommand;
 import config.UserRole;
 import controller.interfaces.AuthController;
 import controller.interfaces.BTOProjectController;
+import controller.interfaces.EnquiryController;
 import controller.interfaces.OfficerRegistrationController;
 import manager.DIManager;
 import manager.interfaces.ApplicationManager;
@@ -29,6 +32,7 @@ public class DashboardCommandFactory {
         AuthController authController = diManager.resolve(AuthController.class);
         BTOProjectController btoProjectController = diManager.resolve(BTOProjectController.class);
         OfficerRegistrationController officerRegistrationController = diManager.resolve(OfficerRegistrationController.class);
+        EnquiryController enquiryController = diManager.resolve(EnquiryController.class);
 
         Map<Integer, Command> commands = new LinkedHashMap<>();
         commands.put(1, new ChangePasswordCommand(authController, applicationManager));
@@ -41,6 +45,13 @@ public class DashboardCommandFactory {
 
         if(user.getUserRole() == UserRole.HDB_OFFICER){
             commands.put(30, new ShowOfficerRegistrationsByOfficerCommand(officerRegistrationController));
+        }
+
+        if(user.getUserRole() == UserRole.HDB_MANAGER){
+            commands.put(40, new ShowAllEnquiriesCommand(enquiryController));
+        }
+        else{
+            commands.put(41, new ShowEnquiriesByUserCommand(enquiryController));
         }
 
         commands.put(9, new LogoutCommand(applicationManager));

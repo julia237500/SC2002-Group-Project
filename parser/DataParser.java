@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+import config.EnquiryStatus;
 import config.FlatType;
 import config.MaritalStatus;
 import config.RegistrationStatus;
@@ -24,7 +25,7 @@ public class DataParser {
     private static void configParsers(){
         addParser(int.class, Integer::parseInt);
         addParser(boolean.class, s -> s.equals("1"));
-        addParser(String.class, s -> s);
+        addParser(String.class, s -> desanitize(s));
 
         addParser(LocalDate.class, LocalDate::parse);
         addParser(LocalDateTime.class, LocalDateTime::parse);
@@ -33,6 +34,7 @@ public class DataParser {
         addParser(UserRole.class, UserRole::parseUserRole);
         addParser(FlatType.class, FlatType::parseFlatType);
         addParser(RegistrationStatus.class, RegistrationStatus::parseRegistrationStatus);
+        addParser(EnquiryStatus.class, EnquiryStatus::parseEnquiryStatus);
     }
 
     private static <T> void addParser(Class<T> clazz, Function<String, T> parser){
@@ -42,7 +44,7 @@ public class DataParser {
     private static void configStringifiers(){
         addStringifiers(Integer.class, String::valueOf);
         addStringifiers(Boolean.class, b -> b?"1":"0");
-        addStringifiers(String.class, s -> s);
+        addStringifiers(String.class, s -> sanitize(s));
         
         addStringifiers(LocalDate.class, LocalDate::toString);
         addStringifiers(LocalDateTime.class, LocalDateTime::toString);
@@ -51,6 +53,7 @@ public class DataParser {
         addStringifiers(UserRole.class, UserRole::getStoredString);
         addStringifiers(FlatType.class, FlatType::getStoredString);
         addStringifiers(RegistrationStatus.class, RegistrationStatus::getStoredString);
+        addStringifiers(EnquiryStatus.class, EnquiryStatus::getStoredString);
     }
 
     private static <T> void addStringifiers(Class<T> clazz, Function<T, String> stringifier){
@@ -71,5 +74,13 @@ public class DataParser {
         if (stringifier == null) throw new DataParsingException("Unsupported Stringifying Data Type: %s".formatted(data.getClass().getSimpleName()));
         
         return stringifier.apply(data);
+    }
+
+    private static String sanitize(String s){
+        return s.replace(",", "\\,");
+    }
+
+    private static String desanitize(String s){
+        return s.replace("\\,", ",");
     }
 }

@@ -240,6 +240,17 @@ public class BTOProject implements DataModel{
         return HDBOfficers.size() >= HDBOfficerLimit;
     }
 
+    public boolean isHandlingBy(User user){
+        if(user.getUserRole() == UserRole.HDB_MANAGER){
+            return user == HDBManager;
+        }
+        else if(user.getUserRole() == UserRole.HDB_OFFICER){
+            return HDBOfficers.contains(user);
+        }
+        
+        return false;
+    }
+
     private static class Memento {
         private final String neighborhood;
         private final Map<FlatType, Integer> flatNum;

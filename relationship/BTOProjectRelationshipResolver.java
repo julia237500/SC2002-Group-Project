@@ -9,6 +9,7 @@ import config.RegistrationStatus;
 import exception.RelationshipException;
 import manager.interfaces.DataManager;
 import model.BTOProject;
+import model.Enquiry;
 import model.FlatUnit;
 import model.OfficerRegistration;
 import relationship.resolver.DeleteResolver;
@@ -61,6 +62,19 @@ public class BTOProjectRelationshipResolver implements LoadResolver, SaveResolve
         for(OfficerRegistration officerRegistration:officerRegistrations){
             try{
                 dataManager.delete(officerRegistration);
+            } catch (Exception e){
+                throw new RelationshipException(e.getMessage());
+            }
+        }
+
+        List<Enquiry> enquiries = dataManager.getByQuery(
+            Enquiry.class, 
+            enquiry -> enquiry.getBtoProject() == btoProject
+        );
+
+        for(Enquiry enquiry:enquiries){
+            try{
+                dataManager.delete(enquiry);
             } catch (Exception e){
                 throw new RelationshipException(e.getMessage());
             }
