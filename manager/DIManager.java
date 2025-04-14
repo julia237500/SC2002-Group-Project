@@ -1,36 +1,14 @@
 package manager;
 
-import controller.DefaultAuthController;
-import controller.DefaultBTOApplicationController;
-import controller.DefaultBTOProjectController;
-import controller.DefaultCommandController;
-import controller.DefaultFormController;
-import controller.interfaces.AuthController;
-import controller.interfaces.BTOApplicationController;
-import controller.interfaces.BTOProjectController;
-import controller.interfaces.CommandController;
-import controller.interfaces.FormController;
+import controller.*;
+import controller.interfaces.*;
 import exception.DependencyInjectorException;
-import manager.interfaces.ApplicationManager;
-import manager.interfaces.MenuManager;
-import manager.interfaces.SessionManager;
-import service.DefaultAuthService;
-import service.DefaultBTOApplicationService;
-import service.DefaultBTOProjectService;
-import service.interfaces.AuthService;
-import service.interfaces.BTOApplicationService;
-import service.interfaces.BTOProjectService;
+import manager.interfaces.*;
+import service.*;
+import service.interfaces.*;
 import util.interfaces.DIContainer;
-import view.interfaces.BTOProjectView;
-import view.interfaces.CommandView;
-import view.interfaces.ConfirmationView;
-import view.interfaces.FormView;
-import view.interfaces.MessageView;
-import view.terminal.TerminalBTOProjectView;
-import view.terminal.TerminalCommandView;
-import view.terminal.TerminalConfirmationView;
-import view.terminal.TerminalFormView;
-import view.terminal.TerminalMessageView;
+import view.interfaces.*;
+import view.terminal.*;
 
 public class DIManager{
     private static DIManager instance;   
@@ -64,9 +42,10 @@ public class DIManager{
         container.register(ApplicationManager.class, DefaultApplicationManager.class);
         container.register(SessionManager.class, DefaultSessionManager.class);
         container.register(MenuManager.class, DefaultMenuManager.class);
+        container.register(DataManager.class, CSVDataManager.class);
 
-        container.register(AuthService.class, DefaultAuthService.class);
         container.register(AuthController.class, DefaultAuthController.class);
+        container.register(AuthService.class, DefaultAuthService.class);
 
         container.register(FormController.class, DefaultFormController.class);
         container.register(FormView.class, TerminalFormView.class);
@@ -77,6 +56,14 @@ public class DIManager{
         container.register(BTOProjectController.class, DefaultBTOProjectController.class);
         container.register(BTOProjectService.class, DefaultBTOProjectService.class);
         container.register(BTOProjectView.class, TerminalBTOProjectView.class);
+
+        container.register(OfficerRegistrationController.class, DefaultOfficerRegistrationController.class);
+        container.register(OfficerRegistrationService.class, DefaultOfficerRegistrationService.class);
+        container.register(OfficerRegistrationView.class, TerminalOfficerRegistrationView.class);
+
+        container.register(EnquiryController.class, DefaultEnquiryController.class);
+        container.register(EnquiryService.class, DefaultEnquiryService.class);
+        container.register(EnquiryView.class, TerminalEnquiryView.class);
 
         container.register(BTOApplicationController.class, DefaultBTOApplicationController.class);
         container.register(BTOApplicationService.class, DefaultBTOApplicationService.class);

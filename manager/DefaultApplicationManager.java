@@ -4,6 +4,7 @@ import config.MaritalStatus;
 import config.UserRole;
 import controller.interfaces.AuthController;
 import manager.interfaces.ApplicationManager;
+import manager.interfaces.DataManager;
 import manager.interfaces.MenuManager;
 import manager.interfaces.SessionManager;
 import model.User;
@@ -23,13 +24,18 @@ public class DefaultApplicationManager implements ApplicationManager{
     public void startApplication() {
         while(true){ 
             User user = null;
+            DataManager dataManager = DIManager.getInstance().resolve(DataManager.class);
             // user = authController.handleLogin();
             
-            User applicant1 = new User("applicant1", "1", 1, MaritalStatus.SINGLE, "1", UserRole.APPLICANT);
-            User manager1 = new User("manager1", "1", 1, MaritalStatus.SINGLE, "1", UserRole.HDB_MANAGER);
-            User manager2 = new User("manager2", "1", 1, MaritalStatus.SINGLE, "1", UserRole.HDB_MANAGER);
+            User applicant1 = dataManager.getByPK(User.class, "S3456789E");;
+            User officer1 = dataManager.getByPK(User.class, "T1234567J");
+            User officer2 = dataManager.getByPK(User.class, "S6543210I");
+            User manager1 = dataManager.getByPK(User.class, "S5678901G");
+            User manager2 = dataManager.getByPK(User.class, "T8765432F");
             
             System.out.println("1. Applicant 1");
+            System.out.println("3. Officer 1");
+            System.out.println("4. Officer 2");
             System.out.println("5. Manager 1");
             System.out.println("6. Manager 2");
             System.out.print("Login Using (Debugging): ");
@@ -37,6 +43,12 @@ public class DefaultApplicationManager implements ApplicationManager{
             switch (AbstractTerminalView.getSc().nextInt()) {
                 case 1:
                     user = applicant1;
+                    break;
+                case 3:
+                    user = officer1;
+                    break;
+                case 4:
+                    user = officer2;
                     break;
                 case 5:
                     user = manager1;
@@ -47,11 +59,9 @@ public class DefaultApplicationManager implements ApplicationManager{
                 default:
                     break;
             }
-
+            
             sessionManager.setUser(user);
             menuManager.startDashboardLoop();
-
-            System.out.println("Logout");
         }
     }
 

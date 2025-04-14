@@ -1,38 +1,28 @@
 package service;
 
-import java.util.HashMap;
-import java.util.List;
-
 import config.ResponseStatus;
-import model.ServiceResponse;
+import manager.interfaces.DataManager;
 import model.User;
-import parser.UserParser;
 import service.interfaces.AuthService;
-import util.CSVFileReaderUtil;
 
 public class DefaultAuthService implements AuthService{
-    private static HashMap<String, User> users = null;
+    private DataManager dataManager;
 
-    public DefaultAuthService(){
-        if(users == null) readUser();
-    }
-
-    private static void readUser(){
-        try{
-            List<List<String>> userData = CSVFileReaderUtil.readFile("./data/UserList.csv");
-            users = UserParser.parseUser(userData);
-        }
-        catch(Exception e){
-            System.err.println("Fatal: Fail to read user, TERMINATING. Error:" + e.getMessage());
-            System.exit(1);
-        }
+    public DefaultAuthService(DataManager dataManager){
+        this.dataManager = dataManager;
     }
 
     public ServiceResponse<User> login(String NRIC, String password){
-        User user = users.get(NRIC);
+        User user = null;
+
+        try {
+            user = dataManager.getByPK(User.class, NRIC);
+        } catch (Exception e) {
+            return new ServiceResponse<User>(ResponseStatus.ERROR, "Internal Error. " + e.getMessage());
+        }
         
-        if(user == null) return new ServiceResponse<User>(ResponseStatus.ERROR, "Invalid NRIC", null);
-        if(!user.getPassword().equals(password)) return new ServiceResponse<User>(ResponseStatus.ERROR, "Incorrect Password", null);
+        if(user == null) return new ServiceResponse<User>(ResponseStatus.ERROR, "Invalid NRIC");
+        if(!user.getPassword().equals(password)) return new ServiceResponse<User>(ResponseStatus.ERROR, "Incorrect Password");
         return new ServiceResponse<User>(ResponseStatus.SUCCESS, "Login Successful", user);
     }
 
@@ -41,7 +31,16 @@ public class DefaultAuthService implements AuthService{
             return new ServiceResponse<>(ResponseStatus.FAILURE, "Password is not the same as Confirm Password");
         }
 
+        String oldPassword = user.getPassword();
         user.setPassword(password);
+
+        try {
+            dataManager.save(user);
+        } catch (Exception e) {
+            user.setPassword(oldPassword);
+            return new ServiceResponse<>(ResponseStatus.ERROR, "Save to file fail. " + e.getMessage());
+        }
+
         return new ServiceResponse<>(ResponseStatus.SUCCESS, "Password changed successful");
     }
 }

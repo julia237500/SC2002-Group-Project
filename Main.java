@@ -13,6 +13,7 @@ public class Main {
             applicationManager.startApplication();
         } catch(Exception e){
             System.err.println("Program terminated unexpectedly: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 }
