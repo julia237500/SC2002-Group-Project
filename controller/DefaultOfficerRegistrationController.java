@@ -57,6 +57,11 @@ public class DefaultOfficerRegistrationController extends AbstractDefaultControl
         }
 
         List<OfficerRegistration> officerRegistrations = serviceResponse.getData();
+        if(officerRegistrations.isEmpty()){
+            messageView.info("Registration not found.");
+            return;
+        }
+
         Map<Integer, Command> commands = OfficerRegistrationCommandFactory.getShowRegistrationsCommands(officerRegistrations);
         menuManager.addCommands("Registrations as Officer", commands);
     }
@@ -72,6 +77,11 @@ public class DefaultOfficerRegistrationController extends AbstractDefaultControl
         }
 
         List<OfficerRegistration> officerRegistrations = serviceResponse.getData();
+        if(officerRegistrations.isEmpty()){
+            messageView.info("Registration not found.");
+            return;
+        }
+
         Map<Integer, Command> commands = OfficerRegistrationCommandFactory.getShowRegistrationsCommands(officerRegistrations);
         menuManager.addCommands("Registrations as Officer", commands);
     }

@@ -22,6 +22,7 @@ import manager.interfaces.DataManager;
 import model.BTOProject;
 import model.CSVField;
 import model.DataModel;
+import model.Enquiry;
 import model.FlatUnit;
 import model.OfficerRegistration;
 import model.User;
@@ -54,6 +55,7 @@ public class CSVDataManager implements DataManager{
         filePaths.put(BTOProject.class, "./data/ProjectList.csv");
         filePaths.put(FlatUnit.class, "./data/FlatUnitList.csv");
         filePaths.put(OfficerRegistration.class, "./data/OfficerRegistrationList.csv");
+        filePaths.put(Enquiry.class, "./data/EnquiryList.csv");
     }
 
     private void configLoadResolver(){

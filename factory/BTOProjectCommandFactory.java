@@ -9,12 +9,15 @@ import command.btoproject.DeleteBTOProjectCommand;
 import command.btoproject.EditBTOProjectCommand;
 import command.btoproject.ShowBTOProjectCommand;
 import command.btoproject.ToggleBTOProjectVisibilityCommand;
+import command.enquiry.AddEnquiryCommand;
+import command.enquiry.ShowEnquiriesByBTOProjectCommand;
 import command.general.MenuBackCommand;
 import command.officer_registration.AddOfficerRegistrationCommand;
 import command.officer_registration.ShowOfficerRegistrationCommand;
 import command.officer_registration.ShowOfficerRegistrationsByBTOProjectCommand;
 import config.UserRole;
 import controller.interfaces.BTOProjectController;
+import controller.interfaces.EnquiryController;
 import controller.interfaces.OfficerRegistrationController;
 import manager.DIManager;
 import manager.interfaces.MenuManager;
@@ -51,6 +54,8 @@ public class BTOProjectCommandFactory {
 
         BTOProjectController btoProjectController = diManager.resolve(BTOProjectController.class);
         OfficerRegistrationController officerRegistrationController = diManager.resolve(OfficerRegistrationController.class);
+        EnquiryController enquiryController = diManager.resolve(EnquiryController.class);
+
         ConfirmationView confirmationView = diManager.resolve(ConfirmationView.class);
         MenuManager menuManager = diManager.resolve(MenuManager.class);
 
@@ -64,14 +69,15 @@ public class BTOProjectCommandFactory {
         if(user.getUserRole() == UserRole.HDB_OFFICER){
             OfficerRegistration officerRegistration = officerRegistrationController.getOfficerRegistrationByOfficerAndBTOProject(btoProject);
             if(officerRegistration == null){
-                commands.put(11, new AddOfficerRegistrationCommand(officerRegistrationController, btoProjectController, menuManager, btoProject, confirmationView));
+                commands.put(10, new AddOfficerRegistrationCommand(officerRegistrationController, btoProjectController, menuManager, btoProject, confirmationView));
             }
             else{
                 commands.put(11, new ShowOfficerRegistrationCommand(officerRegistrationController, officerRegistration, true));
             }
         }
-        commands.put(-1, new MenuBackCommand(menuManager));
 
-        return commands;
-    }
-}
+        if(user.getUserRole() == UserRole.APPLICANT || (user.getUserRole() == UserRole.HDB_OFFICER && !btoProject.isHandlingBy(user))){
+            commands.put(20, new AddEnquiryCommand(enquiryController, btoProject));
+        } 
+
+        if(user.getUserRole() == User

@@ -61,6 +61,10 @@ public class DIManager{
         container.register(OfficerRegistrationService.class, DefaultOfficerRegistrationService.class);
         container.register(OfficerRegistrationView.class, TerminalOfficerRegistrationView.class);
 
+        container.register(EnquiryController.class, DefaultEnquiryController.class);
+        container.register(EnquiryService.class, DefaultEnquiryService.class);
+        container.register(EnquiryView.class, TerminalEnquiryView.class);
+
         container.register(MessageView.class, TerminalMessageView.class);
         container.register(ConfirmationView.class, TerminalConfirmationView.class);
     }

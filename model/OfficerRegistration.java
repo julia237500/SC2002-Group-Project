@@ -43,7 +43,7 @@ public class OfficerRegistration implements DataModel{
         this.btoProject = btoProject;
 
         if(HDBOfficer.getUserRole() != UserRole.HDB_OFFICER){
-            throw new DataModelException("Access denied. Only HDB Officer register as officer for project.");
+            throw new DataModelException("Access denied. Only HDB Officer can register as officer for project.");
         }
         this.HDBOfficer = HDBOfficer;
     }
