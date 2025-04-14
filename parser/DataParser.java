@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+import config.ApplicationStatus;
 import config.EnquiryStatus;
 import config.FlatType;
 import config.MaritalStatus;
@@ -35,6 +36,7 @@ public class DataParser {
         addParser(FlatType.class, FlatType::parseFlatType);
         addParser(RegistrationStatus.class, RegistrationStatus::parseRegistrationStatus);
         addParser(EnquiryStatus.class, EnquiryStatus::parseEnquiryStatus);
+        addParser(ApplicationStatus.class, ApplicationStatus::parseApplicationStatus);
     }
 
     private static <T> void addParser(Class<T> clazz, Function<String, T> parser){
@@ -54,6 +56,7 @@ public class DataParser {
         addStringifiers(FlatType.class, FlatType::getStoredString);
         addStringifiers(RegistrationStatus.class, RegistrationStatus::getStoredString);
         addStringifiers(EnquiryStatus.class, EnquiryStatus::getStoredString);
+        addStringifiers(ApplicationStatus.class, ApplicationStatus::getStoredString);
     }
 
     private static <T> void addStringifiers(Class<T> clazz, Function<T, String> stringifier){
@@ -63,15 +66,18 @@ public class DataParser {
     @SuppressWarnings("unchecked")
     public static <T> T parse(Class<T> clazz, String data){
         Function<String, T> parser = (Function<String, T>) parsers.get(clazz);
-        if (parser == null) throw new DataParsingException("Unsupported Parsing Data Type: %s".formatted(clazz.getSimpleName()));
+        if (parser == null) throw new DataParsingException("Unsupported Parsing Data Type: %s".formatted(clazz.getName()));
         
         return parser.apply(data);
     }
 
     @SuppressWarnings("unchecked")
     public static <T> String toString(T data){
-        Function<T, String> stringifier = (Function<T, String>) stringifiers.get(data.getClass());
-        if (stringifier == null) throw new DataParsingException("Unsupported Stringifying Data Type: %s".formatted(data.getClass().getSimpleName()));
+        Class<?> clazz = data.getClass();
+        if(clazz.getEnclosingClass() != null && clazz.getEnclosingClass().isEnum()) clazz = clazz.getEnclosingClass();
+
+        Function<T, String> stringifier = (Function<T, String>) stringifiers.get(clazz);
+        if (stringifier == null) throw new DataParsingException("Unsupported Stringifying Data Type: %s".formatted(clazz.getName()));
         
         return stringifier.apply(data);
     }

@@ -1,10 +1,33 @@
 package config;
 
 import exception.EnumParsingException;
+import model.User;
 
 public enum FlatType {
-    TWO_ROOM_FLAT("2-Room Flat", FormField.TWO_ROOM_FLAT_NUM, FormField.TWO_ROOM_FLAT_PRICE),
-    THREE_ROOM_FLAT("3-Room Flat", FormField.THREE_ROOM_FLAT_NUM, FormField.THREE_ROOM_FLAT_PRICE);
+    TWO_ROOM_FLAT("2-Room Flat", FormField.TWO_ROOM_FLAT_NUM, FormField.TWO_ROOM_FLAT_PRICE){
+        @Override
+        public boolean isEligible(User applicant) {
+            if(applicant.getMaritalStatus() == MaritalStatus.SINGLE){
+                return applicant.getAge() >= 35;
+            }
+            if(applicant.getMaritalStatus() == MaritalStatus.MARRIED){
+                return applicant.getAge() >= 21;
+            }
+            return false;
+        }
+    },
+    THREE_ROOM_FLAT("3-Room Flat", FormField.THREE_ROOM_FLAT_NUM, FormField.THREE_ROOM_FLAT_PRICE){
+        @Override
+        public boolean isEligible(User applicant){
+            if(applicant.getMaritalStatus() == MaritalStatus.SINGLE){
+                return false;
+            }
+            if(applicant.getMaritalStatus() == MaritalStatus.MARRIED){
+                return applicant.getAge() >= 21;
+            }
+            return false;
+        }
+    };
 
     private String storedString;
     private FormField numFormField;
@@ -35,4 +58,6 @@ public enum FlatType {
     public FormField getPriceFormField() {
         return priceFormField;
     }
+
+    public abstract boolean isEligible(User user);
 }

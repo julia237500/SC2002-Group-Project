@@ -19,6 +19,7 @@ import java.util.stream.Stream;
 import exception.DataParsingException;
 import exception.DataSavingException;
 import manager.interfaces.DataManager;
+import model.Application;
 import model.BTOProject;
 import model.CSVField;
 import model.DataModel;
@@ -56,6 +57,7 @@ public class CSVDataManager implements DataManager{
         filePaths.put(FlatUnit.class, "./data/FlatUnitList.csv");
         filePaths.put(OfficerRegistration.class, "./data/OfficerRegistrationList.csv");
         filePaths.put(Enquiry.class, "./data/EnquiryList.csv");
+        filePaths.put(Application.class, "./data/ApplicationList.csv");
     }
 
     private void configLoadResolver(){
