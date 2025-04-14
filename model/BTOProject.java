@@ -177,6 +177,10 @@ public class BTOProject implements DataModel{
         return flatUnit == null ? 0 : flatUnit.getFlatPrice();
     }
 
+    public boolean hasAvailableFlats(FlatType flatType){
+        return getFlatNum(flatType) > 0;
+    }
+
     public int getHDBOfficerLimit() {
         return HDBOfficerLimit;
     }
@@ -223,7 +227,7 @@ public class BTOProject implements DataModel{
     public boolean isOverlappingWith(LocalDate openingDate, LocalDate closingDate){
         return !(openingDate.isAfter(this.closingDate) || closingDate.isBefore(this.openingDate));
     }
-
+        
     public void addHDBOfficer(User HDBOfficer){
         if(HDBOfficer.getUserRole() != UserRole.HDB_OFFICER){
             throw new DataModelException("User added is not HDB Officer.");

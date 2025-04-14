@@ -1,9 +1,9 @@
-import controller.interfaces.EnquiryController;
+import config.FlatType;
+import controller.interfaces.ApplicationController;
 import manager.DIManager;
 import manager.interfaces.DataManager;
 import manager.interfaces.SessionManager;
 import model.BTOProject;
-import model.Enquiry;
 import model.User;
 import util.DefaultDIContainer;
 
@@ -14,39 +14,25 @@ public class Test {
 
         DataManager dataManager = diManager.resolve(DataManager.class);
         SessionManager sessionManager = diManager.resolve(SessionManager.class);
-        EnquiryController enquiryController = diManager.resolve(EnquiryController.class);
+        ApplicationController applicationController = diManager.resolve(ApplicationController.class);
         
         BTOProject btoProject = dataManager.getByPK(BTOProject.class, "Acacia Breeze");
+        BTOProject btoProject2 = dataManager.getByPK(BTOProject.class, "Yellow Horizon");
 
-        User applicant = dataManager.getByPK(User.class, "S3456789E");
+        User applicant = dataManager.getByPK(User.class, "S1234567A");
         User officer = dataManager.getByPK(User.class, "T1234567J");
         User manager = dataManager.getByPK(User.class, "S5678901G");
-
-        Enquiry enquiry1 = dataManager.getByPK(Enquiry.class, "4f6ffd0b-f728-4048-96e7-6f7857e057c4");
-        Enquiry enquiry2 = dataManager.getByPK(Enquiry.class, "edaaa961-56c0-4b5d-b35e-8366a410a836");
         
         sessionManager.setUser(applicant);
-        // enquiryController.addEnquiry(btoProject);
-        // enquiryController.deleteEnquiry(enquiry1);
-        // enquiryController.deleteEnquiry(enquiry2);
-        // enquiryController.replyEnquiry(enquiry1);
-        // enquiryController.replyEnquiry(enquiry2);
+        applicationController.addApplication(btoProject, FlatType.TWO_ROOM_FLAT);
+        applicationController.addApplication(btoProject, FlatType.THREE_ROOM_FLAT);
 
         sessionManager.setUser(officer);
-        // enquiryController.addEnquiry(btoProject);
-        // enquiryController.replyEnquiry(enquiry1);
-        // enquiryController.replyEnquiry(enquiry2);
+        applicationController.addApplication(btoProject, FlatType.TWO_ROOM_FLAT);
+        applicationController.addApplication(btoProject, FlatType.THREE_ROOM_FLAT);
 
         sessionManager.setUser(manager);
-        // enquiryController.addEnquiry(btoProject);
-        // enquiryController.replyEnquiry(enquiry1);
-        // enquiryController.replyEnquiry(enquiry2);
-
-        try {
-            dataManager.delete(btoProject);
-        } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+        applicationController.addApplication(btoProject, FlatType.TWO_ROOM_FLAT);
+        applicationController.addApplication(btoProject, FlatType.THREE_ROOM_FLAT);
     }
 }
