@@ -68,6 +68,10 @@ public class Application implements DataModel{
         return applicationStatus;
     }
 
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
     private void checkFlatTypeEligibility(User applicant, BTOProject btoProject, FlatType flatType) {
         if(!btoProject.hasAvailableFlats(flatType)){
             throw new DataModelException("%s is not available for the project %s".formatted(flatType.getStoredString(), btoProject.getName()));
