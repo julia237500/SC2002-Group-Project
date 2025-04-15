@@ -3,6 +3,7 @@ package controller;
 import config.FlatType;
 import controller.interfaces.ApplicationController;
 import manager.interfaces.SessionManager;
+import model.Application;
 import model.BTOProject;
 import model.User;
 import service.ServiceResponse;
@@ -25,6 +26,14 @@ public class DefaultApplicationController extends AbstractDefaultController impl
         User user = sessionManager.getUser();
         
         ServiceResponse<?> serviceResponse = applicationService.addApplication(user, btoProject, flatType);
+        defaultShowServiceResponse(serviceResponse);
+    }
+
+    @Override
+    public void withdrawApplication(Application application) {
+        User user = sessionManager.getUser();
+
+        ServiceResponse<?> serviceResponse = applicationService.withdrawApplication(user, application);
         defaultShowServiceResponse(serviceResponse);
     }
 }

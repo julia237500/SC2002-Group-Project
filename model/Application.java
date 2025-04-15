@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import config.ApplicationStatus;
 import config.FlatType;
+import config.WithdrawalStatus;
 import exception.DataModelException;
 
 public class Application implements DataModel{
@@ -24,7 +25,8 @@ public class Application implements DataModel{
     private ApplicationStatus applicationStatus;
 
     @CSVField(index = 5)
-    private boolean isWithdrawing;
+    private WithdrawalStatus withdrawalStatus;
+    private WithdrawalStatus backupWithdrawalStatus;
 
     @CSVField(index = 6)
     private LocalDateTime createdAt;
@@ -43,7 +45,7 @@ public class Application implements DataModel{
         this.uuid = uuid.toString();
 
         this.applicationStatus = ApplicationStatus.PENDING;
-        this.isWithdrawing = false;
+        this.withdrawalStatus = WithdrawalStatus.NOT_APPLICABLE;
         this.createdAt = LocalDateTime.now();
     }
 
@@ -68,6 +70,19 @@ public class Application implements DataModel{
         return applicationStatus;
     }
 
+    public WithdrawalStatus getWithdrawalStatus() {
+        return withdrawalStatus;
+    }
+
+    private void setWithdrawalStatus(WithdrawalStatus withdrawalStatus) {
+        this.backupWithdrawalStatus = this.withdrawalStatus;
+        this.withdrawalStatus = withdrawalStatus;
+    }
+
+    public void revertWithdrawalStatus() {
+        this.withdrawalStatus = this.backupWithdrawalStatus;
+    }
+    
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -81,4 +96,17 @@ public class Application implements DataModel{
             throw new DataModelException("You are not eligible to apply for %s".formatted(flatType.getStoredString()));
         }
     }
+
+    public void requestWithdrawal() {
+        if(withdrawalStatus == WithdrawalStatus.PENDING){
+            throw new DataModelException("Withdrawal requested unsuccessful. The project is already under pending withdrawal.");
+        }
+
+        if(withdrawalStatus == WithdrawalStatus.SUCCESSFUL){
+            throw new DataModelException("Withdrawal requested unsuccessful. The project is already under pending withdrawal.");
+        }
+        
+        setWithdrawalStatus(WithdrawalStatus.PENDING);
+    }
 }
+    

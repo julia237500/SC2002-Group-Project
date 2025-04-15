@@ -64,4 +64,23 @@ public class DefaultApplicationService implements ApplicationService{
 
         return new ServiceResponse<>(ResponseStatus.SUCCESS, "Application submitted successfully. Kindly wait for approval.");
     }
+
+    @Override
+    public ServiceResponse<?> withdrawApplication(User requestedUser, Application application) {
+        if(requestedUser != application.getApplicant()){
+            return new ServiceResponse<>(ResponseStatus.ERROR, "Access denied. Only applicant of this registration can withdraw.");
+        }
+
+        try {
+            application.requestWithdrawal();
+            dataManager.save(application);
+        } catch (DataModelException e) {
+            return new ServiceResponse<>(ResponseStatus.ERROR, e.getMessage());
+        } catch (DataSavingException e) {
+            application.revertWithdrawalStatus();
+            return new ServiceResponse<>(ResponseStatus.ERROR, "Internal error. %s".formatted(e.getMessage()));
+        }
+
+        return new ServiceResponse<>(ResponseStatus.SUCCESS, "Withdrawal requested successful. Kindly wait for approval.");
+    }
 }
