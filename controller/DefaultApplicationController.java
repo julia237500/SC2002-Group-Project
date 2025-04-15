@@ -30,10 +30,34 @@ public class DefaultApplicationController extends AbstractDefaultController impl
     }
 
     @Override
+    public void approveApplication(Application application, boolean isApproving) {
+        User user = sessionManager.getUser();
+
+        ServiceResponse<?> serviceResponse = applicationService.approveApplication(user, application, isApproving);
+        defaultShowServiceResponse(serviceResponse);
+    }
+
+    @Override
+    public void bookApplication(Application application) {
+        User user = sessionManager.getUser();
+
+        ServiceResponse<?> serviceResponse = applicationService.bookApplication(user, application);
+        defaultShowServiceResponse(serviceResponse);
+    }
+
+    @Override
     public void withdrawApplication(Application application) {
         User user = sessionManager.getUser();
 
         ServiceResponse<?> serviceResponse = applicationService.withdrawApplication(user, application);
+        defaultShowServiceResponse(serviceResponse);
+    }
+
+    @Override
+    public void approveWithdrawApplication(Application application, boolean isApproving) {
+        User user = sessionManager.getUser();
+
+        ServiceResponse<?> serviceResponse = applicationService.approveWithdrawApplication(user, application, isApproving);
         defaultShowServiceResponse(serviceResponse);
     }
 }

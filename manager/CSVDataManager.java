@@ -28,10 +28,8 @@ import model.FlatUnit;
 import model.OfficerRegistration;
 import model.User;
 import parser.DataParser;
-import relationship.BTOProjectRelationshipResolver;
-import relationship.resolver.DeleteResolver;
-import relationship.resolver.LoadResolver;
-import relationship.resolver.SaveResolver;
+import relationship.*;
+import relationship.resolver.*;
 import util.CSVFileReader;
 import util.CSVFileWriter;
 
@@ -70,6 +68,7 @@ public class CSVDataManager implements DataManager{
 
     private void configSaveResolver(){
         saveResolvers.put(BTOProject.class, new BTOProjectRelationshipResolver());
+        saveResolvers.put(Application.class, new ApplicationRelationshipResolver());
     }
 
     private void loadData(){

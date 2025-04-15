@@ -29,16 +29,23 @@ public class Test {
         sessionManager.setUser(applicant);
         // applicationController.addApplication(btoProject, FlatType.TWO_ROOM_FLAT);
         // applicationController.addApplication(btoProject, FlatType.THREE_ROOM_FLAT);
-        applicationController.withdrawApplication(application);
+        // applicationController.withdrawApplication(application);
+        // applicationController.approveWithdrawApplication(application, true);
+        // applicationController.withdrawApplication(application);
 
         sessionManager.setUser(officer);
         // applicationController.addApplication(btoProject, FlatType.TWO_ROOM_FLAT);
         // applicationController.addApplication(btoProject, FlatType.THREE_ROOM_FLAT);
-        applicationController.withdrawApplication(application);
+        // applicationController.withdrawApplication(application);
+        // applicationController.approveWithdrawApplication(application, true);
+        // applicationController.approveApplication(application, true);
+        applicationController.bookApplication(application);
 
         sessionManager.setUser(manager);
         // applicationController.addApplication(btoProject, FlatType.TWO_ROOM_FLAT);
         // applicationController.addApplication(btoProject, FlatType.THREE_ROOM_FLAT);
-        applicationController.withdrawApplication(application);
+        // applicationController.withdrawApplication(application);
+        applicationController.approveWithdrawApplication(application, true);
+        applicationController.bookApplication(application);
     }
 }

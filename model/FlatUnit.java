@@ -3,6 +3,7 @@ package model;
 import java.util.UUID;
 
 import config.FlatType;
+import exception.DataModelException;
 
 public class FlatUnit implements DataModel{
     @CSVField(index = 0)
@@ -16,9 +17,11 @@ public class FlatUnit implements DataModel{
 
     @CSVField(index = 3)
     private int flatNum;
+    private int backupFlatNum;
 
     @CSVField(index = 4)
     private int flatPrice;
+    private int backupFlatPrice;
 
     @SuppressWarnings("unused")
     private FlatUnit() {}
@@ -38,7 +41,20 @@ public class FlatUnit implements DataModel{
     }
 
     public void setFlatNum(int flatNum) {
+        if(flatNum < 0) {
+            throw new DataModelException("Flat number cannot be negative.");
+        }
+
+        backup();
         this.flatNum = flatNum;
+    }
+
+    public void adjustFlatNum(int change) {
+        if(flatNum + change < 0) {
+            throw new DataModelException("Flat number cannot be negative.");
+        }
+
+        this.flatNum += change;
     }
 
     public int getFlatPrice() {
@@ -46,6 +62,11 @@ public class FlatUnit implements DataModel{
     }
 
     public void setFlatPrice(int flatPrice) {
+        if(flatPrice < 0) {
+            throw new DataModelException("Flat price cannot be negative.");
+        }
+
+        backup();
         this.flatPrice = flatPrice;
     }
 
@@ -70,5 +91,15 @@ public class FlatUnit implements DataModel{
             flatNum,
             flatPrice
         );
+    }
+
+    public void backup(){
+        this.backupFlatNum = this.flatNum;
+        this.backupFlatPrice = this.flatPrice;
+    }
+
+    public void restore() {
+        this.flatNum = this.backupFlatNum;
+        this.flatPrice = this.backupFlatPrice;
     }
 }

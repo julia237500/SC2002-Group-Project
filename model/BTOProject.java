@@ -163,6 +163,14 @@ public class BTOProject implements DataModel{
         }
     }
 
+    private FlatUnit getFlatUnit(FlatType flatType) {
+        FlatUnit flatUnit = flatUnits.get(flatType);
+        if(flatUnit == null){
+            throw new DataModelException("Flat type %s not found".formatted(flatType.getStoredString()));
+        }
+        return flatUnit;
+    }
+
     public List<FlatUnit> getFlatUnits() {
         return List.copyOf(flatUnits.values());
     }
@@ -177,12 +185,24 @@ public class BTOProject implements DataModel{
         return flatUnit == null ? 0 : flatUnit.getFlatPrice();
     }
 
-    public boolean hasAvailableFlats(FlatType flatType){
-        return getFlatNum(flatType) > 0;
+    public void bookFlat(FlatType flatType){
+        FlatUnit flatUnit = getFlatUnit(flatType);
+
+        try {
+            flatUnit.adjustFlatNum(-1);
+        } catch (DataModelException e) {
+            throw new DataModelException("Flat type %s is not available.".formatted(flatType.getStoredString()));
+        }
     }
 
-    public int getHDBOfficerLimit() {
-        return HDBOfficerLimit;
+    public void unbookFlat(FlatType flatType){
+        FlatUnit flatUnit = getFlatUnit(flatType);
+
+        flatUnit.adjustFlatNum(1);
+    }
+
+    public boolean hasAvailableFlats(FlatType flatType){
+        return getFlatNum(flatType) > 0;
     }
 
     public LocalDate getOpeningDate() {
@@ -191,29 +211,6 @@ public class BTOProject implements DataModel{
 
     public LocalDate getClosingDate() {
         return closingDate;
-    }
-
-    public User getHDBManager() {
-        return HDBManager;
-    }
-
-    public List<User> getHDBOfficers() {
-        return HDBOfficers;
-    }
-
-    public String toString(){
-        return String.format("""
-                Name                  : %s
-                Neighbourhood         : %s
-                Number of 2-Room Flat : %d
-                Price of 2-Room Flat  : %d
-                Number of 3-Room Flat : %d
-                Price of 3-Room Flat  : %d
-                Opening Date          : %s
-                Closing Date          : %s
-                HDB Officer Limit     : %d
-                Visibility            : %s
-                """, name, neighborhood, getFlatNum(FlatType.TWO_ROOM_FLAT), getFlatPrice(FlatType.TWO_ROOM_FLAT), getFlatNum(FlatType.THREE_ROOM_FLAT), getFlatPrice(FlatType.THREE_ROOM_FLAT), openingDate, closingDate, HDBOfficerLimit, visible ? "Visible" : "Hidden");
     }
 
     public boolean isActive(){
@@ -227,7 +224,15 @@ public class BTOProject implements DataModel{
     public boolean isOverlappingWith(LocalDate openingDate, LocalDate closingDate){
         return !(openingDate.isAfter(this.closingDate) || closingDate.isBefore(this.openingDate));
     }
-        
+
+    public User getHDBManager() {
+        return HDBManager;
+    }
+    
+    public List<User> getHDBOfficers() {
+        return HDBOfficers;
+    }
+
     public void addHDBOfficer(User HDBOfficer){
         if(HDBOfficer.getUserRole() != UserRole.HDB_OFFICER){
             throw new DataModelException("User added is not HDB Officer.");
@@ -238,6 +243,10 @@ public class BTOProject implements DataModel{
         }
 
         HDBOfficers.add(HDBOfficer);
+    }
+
+    public int getHDBOfficerLimit() {
+        return HDBOfficerLimit;
     }
 
     public boolean isExceedingHDBOfficerLimit(){
@@ -255,10 +264,33 @@ public class BTOProject implements DataModel{
         return false;
     }
 
+    public String toString(){
+        return String.format("""
+                Name                  : %s
+                Neighbourhood         : %s
+                Number of 2-Room Flat : %d
+                Price of 2-Room Flat  : %d
+                Number of 3-Room Flat : %d
+                Price of 3-Room Flat  : %d
+                Opening Date          : %s
+                Closing Date          : %s
+                HDB Officer Limit     : %d
+                Visibility            : %s
+                """, name, neighborhood, getFlatNum(FlatType.TWO_ROOM_FLAT), getFlatPrice(FlatType.TWO_ROOM_FLAT), getFlatNum(FlatType.THREE_ROOM_FLAT), getFlatPrice(FlatType.THREE_ROOM_FLAT), openingDate, closingDate, HDBOfficerLimit, visible ? "Visible" : "Hidden");
+    }
+
+    public void backup(){
+        memento = new Memento(this);
+    }
+
+    public void restore(){
+        if(memento != null){
+            memento.restore(this);
+        }
+    }
+
     private static class Memento {
         private final String neighborhood;
-        private final Map<FlatType, Integer> flatNum;
-        private final Map<FlatType, Integer> flatPrice;
         private final LocalDate openingDate;
         private final LocalDate closingDate;
         private final int HDBOfficerLimit;
@@ -269,20 +301,8 @@ public class BTOProject implements DataModel{
             this.closingDate = btoProject.closingDate;
             this.HDBOfficerLimit = btoProject.HDBOfficerLimit;
 
-            this.flatNum = new HashMap<>();
-            this.flatPrice = new HashMap<>();
-
-            for(FlatType flatType:FlatType.values()){
-                FlatUnit flatUnit = btoProject.flatUnits.get(flatType);
-
-                if(flatUnit == null){
-                    flatNum.put(flatType, 0);
-                    flatPrice.put(flatType, 0);
-                }
-                else{
-                    flatNum.put(flatType, flatUnit.getFlatNum());
-                    flatPrice.put(flatType, flatUnit.getFlatPrice());
-                }
+            for(FlatUnit flatUnit:btoProject.getFlatUnits()){
+                flatUnit.backup();
             }
         }
 
@@ -292,7 +312,9 @@ public class BTOProject implements DataModel{
             btoProject.closingDate = this.closingDate;
             btoProject.HDBOfficerLimit = this.HDBOfficerLimit;
 
-            btoProject.changeFlatUnits(flatNum, flatPrice);
+            for(FlatUnit flatUnit:btoProject.getFlatUnits()){
+                flatUnit.backup();
+            }
         }
     }
 }

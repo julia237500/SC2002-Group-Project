@@ -66,6 +66,47 @@ public class DefaultApplicationService implements ApplicationService{
     }
 
     @Override
+    public ServiceResponse<?> approveApplication(User requestedUser, Application application, boolean isApproving) {
+        if(application.getBtoProject().getHDBManager() != requestedUser){
+            return new ServiceResponse<>(ResponseStatus.ERROR, "Access denied. Only HDB Manager handling the project can approve/reject application.");
+        }
+
+        try {
+            application.approveApplication(isApproving);
+            dataManager.save(application);
+        } catch (DataModelException e) {
+            return new ServiceResponse<>(ResponseStatus.ERROR, e.getMessage());
+        } catch (DataSavingException e) {
+            application.revertApplicationStatus();
+            return new ServiceResponse<>(ResponseStatus.ERROR, "Internal error. %s".formatted(e.getMessage()));
+        }
+
+        return new ServiceResponse<>(ResponseStatus.SUCCESS, "Application %s successful.".formatted(isApproving ? "approved" : "rejected"));
+    }
+
+    public ServiceResponse<?> bookApplication(User requestedUser, Application application) {
+        if(requestedUser.getUserRole() != UserRole.HDB_OFFICER){
+            return new ServiceResponse<>(ResponseStatus.ERROR, "Access denied. Only HDB Officer can book application.");
+        }
+
+        if(!application.getBtoProject().isHandlingBy(requestedUser)){
+            return new ServiceResponse<>(ResponseStatus.ERROR, "Access denied. Only HDB Officer handling the project can book application.");
+        }
+
+        try {
+            application.bookApplication();
+            dataManager.save(application);
+        } catch (DataModelException e) {
+            return new ServiceResponse<>(ResponseStatus.ERROR, e.getMessage());
+        } catch (DataSavingException e) {
+            application.restore();
+            return new ServiceResponse<>(ResponseStatus.ERROR, "Internal error. %s".formatted(e.getMessage()));
+        }
+
+        return new ServiceResponse<>(ResponseStatus.SUCCESS, "Booking successful.");
+    }
+
+    @Override
     public ServiceResponse<?> withdrawApplication(User requestedUser, Application application) {
         if(requestedUser != application.getApplicant()){
             return new ServiceResponse<>(ResponseStatus.ERROR, "Access denied. Only applicant of this registration can withdraw.");
@@ -77,10 +118,29 @@ public class DefaultApplicationService implements ApplicationService{
         } catch (DataModelException e) {
             return new ServiceResponse<>(ResponseStatus.ERROR, e.getMessage());
         } catch (DataSavingException e) {
-            application.revertWithdrawalStatus();
+            application.restore();
             return new ServiceResponse<>(ResponseStatus.ERROR, "Internal error. %s".formatted(e.getMessage()));
         }
 
         return new ServiceResponse<>(ResponseStatus.SUCCESS, "Withdrawal requested successful. Kindly wait for approval.");
+    }
+
+    @Override
+    public ServiceResponse<?> approveWithdrawApplication(User requestedUser, Application application, boolean isApproving) {
+        if(!application.getBtoProject().isHandlingBy(requestedUser)){
+            return new ServiceResponse<>(ResponseStatus.ERROR, "Access denied. Only HDB Manager/Officer handling the project can approve/reject withdrawal.");
+        }
+
+        try {
+            application.approveWithdrawal(isApproving);
+            dataManager.save(application);
+        } catch (DataModelException e) {
+            return new ServiceResponse<>(ResponseStatus.ERROR, e.getMessage());
+        } catch (DataSavingException e) {
+            application.restore();
+            return new ServiceResponse<>(ResponseStatus.ERROR, "Internal error. %s".formatted(e.getMessage()));
+        }
+
+        return new ServiceResponse<>(ResponseStatus.SUCCESS, "Withdrawal %s successful.".formatted(isApproving ? "approved" : "rejected"));
     }
 }
