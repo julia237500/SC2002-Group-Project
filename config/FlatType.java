@@ -15,6 +15,9 @@ public enum FlatType {
      * 2-Room Flat type with specific eligibility rules:
      * - Singles must be at least 35 years old
      * - Married couples must be at least 21 years old
+     * TWO_ROOM_FLAT and THREE_ROOM_FLAT are enum constants.
+     * Since FlatType declares an abstract isEligible(User) method, each enum constant must provide its own implementation of the abstract method.
+     * This allows each flat type to have different eligibility rules while keeping the logic neatly organized inside the enum itself.
      */
     TWO_ROOM_FLAT("2-Room Flat", FormField.TWO_ROOM_FLAT_NUM, FormField.TWO_ROOM_FLAT_PRICE){
         @Override
