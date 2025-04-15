@@ -13,7 +13,7 @@ public class TerminalReceiptGenerator implements ReceiptGenerator{
         // You can decide the format
         String applicantName = application.getApplicant().getName();
         String applicantNRIC = application.getApplicant().getNRIC();
-        Integer applicantAge = application.getApplicant().getAge());
+        Integer applicantAge = application.getApplicant().getAge();
         MaritalStatus applicantMaritalStatus = application.getApplicant().getMaritalStatus();
 
         String projectName = application.getBtoProject().getName();
