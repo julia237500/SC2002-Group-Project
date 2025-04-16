@@ -28,6 +28,11 @@ public enum RegistrationStatus {
     /**
      * Constructs a RegistrationStatus enum constant with its string representation.
      * @param storedString the human-readable string representation of this status
+     * In Java enums, the constructor is implicitly private
+     * We explicitly declare it as private for clarity.
+     * The compiler enforces that enum constructors are only callable within the enum itself.
+     * Only the enum constants (like PENDING, SUCCESSFUL) can call this constructor.
+     * Enums are singleton-like and cannot be arbitrarily instantiated.
      */
     private RegistrationStatus(String storedString) {
         this.storedString = storedString;
