@@ -41,6 +41,19 @@ public class DashboardCommandFactory {
         SessionManager sessionManager = diManager.resolve(SessionManager.class);
         User user = sessionManager.getUser();
 
+        /**
+         * resolve() is a method from the DIManager (Dependency Injection Manager) class 
+         * that retrieves or creates instances of dependencies. 
+         * resolve() does Dependency Lookup - Gets an instance of the specified class/interface from the DI container
+         * Example: diManager.resolve(SessionManager.class) returns a SessionManager implementation
+         * It is used in our code for decoupling:
+         * - Instead of: BTOProjectController btoProjectController = new DefaultBTOProjectController(...);
+         * - We use: BTOProjectController btoProjectController = diManager.resolve(BTOProjectController.class);
+         * Benefits: 
+         * - No need to know concrete implementation classes
+         * - Easy to swap implementations (e.g., for testing)
+         * - Handles complex dependency chains automatically
+         */
         ApplicationManager applicationManager = diManager.resolve(ApplicationManager.class);
         AuthController authController = diManager.resolve(AuthController.class);
         BTOProjectController btoProjectController = diManager.resolve(BTOProjectController.class);
