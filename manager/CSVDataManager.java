@@ -153,12 +153,14 @@ public class CSVDataManager implements DataManager{
     }
 
     @Override
+    /** {@inheritDoc} */
     @SuppressWarnings("unchecked")
     public <T extends DataModel> List<T> getAll(Class<T> clazz){
         return (List<T>) List.copyOf(data.get(clazz).values());
     }
 
     @Override
+    /** {@inheritDoc} */
     @SuppressWarnings("unchecked")
     public <T extends DataModel> List<T> getAll(Class<T> clazz, Comparator<T> comparator){
         Stream<T> stream = (Stream<T>) data.get(clazz).values().stream();
@@ -166,12 +168,14 @@ public class CSVDataManager implements DataManager{
     }
 
     @Override
+    /** {@inheritDoc} */
     @SuppressWarnings("unchecked")
     public <T extends DataModel> T getByPK(Class<T> clazz, String PK){
         return (T) data.get(clazz).get(PK);
     }
 
     @Override
+    /** {@inheritDoc} */
     @SuppressWarnings("unchecked")
     public <T extends DataModel> List<T> getByQuery(Class<T> clazz, Predicate<T> query) {
         Map<String, T> classData = (Map<String, T>) data.get(clazz);
@@ -186,6 +190,7 @@ public class CSVDataManager implements DataManager{
     }
 
     @Override
+    /** {@inheritDoc} */
     @SuppressWarnings("unchecked")
     public <T extends DataModel> List<T> getByQuery(Class<T> clazz, Predicate<T> query, Comparator<T> comparator) {
         Map<String, T> classData = (Map<String, T>) data.get(clazz);
@@ -201,6 +206,7 @@ public class CSVDataManager implements DataManager{
     }
 
     @Override
+    /** {@inheritDoc} */
     @SuppressWarnings("unchecked")
     public <T extends DataModel> List<T> getByQueries(Class<T> clazz, List<Predicate<T>> queries) {
         Map<String, T> classData = (Map<String, T>) data.get(clazz);
@@ -215,6 +221,7 @@ public class CSVDataManager implements DataManager{
     }
 
     @Override
+    /** {@inheritDoc} */
     @SuppressWarnings("unchecked")
     public <T extends DataModel> List<T> getByQueries(Class<T> clazz, List<Predicate<T>> queries, Comparator<T> comparator) {
         Map<String, T> classData = (Map<String, T>) data.get(clazz);
@@ -230,6 +237,7 @@ public class CSVDataManager implements DataManager{
     }
     
     @Override
+    /** {@inheritDoc} */
     @SuppressWarnings("unchecked")
     public <T extends DataModel> void save(T model) throws DataSavingException {
         Class<T> clazz = (Class<T>) model.getClass();
@@ -306,6 +314,7 @@ public class CSVDataManager implements DataManager{
     }
 
     @Override
+    /** {@inheritDoc} */
     @SuppressWarnings("unchecked")
     public <T extends DataModel> void delete(T model) throws DataSavingException {
         Class<T> clazz = (Class<T>) model.getClass();
