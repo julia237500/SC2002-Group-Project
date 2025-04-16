@@ -1,0 +1,21 @@
+package config;
+
+public enum FormField {
+    NRIC,
+    PASSWORD,
+    CONFIRM_PASSWORD,
+
+    NAME,
+    NEIGHBORHOOD,
+    TWO_ROOM_FLAT_NUM,
+    TWO_ROOM_FLAT_PRICE,
+    THREE_ROOM_FLAT_NUM,
+    THREE_ROOM_FLAT_PRICE,
+    OPENING_DATE,
+    CLOSING_DATE,
+    HBD_OFFICER_LIMIT,
+
+    SUBJECT,
+    ENQUIRY,
+    REPLY
+}
