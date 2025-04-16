@@ -45,6 +45,11 @@ import view.interfaces.ConfirmationView;
  *   <li>-1: Always the back command</li>
  * </ul>
  */
+
+/**
+ * A factory class is a design pattern used to create objects without specifying 
+ * the exact class of the object that will be created. 
+ */
 public class BTOProjectCommandFactory {
      private static final DIManager diManager = DIManager.getInstance();
 
