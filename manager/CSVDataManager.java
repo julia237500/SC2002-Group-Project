@@ -118,6 +118,9 @@ public class CSVDataManager implements DataManager{
 
         Constructor<T> constructor = clazz.getDeclaredConstructor();
         constructor.setAccessible(true);
+        /**
+         * Even though the constructor is private, setAccessible(true) temporarily disables Java’s access checks so the reflection API can still use it.
+         */
 
         Field[] fields = clazz.getDeclaredFields();
 
