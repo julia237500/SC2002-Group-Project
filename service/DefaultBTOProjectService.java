@@ -11,13 +11,37 @@ import model.BTOProject;
 import model.User;
 import service.interfaces.BTOProjectService;
 
+/**
+ * Default implementation of {@link BTOProjectService} that handles BTO project management
+ * including creation, modification, visibility control, and deletion of projects.
+ * Enforces business rules and access control for HDB managers.
+ */
 public class DefaultBTOProjectService implements BTOProjectService{
     private DataManager dataManager;
     
+    /**
+     * Constructs a DefaultBTOProjectService with the specified data manager.
+     * 
+     * @param dataManager the data manager used for persistence operations 
+     */
     public DefaultBTOProjectService(DataManager dataManager){
         this.dataManager = dataManager;
     }
 
+    /**
+     * Creates a new BTO project after validating:
+     * <ol>
+     *   <li>User has HDB_MANAGER role</li>
+     *   <li>Manager isn't already handling an active project</li>
+     *   <li>Project name is unique</li>
+     * </ol>
+     * 
+     * @param requestedUser the user requesting project creation
+     * @param btoProjectDTO the project data transfer object
+     * @return ServiceResponse with:
+     *         - SUCCESS status if project is created
+     *         - ERROR status with message if validation fails
+     */
     public ServiceResponse<?> addBTOProject(User requestedUser, BTOProjectDTO btoProjectDTO){
         if(requestedUser.getUserRole() != UserRole.HDB_MANAGER){
             return new ServiceResponse<>(ResponseStatus.ERROR, "Access Denied. Only HDB Manager can create BTO Project");
@@ -45,6 +69,14 @@ public class DefaultBTOProjectService implements BTOProjectService{
         return new ServiceResponse<>(ResponseStatus.SUCCESS, "BTO Project added successfully.");
     }
 
+    /**
+     * Checks if the specified user is currently managing any active BTO projects.
+     * 
+     * @param requestedUser the user to check
+     * @return ServiceResponse with:
+     *         - SUCCESS status if no active projects found
+     *         - ERROR status if user has active projects
+     */
     private ServiceResponse<?> hasActiveBTOProject(User requestedUser){
         List<BTOProject> btoProjects = null;
 
@@ -65,6 +97,13 @@ public class DefaultBTOProjectService implements BTOProjectService{
         return new ServiceResponse<>(ResponseStatus.SUCCESS);
     }
 
+    /**
+     * Retrieves all BTO projects from the system.
+     * 
+     * @return ServiceResponse containing:
+     *         - SUCCESS status with List<BTOProject> if successful
+     *         - ERROR status with message if retrieval fails
+     */
     public ServiceResponse<List<BTOProject>> getBTOProjects(){
         try {
             List<BTOProject> btoProjects = dataManager.getAll(BTOProject.class);
@@ -74,6 +113,21 @@ public class DefaultBTOProjectService implements BTOProjectService{
         }
     }
 
+    /**
+     * Modifies an existing BTO project after validating:
+     * <ol>
+     *   <li>User has HDB_MANAGER role</li>
+     *   <li>User is the responsible manager for the project</li>
+     *   <li>No date overlap with other visible projects</li>
+     * </ol>
+     * 
+     * @param requestedUser the user requesting the edit
+     * @param btoProjectDTO the updated project data
+     * @param editingBTOProject the project being edited
+     * @return ServiceResponse with:
+     *         - SUCCESS status if edit is successful
+     *         - ERROR status with message if validation fails
+     */
     public ServiceResponse<?> editBTOProject(User requestedUser, BTOProjectDTO btoProjectDTO, BTOProject editingBTOProject){
         if(requestedUser.getUserRole() != UserRole.HDB_MANAGER){
             return new ServiceResponse<>(ResponseStatus.ERROR, "Access Denied. Only HDB Manager can edit BTO Project");
@@ -99,6 +153,17 @@ public class DefaultBTOProjectService implements BTOProjectService{
         return new ServiceResponse<>(ResponseStatus.SUCCESS, "BTO Project edited successfully.");
     }
 
+    /**
+     * Checks for date overlap between the specified period and other visible projects.
+     * 
+     * @param requestedUser the responsible manager
+     * @param openingDate proposed opening date
+     * @param closingDate proposed closing date
+     * @param editingBTOProject the project being edited
+     * @return ServiceResponse with:
+     *         - SUCCESS status if no overlap found
+     *         - ERROR status with details if overlap exists
+     */
     private ServiceResponse<?> hasOverlappingVisibleProject(User requestedUser, LocalDate openingDate, LocalDate closingDate, BTOProject editingBTOProject){
         List<BTOProject> btoProjects = null;
 
@@ -125,6 +190,21 @@ public class DefaultBTOProjectService implements BTOProjectService{
         return new ServiceResponse<>(ResponseStatus.SUCCESS);
     }
 
+    
+    /**
+     * Toggles the visibility of a BTO project after validating:
+     * <ol>
+     *   <li>User has HDB_MANAGER role</li>
+     *   <li>User is the responsible manager</li>
+     *   <li>No date overlap when making project visible</li>
+     * </ol>
+     * 
+     * @param requestedUser the user requesting the change
+     * @param btoProject the project being modified
+     * @return ServiceResponse with:
+     *         - SUCCESS status if toggle is successful
+     *         - ERROR status with message if validation fails
+     */
     public ServiceResponse<?> toggleBTOProjectVisibilty(User requestedUser, BTOProject btoProject){
         if(requestedUser.getUserRole() != UserRole.HDB_MANAGER){
             return new ServiceResponse<>(ResponseStatus.ERROR, "Access Denied. Only HDB Manager can edit BTO Project");
@@ -151,6 +231,19 @@ public class DefaultBTOProjectService implements BTOProjectService{
         return new ServiceResponse<>(ResponseStatus.SUCCESS, "BTO Project visibility toggled successfully.");
     }
 
+    /**
+     * Deletes a BTO project after validating:
+     * <ol>
+     *   <li>User has HDB_MANAGER role</li>
+     *   <li>User is the responsible manager</li>
+     * </ol>
+     * 
+     * @param requestedUser the user requesting deletion
+     * @param btoProject the project to delete
+     * @return ServiceResponse with:
+     *         - SUCCESS status if deletion succeeds
+     *         - ERROR status with message if validation fails
+     */
     public ServiceResponse<?> deleteBTOProject(User requestedUser, BTOProject btoProject){
         if(requestedUser.getUserRole() != UserRole.HDB_MANAGER){
             return new ServiceResponse<>(ResponseStatus.ERROR, "Access Denied. Only HDB Manager can delete BTO Project");
