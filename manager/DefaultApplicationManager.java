@@ -10,23 +10,50 @@ import manager.interfaces.SessionManager;
 import model.User;
 import view.terminal.AbstractTerminalView;
 
+/**
+ * The default implementation of {@link ApplicationManager} responsible for starting the application,
+ * handling login (via debug simulation), session management, and controlling the dashboard loop.
+ */
 public class DefaultApplicationManager implements ApplicationManager{
     private MenuManager menuManager;
     private SessionManager sessionManager;
     private AuthController authController;
 
+    /**
+     * Constructs a DefaultApplicationManager with its required dependencies.
+     *
+     * @param menuManager     Handles menu display and dashboard looping.
+     * @param sessionManager  Manages the user session.
+     * @param authController  Handles authentication (not actively used in debug mode).
+     */
     public DefaultApplicationManager(MenuManager menuManager, SessionManager sessionManager, AuthController authController){
         this.menuManager = menuManager;
         this.sessionManager = sessionManager;
         this.authController = authController;
     }
     
+     /**
+     * Starts the application loop. For debugging purposes, simulates login by allowing the user to select
+     * from a predefined list of users (applicants, officers, managers).
+     *
+     * After login, sets the user in session and starts the dashboard loop.
+     * This runs indefinitely in a `while(true)` loop to simulate continuous usage.
+     */
     public void startApplication() {
         while(true){ 
             User user = null;
             DataManager dataManager = DIManager.getInstance().resolve(DataManager.class);
             // user = authController.handleLogin();
+            /**
+             * This is not real login — instead, it lets us quickly simulate different users for testing purposes 
+             * without needing a username/password screen.
+             * Debug: We use this to test the system easily.
+             * Hardcoded users: These specific users are manually written into the code (not dynamically chosen or inputted by a real user).
+             * Will be replaced with user = authController.handleLogin();
+             * - With real authentication where users input their credentials. But for now, this “debug login” lets us test roles and flows fast.
+             */
             
+             // Debug login options using hardcoded users
             User applicant1 = dataManager.getByPK(User.class, "S3456789E");;
             User officer1 = dataManager.getByPK(User.class, "T1234567J");
             User officer2 = dataManager.getByPK(User.class, "S6543210I");
@@ -65,6 +92,9 @@ public class DefaultApplicationManager implements ApplicationManager{
         }
     }
 
+     /**
+     * Logs out the current user by stopping the dashboard loop and clearing the session.
+     */
     public void logout(){
         menuManager.stopDashboardLoop();
         sessionManager.resetUser();
