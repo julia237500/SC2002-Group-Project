@@ -10,14 +10,16 @@ import command.general.MenuBackCommand;
 import config.UserRole;
 import config.WithdrawalStatus;
 import controller.interfaces.ApplicationController;
-import manager.DIManager;
-import manager.interfaces.MenuManager;
-import manager.interfaces.SessionManager;
 import model.Application;
 import model.User;
 
-public class ApplicationCommandFactory {
-    private static final DIManager diManager = DIManager.getInstance();
+public class ApplicationCommandFactory extends AbstractCommandFactory{
+    private static final int APPROVE_APPLICATION_CMD = getCommandID(APPLICATION_CMD, EDIT_CMD, 0);
+    private static final int REJECT_APPLICATION_CMD = getCommandID(APPLICATION_CMD, EDIT_CMD, 1);
+    private static final int BOOK_APPLICATION_CMD = getCommandID(APPLICATION_CMD, EDIT_CMD, 2);
+    private static final int WITHDRAW_APPLICATION_CMD = getCommandID(APPLICATION_CMD, EDIT_CMD, 3);
+    private static final int APPROVE_WITHDRAW_APPLICATION_CMD = getCommandID(APPLICATION_CMD, EDIT_CMD, 4);
+    private static final int REJECT_WITHDRAW_APPLICATION_CMD = getCommandID(APPLICATION_CMD, EDIT_CMD, 5);
 
     public static Map<Integer, Command> getShowApplicationsCommands(List<Application> applications) {
         final Map<Integer, Command> commands = new LinkedHashMap<>();
@@ -29,8 +31,7 @@ public class ApplicationCommandFactory {
             commands.put(index++, getShowApplicationCommand(application, applicationController));
         }
 
-        final MenuManager menuManager = diManager.resolve(MenuManager.class);
-        commands.put(-1, new MenuBackCommand(menuManager));
+        commands.put(BACK_CMD, new MenuBackCommand(menuManager));
 
         return commands;
     }
@@ -51,63 +52,61 @@ public class ApplicationCommandFactory {
         final ApplicationController applicationController = diManager.resolve(ApplicationController.class);
         final Map<Integer, Command> commands = new LinkedHashMap<>();
 
-        final SessionManager sessionManager = diManager.resolve(SessionManager.class);
         final User user = sessionManager.getUser();
 
         getApplicationUpdateRelatedCommands(user, application, commands, applicationController);
         getApplicationWithdrawalRelatedCommands(user, application, commands, applicationController);
         
-        final MenuManager menuManager = diManager.resolve(MenuManager.class);
-        commands.put(-1, new MenuBackCommand(menuManager));
+        commands.put(BACK_CMD, new MenuBackCommand(menuManager));
 
         return commands;
     }
 
     private static void getApplicationUpdateRelatedCommands(User user, Application application, Map<Integer, Command> commands, ApplicationController applicationController) {
-        Command approveApplicationCommand = new LambdaCommand("Approve Application", () -> {
+        final Command approveApplicationCommand = new LambdaCommand("Approve Application", () -> {
             applicationController.approveApplication(application, true);
         });
 
-        Command rejectApplicationCommand = new LambdaCommand("Reject Application", () -> {
+        final Command rejectApplicationCommand = new LambdaCommand("Reject Application", () -> {
             applicationController.approveApplication(application, false);
         });
 
-        Command bookApplicationCommand = new LambdaCommand("Book Application", () -> {
+        final Command bookApplicationCommand = new LambdaCommand("Book Application", () -> {
             applicationController.bookApplication(application);
         });
 
         if(application.isApprovable() && user == application.getBTOProject().getHDBManager()){
-            commands.put(1, approveApplicationCommand);
-            commands.put(2, rejectApplicationCommand);
+            commands.put(APPROVE_APPLICATION_CMD, approveApplicationCommand);
+            commands.put(REJECT_APPLICATION_CMD, rejectApplicationCommand);
         }
 
         if(application.isBookable()){
             if(user.getUserRole() == UserRole.HDB_OFFICER && application.getBTOProject().isHandlingBy(user)){
-                commands.put(3, bookApplicationCommand);
+                commands.put(BOOK_APPLICATION_CMD, bookApplicationCommand);
             }
         }
     }
 
     private static void getApplicationWithdrawalRelatedCommands(User user, Application application, Map<Integer, Command> commands, ApplicationController applicationController) {
-        Command withdrawApplicationCommand = new LambdaCommand("Withdraw Application", () -> {
+        final Command withdrawApplicationCommand = new LambdaCommand("Withdraw Application", () -> {
             applicationController.withdrawApplication(application);
         });
 
-        Command approveWithdrawApplicationCommand = new LambdaCommand("Approve Withdrawal", () -> {
+        final Command approveWithdrawApplicationCommand = new LambdaCommand("Approve Withdrawal", () -> {
             applicationController.approveWithdrawApplication(application, true);
         });
 
-        Command rejectWithdrawApplicationCommand = new LambdaCommand("Reject Withdrawal", () -> {
+        final Command rejectWithdrawApplicationCommand = new LambdaCommand("Reject Withdrawal", () -> {
             applicationController.approveWithdrawApplication(application, false);
         });
 
         if(application.getApplicant() == user && application.isWithdrawable()){
-            commands.put(4, withdrawApplicationCommand);
+            commands.put(WITHDRAW_APPLICATION_CMD, withdrawApplicationCommand);
         }
 
         if(application.getWithdrawalStatus() == WithdrawalStatus.PENDING && user == application.getBTOProject().getHDBManager()){
-            commands.put(41, approveWithdrawApplicationCommand);
-            commands.put(42, rejectWithdrawApplicationCommand);
+            commands.put(APPROVE_WITHDRAW_APPLICATION_CMD, approveWithdrawApplicationCommand);
+            commands.put(REJECT_WITHDRAW_APPLICATION_CMD, rejectWithdrawApplicationCommand);
         }
     }
 }

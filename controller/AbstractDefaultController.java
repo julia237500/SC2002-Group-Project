@@ -5,7 +5,7 @@ import service.ServiceResponse;
 import view.interfaces.MessageView;
 
 public class AbstractDefaultController {
-    protected MessageView messageView;
+    protected final MessageView messageView;
 
     protected AbstractDefaultController(MessageView messageView){
         this.messageView = messageView;

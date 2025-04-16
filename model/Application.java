@@ -158,7 +158,7 @@ public class Application implements DataModel{
     }
 
     public boolean isWithdrawable() {
-        return applicationStatus == ApplicationStatus.UNSUCCESSFUL || withdrawalStatus == WithdrawalStatus.NOT_APPLICABLE;
+        return withdrawalStatus == WithdrawalStatus.UNSUCCESSFUL || withdrawalStatus == WithdrawalStatus.NOT_APPLICABLE;
     }
 
     public void requestWithdrawal() {

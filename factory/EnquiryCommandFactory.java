@@ -5,59 +5,77 @@ import java.util.List;
 import java.util.Map;
 
 import command.Command;
-import command.enquiry.DeleteEnquiryCommand;
-import command.enquiry.EditEnquiryCommand;
-import command.enquiry.ReplyEnquiryCommand;
-import command.enquiry.ShowEnquiryCommand;
+import command.LambdaCommand;
 import command.general.MenuBackCommand;
+import config.EnquiryStatus;
 import controller.interfaces.EnquiryController;
-import manager.DIManager;
-import manager.interfaces.MenuManager;
-import manager.interfaces.SessionManager;
 import model.Enquiry;
 import model.User;
-import view.interfaces.ConfirmationView;
 
-public class EnquiryCommandFactory {
-    private static final DIManager diManager = DIManager.getInstance();
+public class EnquiryCommandFactory extends AbstractCommandFactory {
+    private static final int EDIT_ENQUIRY_CMD = getCommandID(ENQUIRY_CMD, EDIT_CMD, 0);
+    private static final int DELETE_ENQUIRY_CMD = getCommandID(ENQUIRY_CMD, DELETE_CMD, 0);
+    private static final int REPLY_ENQUIRY_CMD = getCommandID(ENQUIRY_CMD, EDIT_CMD, 1);
 
     public static Map<Integer, Command> getShowEnquiriesCommands(List<Enquiry> enquiries) {
-        EnquiryController enquiryController = diManager.resolve(EnquiryController.class);
+        final EnquiryController enquiryController = diManager.resolve(EnquiryController.class);
 
-        Map<Integer, Command> commands = new LinkedHashMap<>();
-        MenuManager menuManager = diManager.resolve(MenuManager.class);
+        final Map<Integer, Command> commands = new LinkedHashMap<>();
         
         int index = 1;
         for(Enquiry enquiry:enquiries){
-            commands.put(index++, new ShowEnquiryCommand(enquiryController, enquiry));
+            commands.put(index++, getShowEnquiryCommand(enquiryController, enquiry));
         }
 
-        commands.put(-1, new MenuBackCommand(menuManager));
+        commands.put(BACK_CMD, new MenuBackCommand(menuManager));
 
         return commands;
     }
 
+    private static Command getShowEnquiryCommand(EnquiryController enquiryController, Enquiry enquiry) {
+        String description = enquiry.getSubject();
+        if(enquiry.getEnquiryStatus() == EnquiryStatus.REPLIED){
+            description += " (Replied)";
+        }
+
+        return new LambdaCommand(description, () -> {
+            enquiryController.showEnquiry(enquiry);
+        });
+    }
+
     public static Map<Integer, Command> getEnquiryOperationCommands(Enquiry enquiry) {
-        SessionManager sessionManager = diManager.resolve(SessionManager.class);
-        User user = sessionManager.getUser();
+        final User user = sessionManager.getUser();
+        final Map<Integer, Command> commands = new LinkedHashMap<>();
 
-        Map<Integer, Command> commands = new LinkedHashMap<>();
+        addEnquiryUpdateRelatedCommands(user, enquiry, commands);
 
-        EnquiryController enquiryController = diManager.resolve(EnquiryController.class);
-        MenuManager menuManager = diManager.resolve(MenuManager.class);
-        ConfirmationView confirmationView = diManager.resolve(ConfirmationView.class);
+        commands.put(BACK_CMD, new MenuBackCommand(menuManager));
+        
+        return commands;
+    }
+
+    private static void addEnquiryUpdateRelatedCommands(User user, Enquiry enquiry, Map<Integer, Command> commands) {
+        final EnquiryController enquiryController = diManager.resolve(EnquiryController.class);
+
+        final Command editEnquiryCommand = new LambdaCommand("Edit Enquiry", () -> {
+            enquiryController.editEnquiry(enquiry);
+        });
+
+        final Command deleteEnquiryCommand = new LambdaCommand("Delete Enquiry", () -> {
+            enquiryController.deleteEnquiry(enquiry);
+        });
+
+        final Command replyEnquiryCommand = new LambdaCommand("Reply Enquiry", () -> {
+            enquiryController.replyEnquiry(enquiry);
+        });
 
         if(enquiry.getEnquirer() == user && enquiry.canBeAltered()){
-            commands.put(1, new EditEnquiryCommand(enquiryController, enquiry));
-            commands.put(2, new DeleteEnquiryCommand(enquiryController, enquiry, menuManager, confirmationView));
+            commands.put(EDIT_ENQUIRY_CMD, editEnquiryCommand);
+            commands.put(DELETE_ENQUIRY_CMD, deleteEnquiryCommand);
         }
         
         if(enquiry.getBTOProject().isHandlingBy(user) && enquiry.canBeAltered()){
-            commands.put(3, new ReplyEnquiryCommand(enquiryController, enquiry, menuManager));
+            commands.put(REPLY_ENQUIRY_CMD, replyEnquiryCommand);
         }
-
-        commands.put(-1, new MenuBackCommand(menuManager));
-
-        return commands;
     }
 }

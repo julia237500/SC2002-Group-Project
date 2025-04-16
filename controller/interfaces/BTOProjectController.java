@@ -5,7 +5,7 @@ import model.BTOProject;
 public interface BTOProjectController {
     void addBTOProject();
     void editBTOProject(BTOProject btoProject);
-    void showBTOProjects();
+    void showAllBTOProjects();
     void showBTOProject(BTOProject btoProject);
     void showBTOProjectDetail(BTOProject btoProject);
     void toggleBTOProjectVisibilty(BTOProject btoProject);

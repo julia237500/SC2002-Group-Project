@@ -2,6 +2,7 @@ package controller;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import command.Command;
 import config.FormField;
@@ -19,17 +20,19 @@ import model.Enquiry;
 import model.User;
 import service.ServiceResponse;
 import service.interfaces.EnquiryService;
+import view.interfaces.ConfirmationView;
 import view.interfaces.EnquiryView;
 import view.interfaces.MessageView;
 
 public class DefaultEnquiryController extends AbstractDefaultController implements EnquiryController{
-    private EnquiryService enquiryService;
-    private EnquiryView enquiryView;
-    private FormController formController;
-    private MenuManager menuManager;
-    private SessionManager sessionManager;
+    private final EnquiryService enquiryService;
+    private final EnquiryView enquiryView;
+    private final FormController formController;
+    private final MenuManager menuManager;
+    private final SessionManager sessionManager;
+    private final ConfirmationView confirmationView;
 
-    public DefaultEnquiryController(EnquiryService enquiryService, EnquiryView enquiryView, FormController formController, MenuManager menuManager, SessionManager sessionManager, MessageView messageView){
+    public DefaultEnquiryController(EnquiryService enquiryService, EnquiryView enquiryView, FormController formController, MenuManager menuManager, SessionManager sessionManager, MessageView messageView, ConfirmationView confirmationView) {
         super(messageView);
 
         this.enquiryService = enquiryService;
@@ -37,6 +40,7 @@ public class DefaultEnquiryController extends AbstractDefaultController implemen
         this.formController = formController;
         this.menuManager = menuManager;
         this.sessionManager = sessionManager;
+        this.confirmationView = confirmationView;
     }
 
     @Override
@@ -67,9 +71,17 @@ public class DefaultEnquiryController extends AbstractDefaultController implemen
 
     @Override
     public void deleteEnquiry(Enquiry enquiry) {
+        if(!confirmationView.confirm("Are you sure you want to delete this enquiry? This is irreversible.")){
+            return;
+        }
+
         User user = sessionManager.getUser();
         ServiceResponse<?> serviceResponse = enquiryService.deleteEnquiry(user, enquiry);
         defaultShowServiceResponse(serviceResponse);
+
+        if(serviceResponse.getResponseStatus() == ResponseStatus.SUCCESS){
+            menuManager.back();
+        }
     }
 
     @Override
@@ -86,73 +98,58 @@ public class DefaultEnquiryController extends AbstractDefaultController implemen
 
     @Override
     public void showAllEnquiries() {
-        User user = sessionManager.getUser();
+        final User user = sessionManager.getUser();
 
-        ServiceResponse<List<Enquiry>> serviceResponse = enquiryService.getAllEnquiries(user);
+        menuManager.addCommands("List of All Enquiries", () -> 
+            generateShowEnquiriesCommand(() -> enquiryService.getAllEnquiries(user))
+        );
+    }
+
+    private Map<Integer, Command> generateShowEnquiriesCommand(Supplier<ServiceResponse<List<Enquiry>>> serviceResponseSupplier){
+        final ServiceResponse<List<Enquiry>> serviceResponse = serviceResponseSupplier.get();
 
         if(serviceResponse.getResponseStatus() != ResponseStatus.SUCCESS){
             messageView.error(serviceResponse.getMessage());
-            return;
+            return null;
         }
 
-        List<Enquiry> enquiries = serviceResponse.getData();
+        final List<Enquiry> enquiries = serviceResponse.getData();
         if(enquiries.isEmpty()){
             messageView.info("Enquiries not found.");
-            return;
+            return null;
         }
         
-        Map<Integer, Command> commands = EnquiryCommandFactory.getShowEnquiriesCommands(enquiries);
-        menuManager.addCommands("Enquiries", commands);
+        return EnquiryCommandFactory.getShowEnquiriesCommands(enquiries);
     }
 
     @Override
     public void showEnquiriesByUser() {
         User user = sessionManager.getUser();
 
-        ServiceResponse<List<Enquiry>> serviceResponse = enquiryService.getEnquiriesByUser(user);
-
-        if(serviceResponse.getResponseStatus() != ResponseStatus.SUCCESS){
-            messageView.error(serviceResponse.getMessage());
-            return;
-        }
-
-        List<Enquiry> enquiries = serviceResponse.getData();
-        if(enquiries.isEmpty()){
-            messageView.info("Enquiries not found.");
-            return;
-        }
-        
-        Map<Integer, Command> commands = EnquiryCommandFactory.getShowEnquiriesCommands(enquiries);
-        menuManager.addCommands("Enquiries", commands);
+        menuManager.addCommands("Your Enquiries", () -> 
+            generateShowEnquiriesCommand(() -> enquiryService.getEnquiriesByUser(user))
+        );
     }
 
     @Override
     public void showEnquiriesByBTOProject(BTOProject btoProject) {
         User user = sessionManager.getUser();
 
-        ServiceResponse<List<Enquiry>> serviceResponse = enquiryService.getEnquiriesByBTOProject(user, btoProject);
-
-        if(serviceResponse.getResponseStatus() != ResponseStatus.SUCCESS){
-            messageView.error(serviceResponse.getMessage());
-            return;
-        }
-
-        List<Enquiry> enquiries = serviceResponse.getData();
-        if(enquiries.isEmpty()){
-            messageView.info("Enquiries not found.");
-            return;
-        }
-        
-        Map<Integer, Command> commands = EnquiryCommandFactory.getShowEnquiriesCommands(enquiries);
-        menuManager.addCommands("Enquiries", commands);
+        menuManager.addCommands("Enquiries of the project", () -> 
+            generateShowEnquiriesCommand(() -> enquiryService.getEnquiriesByBTOProject(user, btoProject))
+        );
     }
 
     @Override
     public void showEnquiry(Enquiry enquiry) {
-        showEnquiryDetail(enquiry);
+        menuManager.addCommands("Operation", () -> 
+            generateShowEnquiryCommand(enquiry)
+        );
+    }
 
-        Map<Integer, Command> commands = EnquiryCommandFactory.getEnquiryOperationCommands(enquiry);
-        menuManager.addCommands("Operation", commands);
+    private Map<Integer, Command> generateShowEnquiryCommand(Enquiry enquiry){
+        showEnquiryDetail(enquiry);
+        return EnquiryCommandFactory.getEnquiryOperationCommands(enquiry);
     }
 
     @Override

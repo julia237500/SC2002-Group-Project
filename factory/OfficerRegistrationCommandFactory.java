@@ -4,57 +4,71 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import command.Command;
+import command.LambdaCommand;
 import command.general.MenuBackCommand;
-import command.officer_registration.ApproveOfficerRegistrationCommand;
-import command.officer_registration.ShowOfficerRegistrationCommand;
 import config.RegistrationStatus;
 import config.UserRole;
 import controller.interfaces.OfficerRegistrationController;
-import manager.DIManager;
-import manager.interfaces.MenuManager;
-import manager.interfaces.SessionManager;
 import model.OfficerRegistration;
 import model.User;
-import view.interfaces.ConfirmationView;
 
-public class OfficerRegistrationCommandFactory {
-    private static final DIManager diManager = DIManager.getInstance();
+public class OfficerRegistrationCommandFactory extends AbstractCommandFactory {
+    private static final int APPROVE_OFFICER_REGISTRATION_CMD = getCommandID(OFFICER_REGISTRATION_CMD, EDIT_CMD, 0);
+    private static final int REJECT_OFFICER_REGISTRATION_CMD = getCommandID(OFFICER_REGISTRATION_CMD, EDIT_CMD, 1);
 
     public static Map<Integer, Command> getShowRegistrationsCommands(List<OfficerRegistration> officerRegistrations) {
-        OfficerRegistrationController officerRegistrationController = diManager.resolve(OfficerRegistrationController.class);
+        final OfficerRegistrationController officerRegistrationController = diManager.resolve(OfficerRegistrationController.class);
 
-        Map<Integer, Command> commands = new LinkedHashMap<>();
-        MenuManager menuManager = diManager.resolve(MenuManager.class);
+        final Map<Integer, Command> commands = new LinkedHashMap<>();
         
         int index = 1;
         for(OfficerRegistration officerRegistration:officerRegistrations){
-            commands.put(index++, new ShowOfficerRegistrationCommand(officerRegistrationController, officerRegistration));
+            commands.put(index++, getShowOfficerRegistrationCommand(officerRegistrationController, officerRegistration));
         }
 
-        commands.put(-1, new MenuBackCommand(menuManager));
+        commands.put(BACK_CMD, new MenuBackCommand(menuManager));
 
         return commands;
     }
 
+    private static Command getShowOfficerRegistrationCommand(OfficerRegistrationController officerRegistrationController, OfficerRegistration officerRegistration) {
+        final String description = "%s - %s (%s)".formatted(
+            officerRegistration.getBTOProject().getName(),
+            officerRegistration.getHDBOfficer().getName(),
+            officerRegistration.getRegistrationStatus().getStoredString()
+        );
+        
+        return new LambdaCommand(description, () -> {
+            officerRegistrationController.showOfficerRegistration(officerRegistration);
+        });
+    }
+
     public static Map<Integer, Command> getRegistrationOperationCommands(OfficerRegistration officerRegistration){
-        OfficerRegistrationController officerRegistrationController = diManager.resolve(OfficerRegistrationController.class);
-        ConfirmationView confirmationView = diManager.resolve(ConfirmationView.class);
+        final User user = sessionManager.getUser();
+        final Map<Integer, Command> commands = new LinkedHashMap<>();
 
-        SessionManager sessionManager = diManager.resolve(SessionManager.class);
-        User user = sessionManager.getUser();
+        addOfficerRegistrationUpdateRelatedCommands(user, officerRegistration, commands);
 
-        Map<Integer, Command> commands = new LinkedHashMap<>();
-        MenuManager menuManager = diManager.resolve(MenuManager.class);
+        commands.put(BACK_CMD, new MenuBackCommand(menuManager));
+        return commands;
+    }
 
-        if(user.getUserRole() == UserRole.HDB_MANAGER){
-            if(officerRegistration.getRegistrationStatus() == RegistrationStatus.PENDING && officerRegistration.getBTOProject().getHDBManager() == user){
-                commands.put(1, new ApproveOfficerRegistrationCommand(officerRegistrationController, officerRegistration, true, confirmationView, menuManager));
-                commands.put(2, new ApproveOfficerRegistrationCommand(officerRegistrationController, officerRegistration, false, confirmationView, menuManager));
+    private static void addOfficerRegistrationUpdateRelatedCommands(User user, OfficerRegistration officerRegistration, Map<Integer, Command> commands) {
+        final OfficerRegistrationController officerRegistrationController = diManager.resolve(OfficerRegistrationController.class);
+
+        final Command approveOfficerRegistrationCommand = new LambdaCommand("Approve Officer Registration", () -> {
+            officerRegistrationController.approveOfficerRegistration(officerRegistration, true);
+        });
+
+        final Command rejectOfficerRegistrationCommand = new LambdaCommand("Reject Officer Registration", () -> {
+            officerRegistrationController.approveOfficerRegistration(officerRegistration, false);
+        });
+
+        if(user.getUserRole() == UserRole.HDB_MANAGER && officerRegistration.getBTOProject().getHDBManager() == user){
+            if(officerRegistration.getRegistrationStatus() == RegistrationStatus.PENDING){
+                commands.put(APPROVE_OFFICER_REGISTRATION_CMD, approveOfficerRegistrationCommand);
+                commands.put(REJECT_OFFICER_REGISTRATION_CMD, rejectOfficerRegistrationCommand);
             }
         }
-
-        commands.put(-1, new MenuBackCommand(menuManager));
-
-        return commands;
     }
 }

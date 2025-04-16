@@ -15,53 +15,54 @@ import service.ServiceResponse;
 import service.interfaces.AuthService;
 import view.interfaces.MessageView;
 
-public class DefaultAuthController implements AuthController{
-    private AuthService authService;
-    private MessageView messageView;
-    private FormController formController;
-    private SessionManager sessionManager;
+public class DefaultAuthController extends AbstractDefaultController implements AuthController{
+    private final AuthService authService;
+    private final FormController formController;
+    private final SessionManager sessionManager;
 
-    public DefaultAuthController(AuthService AuthService, MessageView messageView, FormController formController, SessionManager sessionManager){
+    public DefaultAuthController(AuthService AuthService, MessageView messageView, FormController formController, SessionManager sessionManager) {
+        super(messageView);
+
         this.authService = AuthService;
-        this.messageView = messageView;
         this.formController = formController;
         this.sessionManager = sessionManager;
     }
 
-    public User handleLogin(){
+    public void handleLogin(){
         while(true){
             formController.setForm(new LoginForm());
-            Map<FormField, FieldData<?>> data = formController.getFormData();
+            final Map<FormField, FieldData<?>> data = formController.getFormData();
 
-            String NRIC = (String) data.get(FormField.NRIC).getData();
-            String password = (String) data.get(FormField.PASSWORD).getData();
+            final String NRIC = (String) data.get(FormField.NRIC).getData();
+            final String password = (String) data.get(FormField.PASSWORD).getData();
 
-            ServiceResponse<User> authResponse = authService.login(NRIC, password);
-            if(authResponse.getResponseStatus() == ResponseStatus.SUCCESS){
-                return authResponse.getData();
+            final ServiceResponse<User> serviceResponse = authService.login(NRIC, password);
+
+            if(serviceResponse.getResponseStatus() == ResponseStatus.SUCCESS){
+                final User user = serviceResponse.getData();
+
+                sessionManager.setUser(user);
+                messageView.success("Login successful! Welcome back, %s!".formatted(user.getName()));
+
+                break;
             }
             else{
-                messageView.error(authResponse.getMessage());
+                defaultShowServiceResponse(serviceResponse);
             }
         }
     }
 
     public boolean changePassword(){
-        User user = sessionManager.getUser();
+        final User user = sessionManager.getUser();
         formController.setForm(new ChangePasswordForm());
-        Map<FormField, FieldData<?>> data = formController.getFormData();
+        final Map<FormField, FieldData<?>> data = formController.getFormData();
 
-        String password = (String) data.get(FormField.PASSWORD).getData();
-        String confirmPassword = (String) data.get(FormField.CONFIRM_PASSWORD).getData();
+        final String password = (String) data.get(FormField.PASSWORD).getData();
+        final String confirmPassword = (String) data.get(FormField.CONFIRM_PASSWORD).getData();
 
-        ServiceResponse<?> authResponse = authService.changePassword(user, password, confirmPassword);
+        final ServiceResponse<?> serviceResponse = authService.changePassword(user, password, confirmPassword);
         
-        if(authResponse.getResponseStatus() == ResponseStatus.SUCCESS){
-            return true;
-        }
-        else{
-            messageView.error(authResponse.getMessage());
-            return false;
-        }
+        defaultShowServiceResponse(serviceResponse);
+        return serviceResponse.getResponseStatus() == ResponseStatus.SUCCESS;
     }
 }
