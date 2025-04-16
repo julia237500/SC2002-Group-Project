@@ -69,7 +69,7 @@ public class BTOProjectRelationshipResolver implements LoadResolver, SaveResolve
 
         List<Enquiry> enquiries = dataManager.getByQuery(
             Enquiry.class, 
-            enquiry -> enquiry.getBtoProject() == btoProject
+            enquiry -> enquiry.getBTOProject() == btoProject
         );
 
         for(Enquiry enquiry:enquiries){

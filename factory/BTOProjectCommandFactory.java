@@ -5,6 +5,9 @@ import java.util.List;
 import java.util.Map;
 
 import command.Command;
+import command.application.AddApplicationCommand;
+import command.application.ShowApplicationByUserAndBTOProject;
+import command.application.ShowApplicationsByBTOProjectCommand;
 import command.btoproject.DeleteBTOProjectCommand;
 import command.btoproject.EditBTOProjectCommand;
 import command.btoproject.ShowBTOProjectCommand;
@@ -15,20 +18,23 @@ import command.general.MenuBackCommand;
 import command.officer_registration.AddOfficerRegistrationCommand;
 import command.officer_registration.ShowOfficerRegistrationCommand;
 import command.officer_registration.ShowOfficerRegistrationsByBTOProjectCommand;
+import config.FlatType;
 import config.UserRole;
+import controller.interfaces.ApplicationController;
 import controller.interfaces.BTOProjectController;
 import controller.interfaces.EnquiryController;
 import controller.interfaces.OfficerRegistrationController;
 import manager.DIManager;
 import manager.interfaces.MenuManager;
 import manager.interfaces.SessionManager;
+import model.Application;
 import model.BTOProject;
 import model.OfficerRegistration;
 import model.User;
 import view.interfaces.ConfirmationView;
 
 public class BTOProjectCommandFactory {
-     private static final DIManager diManager = DIManager.getInstance();
+    private static final DIManager diManager = DIManager.getInstance();
 
     public static Map<Integer, Command> getShowBTOProjectsCommands(List<BTOProject> btoProjects) {
         Map<Integer, Command> commands = new LinkedHashMap<>();
@@ -84,8 +90,38 @@ public class BTOProjectCommandFactory {
             commands.put(21, new ShowEnquiriesByBTOProjectCommand(enquiryController, btoProject));
         }
 
+        getApplicationRelatedCommands(user, btoProject, commands);
+
         commands.put(-1, new MenuBackCommand(menuManager));
 
         return commands;
+    }
+
+    private static void getApplicationRelatedCommands(User user, BTOProject btoProject, Map<Integer, Command> commands) {
+        ApplicationController applicationController = diManager.resolve(ApplicationController.class);
+        MenuManager menuManager = diManager.resolve(MenuManager.class);
+        BTOProjectController btoProjectController = diManager.resolve(BTOProjectController.class);
+
+        if(btoProject.isHandlingBy(user)){
+            commands.put(30, new ShowApplicationsByBTOProjectCommand(applicationController, btoProject));
+        }
+
+        if(user.getUserRole() == UserRole.APPLICANT || 
+            (user.getUserRole() == UserRole.HDB_OFFICER && !btoProject.isHandlingBy(user))){
+            
+            Application application = applicationController.getApplicationByUserAndBTOProject(btoProject);
+            if(application != null){
+                commands.put(31, new ShowApplicationByUserAndBTOProject(applicationController, btoProject));
+            }
+            else if(btoProject.isActive()){
+                int key = 321;
+                for(FlatType flatType:FlatType.values()){
+                    if(btoProject.hasAvailableFlats(flatType) && flatType.isEligible(user)){
+                        commands.put(key, new AddApplicationCommand(applicationController, btoProject, flatType, menuManager, btoProjectController));
+                    }
+                    key++;
+                }
+            }
+        }
     }
 }

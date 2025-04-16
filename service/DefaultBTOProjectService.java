@@ -92,7 +92,7 @@ public class DefaultBTOProjectService implements BTOProjectService{
             editingBTOProject.edit(btoProjectDTO);
             dataManager.save(editingBTOProject);
         } catch (Exception e) {
-            editingBTOProject.revertEdit();
+            editingBTOProject.restore();
             return new ServiceResponse<>(ResponseStatus.ERROR, e.getMessage());
         }
         

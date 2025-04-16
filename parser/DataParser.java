@@ -12,6 +12,7 @@ import config.FlatType;
 import config.MaritalStatus;
 import config.RegistrationStatus;
 import config.UserRole;
+import config.WithdrawalStatus;
 import exception.DataParsingException;
 
 public class DataParser {
@@ -37,6 +38,7 @@ public class DataParser {
         addParser(RegistrationStatus.class, RegistrationStatus::parseRegistrationStatus);
         addParser(EnquiryStatus.class, EnquiryStatus::parseEnquiryStatus);
         addParser(ApplicationStatus.class, ApplicationStatus::parseApplicationStatus);
+        addParser(WithdrawalStatus.class, WithdrawalStatus::parseWithdrawalStatus);
     }
 
     private static <T> void addParser(Class<T> clazz, Function<String, T> parser){
@@ -57,6 +59,7 @@ public class DataParser {
         addStringifiers(RegistrationStatus.class, RegistrationStatus::getStoredString);
         addStringifiers(EnquiryStatus.class, EnquiryStatus::getStoredString);
         addStringifiers(ApplicationStatus.class, ApplicationStatus::getStoredString);
+        addStringifiers(WithdrawalStatus.class, WithdrawalStatus::getStoredString);
     }
 
     private static <T> void addStringifiers(Class<T> clazz, Function<T, String> stringifier){

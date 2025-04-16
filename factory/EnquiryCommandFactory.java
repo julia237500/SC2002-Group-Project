@@ -52,7 +52,7 @@ public class EnquiryCommandFactory {
             commands.put(2, new DeleteEnquiryCommand(enquiryController, enquiry, menuManager, confirmationView));
         }
         
-        if(enquiry.getBtoProject().isHandlingBy(user) && enquiry.canBeAltered()){
+        if(enquiry.getBTOProject().isHandlingBy(user) && enquiry.canBeAltered()){
             commands.put(3, new ReplyEnquiryCommand(enquiryController, enquiry, menuManager));
         }
 

@@ -67,6 +67,7 @@ public class DIManager{
 
         container.register(ApplicationController.class, DefaultApplicationController.class);
         container.register(ApplicationService.class, DefaultApplicationService.class);
+        container.register(ApplicationView.class, TerminalApplicationView.class);
 
         container.register(MessageView.class, TerminalMessageView.class);
         container.register(ConfirmationView.class, TerminalConfirmationView.class);

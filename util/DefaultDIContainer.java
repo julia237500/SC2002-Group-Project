@@ -42,7 +42,7 @@ public class DefaultDIContainer implements DIContainer {
             container.put(type, instance);
             return instance;
         } catch (Exception e) {
-            throw new DependencyInjectorException("Unable to create instance of " + type.getName() + e.getMessage());
+            throw new DependencyInjectorException("Unable to create instance of %s: \n%s".formatted(type.getSimpleName(), e.getMessage()));
         }
     }
 }

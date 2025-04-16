@@ -51,7 +51,7 @@ public class DefaultEnquiryService implements EnquiryService{
 
         List<Enquiry> enquiries = dataManager.getByQuery(
             Enquiry.class, 
-            enquiry -> enquiry.getBtoProject() == btoProject,
+            enquiry -> enquiry.getBTOProject() == btoProject,
             Enquiry.SORT_BY_CREATED_AT_DESC
         );
         return new ServiceResponse<>(ResponseStatus.SUCCESS, enquiries);
@@ -121,7 +121,7 @@ public class DefaultEnquiryService implements EnquiryService{
 
     @Override
     public ServiceResponse<?> replyEnquiry(User requestedUser, Enquiry enquiry, String replyString) {
-        if(!enquiry.getBtoProject().isHandlingBy(requestedUser)){
+        if(!enquiry.getBTOProject().isHandlingBy(requestedUser)){
             return new ServiceResponse<>(ResponseStatus.ERROR, "Access denied. Only Manager/Officer in-charge can performed this action.");
         }
 

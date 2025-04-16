@@ -92,7 +92,7 @@ public class Enquiry implements DataModel{
         this.enquiryStatus = EnquiryStatus.UNREPLIED;
     }
 
-    public BTOProject getBtoProject() {
+    public BTOProject getBTOProject() {
         return btoProject;
     }
 

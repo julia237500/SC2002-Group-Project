@@ -4,6 +4,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import command.Command;
+import command.application.ShowAllApplicationsCommand;
+import command.application.ShowApplicationsByUserCommand;
 import command.btoproject.AddBTOProjectCommand;
 import command.btoproject.ShowBTOProjectsCommand;
 import command.enquiry.ShowAllEnquiriesCommand;
@@ -12,6 +14,7 @@ import command.general.LogoutCommand;
 import command.officer_registration.ShowOfficerRegistrationsByOfficerCommand;
 import command.user.ChangePasswordCommand;
 import config.UserRole;
+import controller.interfaces.ApplicationController;
 import controller.interfaces.AuthController;
 import controller.interfaces.BTOProjectController;
 import controller.interfaces.EnquiryController;
@@ -33,6 +36,7 @@ public class DashboardCommandFactory {
         BTOProjectController btoProjectController = diManager.resolve(BTOProjectController.class);
         OfficerRegistrationController officerRegistrationController = diManager.resolve(OfficerRegistrationController.class);
         EnquiryController enquiryController = diManager.resolve(EnquiryController.class);
+        ApplicationController applicationController = diManager.resolve(ApplicationController.class);
 
         Map<Integer, Command> commands = new LinkedHashMap<>();
         commands.put(1, new ChangePasswordCommand(authController, applicationManager));
@@ -52,6 +56,14 @@ public class DashboardCommandFactory {
         }
         else{
             commands.put(41, new ShowEnquiriesByUserCommand(enquiryController));
+        }
+
+        if(user.getUserRole() == UserRole.HDB_MANAGER){
+            commands.put(50, new ShowAllApplicationsCommand(applicationController));
+        }
+
+        if(user.getUserRole() == UserRole.APPLICANT || user.getUserRole() == UserRole.HDB_OFFICER){
+            commands.put(51, new ShowApplicationsByUserCommand(applicationController));
         }
 
         commands.put(9, new LogoutCommand(applicationManager));
