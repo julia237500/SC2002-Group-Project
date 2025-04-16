@@ -2,6 +2,7 @@ package manager;
 
 import java.util.Map;
 import java.util.Stack;
+import java.util.function.Supplier;
 
 import command.Command;
 import controller.interfaces.CommandController;
@@ -9,10 +10,10 @@ import factory.DashboardCommandFactory;
 import manager.interfaces.MenuManager;
 
 public class DefaultMenuManager implements MenuManager{
-    private CommandController commandController;
+    final private CommandController commandController;
 
-    private Stack<Map<Integer, Command>> commandsStack = new Stack<>();
-    private Stack<String> commandsTitleStack = new Stack<>();
+    final private Stack<Supplier<Map<Integer, Command>>> commandGeneratorsStack = new Stack<>();
+    final private Stack<String> commandsTitleStack = new Stack<>();
 
     public DefaultMenuManager(CommandController commandController) {
         this.commandController = commandController;
@@ -20,29 +21,36 @@ public class DefaultMenuManager implements MenuManager{
 
     @Override
     public void startDashboardLoop() {
-        commandsStack.add(DashboardCommandFactory.getCommands());
-        commandsTitleStack.add("Dashboard");
+        addCommands("Dashboard", () -> DashboardCommandFactory.getCommands());
         
-        while(!commandsStack.isEmpty()){
-            commandController.setCommands(commandsStack.peek());
+        while(!commandGeneratorsStack.isEmpty()){
+            final Supplier<Map<Integer, Command>> commandGenerator = commandGeneratorsStack.peek();
+            final Map<Integer, Command> commands = commandGenerator.get();
+
+            if(commands == null || commands.isEmpty()){
+                back();
+                continue;
+            }
+            
             commandController.setCommandsTitle(commandsTitleStack.peek());
+            commandController.setCommands(commands);
 
             commandController.executeCommand();
         }
     }
 
-    public void addCommands(String commandTitle, Map<Integer, Command> commands){
+    public void addCommands(String commandTitle, Supplier<Map<Integer, Command>> commandGenerator){
         commandsTitleStack.add(commandTitle);
-        commandsStack.add(commands);
+        commandGeneratorsStack.add(commandGenerator);
     }
 
     public void back(){
         commandsTitleStack.pop();
-        commandsStack.pop();
+        commandGeneratorsStack.pop();
     }
 
     public void stopDashboardLoop(){
         commandsTitleStack.removeAllElements();
-        commandsStack.removeAllElements();
+        commandGeneratorsStack.removeAllElements();
     }
 }

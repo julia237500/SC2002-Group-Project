@@ -22,16 +22,18 @@ import model.User;
 import service.ServiceResponse;
 import service.interfaces.BTOProjectService;
 import view.interfaces.BTOProjectView;
+import view.interfaces.ConfirmationView;
 import view.interfaces.MessageView;
 
 public class DefaultBTOProjectController extends AbstractDefaultController implements BTOProjectController{
-    private BTOProjectService btoProjectService;
-    private BTOProjectView btoProjectView;
-    private FormController formController;
-    private SessionManager sessionManager;
-    private MenuManager menuManager;
+    private final BTOProjectService btoProjectService;
+    private final BTOProjectView btoProjectView;
+    private final FormController formController;
+    private final SessionManager sessionManager;
+    private final MenuManager menuManager;
+    private final ConfirmationView confirmationView;
 
-    public DefaultBTOProjectController(BTOProjectService btoProjectService, BTOProjectView btoProjectView, MessageView messageView, FormController formController, SessionManager sessionManager, MenuManager menuManager){
+    public DefaultBTOProjectController(BTOProjectService btoProjectService, BTOProjectView btoProjectView, MessageView messageView, FormController formController, SessionManager sessionManager, MenuManager menuManager, ConfirmationView confirmationView) {
         super(messageView);
 
         this.btoProjectService = btoProjectService;
@@ -39,6 +41,7 @@ public class DefaultBTOProjectController extends AbstractDefaultController imple
         this.formController = formController;
         this.sessionManager = sessionManager;
         this.menuManager = menuManager;
+        this.confirmationView = confirmationView;
     }
 
     public void addBTOProject(){
@@ -85,29 +88,35 @@ public class DefaultBTOProjectController extends AbstractDefaultController imple
         defaultShowServiceResponse(editBTOProjectResponse);
     }
 
-    public void showBTOProjects(){
+    public void showAllBTOProjects(){
+        menuManager.addCommands("BTO Projects", () -> showAllBTOProjectsCommandGenerator());
+    }
+
+    private Map<Integer, Command> showAllBTOProjectsCommandGenerator(){
         ServiceResponse<List<BTOProject>> getBTOProjectServiceResponse = btoProjectService.getBTOProjects();
 
         if(getBTOProjectServiceResponse.getResponseStatus() != ResponseStatus.SUCCESS){
             messageView.error(getBTOProjectServiceResponse.getMessage());
+            return null;
         }
 
         List<BTOProject> btoProjects = getBTOProjectServiceResponse.getData();
 
         if(btoProjects.isEmpty()){
             messageView.info("No BTO Project is opened currently. Returning to dashboard.");
-            return;
+            return null;
         }
 
-        Map<Integer, Command> commands = BTOProjectCommandFactory.getShowBTOProjectsCommands(btoProjects);
-        menuManager.addCommands("List of BTO Project", commands);
+        return BTOProjectCommandFactory.getShowBTOProjectsCommands(btoProjects);
     }
 
     public void showBTOProject(BTOProject btoProject){
-        showBTOProjectDetail(btoProject);
+        menuManager.addCommands("Operations", () -> showBTOProjectCommandGenerator(btoProject));
+    }
 
-        Map<Integer, Command> commands = BTOProjectCommandFactory.getBTOProjectsOperationCommands(btoProject);
-        menuManager.addCommands("Operations", commands);
+    private Map<Integer, Command> showBTOProjectCommandGenerator(BTOProject btoProject){
+        showBTOProjectDetail(btoProject);
+        return BTOProjectCommandFactory.getBTOProjectsOperationCommands(btoProject);
     }
 
     public void showBTOProjectDetail(BTOProject btoProject){
@@ -121,8 +130,16 @@ public class DefaultBTOProjectController extends AbstractDefaultController imple
     }
 
     public void deleteBTOProject(BTOProject btoProject){
+        if(!confirmationView.confirm("Are you sure you want to delete this BTO Project? This is irreversible.")){
+            return;
+        }
+
         User user = sessionManager.getUser();
         ServiceResponse<?> serviceResponse = btoProjectService.deleteBTOProject(user, btoProject);
         defaultShowServiceResponse(serviceResponse);
+
+        if(serviceResponse.getResponseStatus() == ResponseStatus.SUCCESS){
+            menuManager.back();
+        }
     }
 }

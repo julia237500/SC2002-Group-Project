@@ -119,6 +119,7 @@ public class DefaultOfficerRegistrationService implements OfficerRegistrationSer
         try {
             officerRegistration.updateRegistrationStatus(isApproving);
             dataManager.save(officerRegistration);
+            officerRegistration.getBTOProject().addHDBOfficer(officerRegistration.getHDBOfficer());
         } catch (DataModelException e) {
             return new ServiceResponse<>(ResponseStatus.ERROR, e.getMessage());
         } catch (DataSavingException e) {

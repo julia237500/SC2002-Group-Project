@@ -1,5 +1,6 @@
 package view.interfaces;
 
 public interface ConfirmationView {
-    boolean getConfirmation();
+    boolean confirm();
+    boolean confirm(String message);
 }

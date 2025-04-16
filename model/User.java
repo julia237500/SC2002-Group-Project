@@ -18,6 +18,7 @@ public class User implements DataModel{
     
     @CSVField(index = 4)
     private String password;
+    private String backupPassword;
 
     @CSVField(index = 5)
     private UserRole userRole;
@@ -55,6 +56,7 @@ public class User implements DataModel{
     }
 
     public void setPassword(String password) {
+        backupPassword = this.password;
         this.password = password;
     }
 
@@ -65,5 +67,13 @@ public class User implements DataModel{
     @Override
     public String getPK() {
         return NRIC;
+    }
+
+    public void backup(){
+        this.backupPassword = password;
+    }
+
+    public void restore(){
+        this.password = backupPassword;
     }
 }

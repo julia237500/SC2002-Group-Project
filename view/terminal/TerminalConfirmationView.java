@@ -13,9 +13,13 @@ public class TerminalConfirmationView extends AbstractTerminalView implements Co
         this.messageView = messageView;
     }
 
-    public boolean getConfirmation(){
+    public boolean confirm(){
+        return confirm("Confirm the action? This will be irreversible.");
+    }
+
+    public boolean confirm(String message){
         while(true){
-            System.out.print("Confirm the action? (%s/%s) ".formatted(YES_SELECTION, NO_SELECTION));
+            System.out.print("%s (%s/%s) ".formatted(message, YES_SELECTION, NO_SELECTION));
             
             String input = sc.nextLine().trim().toUpperCase();
             switch (input) {
