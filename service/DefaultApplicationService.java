@@ -17,7 +17,7 @@ import service.interfaces.ApplicationService;
 /**
  * Default implementation of the {@link ApplicationService} interface.
  * Handles business logic for BTO project applications including validation,
- * eligibility checks, and application processing.
+ * eligibility checks, and application submissions or rejections.
  */
 public class DefaultApplicationService implements ApplicationService{
     private DataManager dataManager;
