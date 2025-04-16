@@ -43,6 +43,10 @@ public class CSVDataManager implements DataManager{
     private final Map<Class<? extends DataModel>, DeleteResolver<?>> deleteResolvers = new HashMap<>();
     private final Map<Class<? extends DataModel>, SaveResolver<?>> saveResolvers = new HashMap<>();
 
+
+    /**
+     * Constructs a new CSVDataManager, configures file paths, resolvers, and loads data.
+     */
     public CSVDataManager(){
         configFilePath();
         configLoadResolver();
@@ -51,6 +55,9 @@ public class CSVDataManager implements DataManager{
         loadData();
     }
 
+    /**
+     * Maps each data model class to its corresponding CSV file path.
+     */
     private void configFilePath(){
         filePaths.put(User.class, "./data/UserList.csv");
         filePaths.put(BTOProject.class, "./data/ProjectList.csv");
@@ -60,18 +67,30 @@ public class CSVDataManager implements DataManager{
         filePaths.put(Application.class, "./data/ApplicationList.csv");
     }
 
+    /**
+     * Configures any load-time resolvers for handling relationships.
+     */
     private void configLoadResolver(){
         loadResolvers.add(new BTOProjectRelationshipResolver());
     }
 
+    /**
+     * Configures delete resolvers to handle any business logic when deleting objects.
+     */
     private void configDeleteResolver(){
         deleteResolvers.put(BTOProject.class, new BTOProjectRelationshipResolver());
     }
 
+    /**
+     * Configures save resolvers to handle relationship updates when saving objects.
+     */
     private void configSaveResolver(){
         saveResolvers.put(BTOProject.class, new BTOProjectRelationshipResolver());
     }
 
+    /**
+     * Loads and parses all CSV data into memory and resolves object relationships.
+     */
     private void loadData(){
         try{
             for(Entry<Class<? extends DataModel>, String> filePath:filePaths.entrySet()){
@@ -90,6 +109,9 @@ public class CSVDataManager implements DataManager{
         }
     }
 
+    /**
+     * Parses raw CSV data into a map of DataModel objects by using reflection and annotations.
+     */
     @SuppressWarnings("unchecked")
     private <T extends DataModel> Map<String, DataModel> parseData(Class<T> clazz, List<List<String>> rawData) throws NoSuchMethodException, SecurityException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException{
         Map<String, DataModel> data = new HashMap<>();
@@ -229,6 +251,9 @@ public class CSVDataManager implements DataManager{
         }
     }
 
+    /**
+     * Saves the current data of a given class to its CSV file.
+     */
     @SuppressWarnings("unchecked")
     private <T extends DataModel> void saveData(Class<T> clazz) throws DataSavingException{
         String filePath = filePaths.get(clazz);
@@ -241,7 +266,10 @@ public class CSVDataManager implements DataManager{
             throw new DataSavingException(e.getMessage());
         }
     }
-
+    
+    /**
+     * Converts a list of data objects into raw CSV data for saving.
+     */
     private <T> List<List<String>> toRawData(Class<T> clazz, Collection<T> data) throws IllegalArgumentException, IllegalAccessException{
         List<List<String>> lines = new ArrayList<>();
 
