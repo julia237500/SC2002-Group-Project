@@ -21,6 +21,19 @@ import manager.interfaces.ApplicationManager;
 import manager.interfaces.SessionManager;
 import model.User;
 
+/**
+ * Factory class that generates command maps for the main dashboard interface.
+ * Creates role-specific command sets based on the current user's permissions.
+ * 
+ * <p><b>Command Numbering Scheme:</b>
+ * <ul>
+ *   <li><b>1-19:</b> Common user commands (change password, etc.)</li>
+ *   <li><b>20-29:</b> BTO Project commands</li>
+ *   <li><b>30-39:</b> Officer registration commands</li>
+ *   <li><b>40-49:</b> Enquiry commands</li>
+ *   <li><b>9:</b> Always logout command (reserved)</li>
+ * </ul>
+ */
 public class DashboardCommandFactory {
     private static final DIManager diManager = DIManager.getInstance();
 
@@ -34,6 +47,12 @@ public class DashboardCommandFactory {
         OfficerRegistrationController officerRegistrationController = diManager.resolve(OfficerRegistrationController.class);
         EnquiryController enquiryController = diManager.resolve(EnquiryController.class);
 
+        /**
+         * Generates a dashboard command map tailored to the current user's role.
+         * @return Map of command options where:
+         * Keys represent menu option numbers (following the numbering scheme)
+         * - Values are executable Command instances
+         */
         Map<Integer, Command> commands = new LinkedHashMap<>();
         commands.put(1, new ChangePasswordCommand(authController, applicationManager));
 
