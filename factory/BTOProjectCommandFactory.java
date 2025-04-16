@@ -27,9 +27,35 @@ import model.OfficerRegistration;
 import model.User;
 import view.interfaces.ConfirmationView;
 
+
+/**
+ * Factory class that creates command maps for BTO project operations.
+ * Generates context-sensitive command menus based on:
+ * <ul>
+ *   <li>The current user's role</li>
+ *   <li>Project ownership/assignment status</li>
+ *   <li>Existing registrations/enquiries</li>
+ * </ul>
+ * 
+ * <p>Commands are organized into logical groups with numbered options:
+ * <ul>
+ *   <li>1-9: Manager operations</li>
+ *   <li>10-19: Officer registration operations</li>
+ *   <li>20-29: Enquiry operations</li>
+ *   <li>-1: Always the back command</li>
+ * </ul>
+ */
 public class BTOProjectCommandFactory {
      private static final DIManager diManager = DIManager.getInstance();
 
+    /**
+     * Creates a command map for displaying BTO projects.
+     * 
+     * @param btoProjects the list of projects to display
+     * @return Map of command options where:
+     *         - Keys are menu numbers (1-n for projects, -1 for back)
+     *         - Values are executable ShowBTOProjectCommand instances
+     */
     public static Map<Integer, Command> getShowBTOProjectsCommands(List<BTOProject> btoProjects) {
         Map<Integer, Command> commands = new LinkedHashMap<>();
 
@@ -46,6 +72,30 @@ public class BTOProjectCommandFactory {
         return commands;
     }
 
+    /**
+     * Creates a context-sensitive command map for project operations.
+     * Command availability depends on:
+     * <ul>
+     *   <li>User role (Manager/Officer/Applicant)</li>
+     *   <li>Project ownership (for managers)</li>
+     *   <li>Existing officer registration status</li>
+     *   <li>Project handling status</li>
+     * </ul>
+     * 
+     * @param btoProject the project to operate on
+     * @return Map of command options containing:
+     *         - Manager commands (1-9) if authorized
+     *         - Officer registration commands (10-19)
+     *         - Enquiry commands (20-29)
+     *         - Always includes back command (-1)
+     */
+
+    /**
+     * This intentional grouping makes the commands:
+     * Organized - Related commands appear near each other numerically
+     * Discoverable - Users can predict where to find certain command types
+     * Extensible - There is room to add more commands in each category (e.g., could add command #12 for another officer action)
+     */
     public static Map<Integer, Command> getBTOProjectsOperationCommands(BTOProject btoProject) {
         Map<Integer, Command> commands = new LinkedHashMap<>();
 
@@ -87,5 +137,6 @@ public class BTOProjectCommandFactory {
         commands.put(-1, new MenuBackCommand(menuManager));
 
         return commands;
+        
     }
 }
