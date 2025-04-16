@@ -13,13 +13,31 @@ import model.OfficerRegistration;
 import model.User;
 import service.interfaces.OfficerRegistrationService;
 
+/**
+ * Default implementation of {@link OfficerRegistrationService} that manages
+ * registration of HDB officers to BTO projects, including application, approval,
+ * and status tracking. Enforces business rules and access control.
+ */
 public class DefaultOfficerRegistrationService implements OfficerRegistrationService{
     private DataManager dataManager;
 
+    /**
+     * Constructs a DefaultOfficerRegistrationService with the specified data manager.
+     * 
+     * @param dataManager the data manager used for persistence operations 
+     */
     public DefaultOfficerRegistrationService(DataManager dataManager){
         this.dataManager = dataManager;
     }
 
+    /**
+     * Retrieves an officer's registration for a specific BTO project.
+     * 
+     * @param HDBOfficer the officer to check registration for
+     * @param btoProject the project to check registration against
+     * @return ServiceResponse containing:
+     *         - SUCCESS status with OfficerRegistration
+     */
     @Override
     public ServiceResponse<OfficerRegistration> getOfficerRegistrationByOfficerAndBTOProject(User HDBOfficer, BTOProject btoProject) {
         List<OfficerRegistration> officerRegistrations = dataManager.getByQueries(OfficerRegistration.class, List.of(
@@ -32,6 +50,15 @@ public class DefaultOfficerRegistrationService implements OfficerRegistrationSer
         return new ServiceResponse<>(ResponseStatus.SUCCESS, officerRegistration);
     }
 
+    /**
+     * Retrieves all registrations for a specific officer (HDB Officer only).
+     * Results are sorted by creation date in reversed order.
+     * 
+     * @param requestedUser the officer whose registrations to retrieve
+     * @return ServiceResponse containing:
+     *         - SUCCESS status with List<OfficerRegistration> if authorized
+     *         - ERROR status with message if access denied
+     */
     @Override
     public ServiceResponse<List<OfficerRegistration>> getOfficerRegistrationsByOfficer(User requestedUser) {
         if(requestedUser.getUserRole() != UserRole.HDB_OFFICER){
@@ -47,6 +74,16 @@ public class DefaultOfficerRegistrationService implements OfficerRegistrationSer
         return new ServiceResponse<>(ResponseStatus.SUCCESS, officerRegistrations);
     }
 
+    /**
+     * Retrieves all registrations for a specific BTO project (HDB Manager only).
+     * Results are sorted by creation date in reversed order.
+     * 
+     * @param requestedUser the manager making the request
+     * @param btoProject the project to filter registrations by
+     * @return ServiceResponse containing:
+     *         - SUCCESS status with List<OfficerRegistration> if authorized
+     *         - ERROR status with message if access denied
+     */
     @Override
     public ServiceResponse<List<OfficerRegistration>> getOfficerRegistrationsByBTOProject(User requestedUser, BTOProject btoProject) {
         if(requestedUser.getUserRole() != UserRole.HDB_MANAGER){
@@ -64,6 +101,21 @@ public class DefaultOfficerRegistrationService implements OfficerRegistrationSer
     
     // To do: 
     // 1. Applicant check logic
+    /**
+     * Registers an officer for a BTO project after validating:
+     * <ol>
+     *   <li>User has HDB_OFFICER role</li>
+     *   <li>No existing registration for same project</li>
+     *   <li>Project hasn't reached its maximum officer limit</li>
+     *   <li>No overlapping projects with Pending/Successful status</li>
+     * </ol>
+     * 
+     * @param requestedUser the officer requesting registration
+     * @param btoProject the project to register for
+     * @return ServiceResponse containing:
+     *         - SUCCESS status with confirmation message if registered
+     *         - ERROR status with detailed message if validation fails
+     */
     @Override
     public ServiceResponse<?> addOfficerRegistration(User requestedUser, BTOProject btoProject) {
         if(requestedUser.getUserRole() != UserRole.HDB_OFFICER){
@@ -76,7 +128,7 @@ public class DefaultOfficerRegistrationService implements OfficerRegistrationSer
         }
 
         if(btoProject.isExceedingHDBOfficerLimit()){
-            return new ServiceResponse<>(ResponseStatus.ERROR, "The project has reach maximum number of officer in-charge.");
+            return new ServiceResponse<>(ResponseStatus.ERROR, "The project has reached maximum number of officers in-charge.");
         }
 
         List<OfficerRegistration> officerRegistrations = dataManager.getByQueries(OfficerRegistration.class, List.of(
@@ -106,6 +158,18 @@ public class DefaultOfficerRegistrationService implements OfficerRegistrationSer
         return new ServiceResponse<>(ResponseStatus.SUCCESS, "Registration successful. Kindly wait for approval from HDB Manager.");
     }
 
+    /**
+     * Approves or rejects an officer registration (HDB Manager only).
+     * 
+     * @param requestedUser the manager processing the request
+     * @param officerRegistration the registration to approve/reject
+     * @param isApproving true to approve, false to reject
+     * @return ServiceResponse containing:
+     *         - SUCCESS status with confirmation message
+     *         - ERROR status with message if validation fails
+     * @throws DataModelException if registration status is invalid
+     * @throws DataSavingException if persistence fails
+     */
     @Override
     public ServiceResponse<?> approveOfficerRegistration(User requestedUser, OfficerRegistration officerRegistration, boolean isApproving) {
         if(requestedUser.getUserRole() != UserRole.HDB_MANAGER){
@@ -126,10 +190,18 @@ public class DefaultOfficerRegistrationService implements OfficerRegistrationSer
             return new ServiceResponse<>(ResponseStatus.ERROR, "Internal error. %s".formatted(e.getMessage()));
         }
 
-        if(isApproving) return new ServiceResponse<>(ResponseStatus.SUCCESS, "Approve registration successful.");
-        else return new ServiceResponse<>(ResponseStatus.SUCCESS, "Reject registration successful.");
+        if(isApproving) return new ServiceResponse<>(ResponseStatus.SUCCESS, "Approval of registration is successful.");
+        else return new ServiceResponse<>(ResponseStatus.SUCCESS, "Rejection of registration is successful.");
     }
-
+    
+    /**
+     * Marks a registration update as read by the officer.
+     * 
+     * @param officerRegistration the registration to update
+     * @return ServiceResponse containing:
+     *         - SUCCESS status if marked as read
+     *         - ERROR status if no unread updates exist or persistence fails
+     */
     @Override
     public ServiceResponse<?> markOfficerRegistrationAsRead(OfficerRegistration officerRegistration) {
         if(!officerRegistration.hasUnreadUpdate()){
@@ -147,3 +219,14 @@ public class DefaultOfficerRegistrationService implements OfficerRegistrationSer
         return new ServiceResponse<>(ResponseStatus.SUCCESS, "Mark as read success.");
     }
 }
+   
+
+    
+    
+    
+
+    
+
+    
+
+   
