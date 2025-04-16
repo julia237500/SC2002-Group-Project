@@ -17,9 +17,20 @@ import model.OfficerRegistration;
 import model.User;
 import view.interfaces.ConfirmationView;
 
+/**
+ * A factory class responsible for generating commands related to officer registrations.
+ * Provides methods to generate command maps for displaying and approving officer registrations.
+ */
 public class OfficerRegistrationCommandFactory {
     private static final DIManager diManager = DIManager.getInstance();
 
+    /**
+     * Generates a map of commands to show a list of officer registrations.
+     * Each command corresponds to one officer registration.
+     *
+     * @param officerRegistrations A list of officer registrations to be shown.
+     * @return A map of index-command pairs, including a back command with key -1.
+     */
     public static Map<Integer, Command> getShowRegistrationsCommands(List<OfficerRegistration> officerRegistrations) {
         OfficerRegistrationController officerRegistrationController = diManager.resolve(OfficerRegistrationController.class);
 
@@ -36,6 +47,20 @@ public class OfficerRegistrationCommandFactory {
         return commands;
     }
 
+    /**
+     * Generates a map of commands that allow a HDB Manager to approve or reject
+     * a specific officer registration, based on the current session's user.
+     *
+     * Only available if:
+     * - The user is an HDB Manager.
+     * - The officer registration is pending.
+     * - The current user is the assigned HDB manager of the registration's BTO project.
+     *
+     * Always includes a back command with key -1.
+     *
+     * @param officerRegistration The officer registration to perform actions on.
+     * @return A map of index-command pairs for approval/rejection actions and back navigation.
+     */
     public static Map<Integer, Command> getRegistrationOperationCommands(OfficerRegistration officerRegistration){
         OfficerRegistrationController officerRegistrationController = diManager.resolve(OfficerRegistrationController.class);
         ConfirmationView confirmationView = diManager.resolve(ConfirmationView.class);
