@@ -11,6 +11,12 @@ import config.UserRole;
 import dto.BTOProjectDTO;
 import exception.DataModelException;
 
+/**
+ * Represents a Build-To-Order (BTO) project managed by HDB.
+ * Stores details such as project name, neighborhood, flat types available,
+ * application periods, assigned HDB officers, and visibility.
+ * Supports validation, editing, and state management through Memento.
+ */
 public class BTOProject implements DataModel{
     public static int MIN_HDB_OFFICER_LIMIT = 1;
     public static int MAX_HDB_OFFICER_LIMIT = 10;
@@ -39,9 +45,22 @@ public class BTOProject implements DataModel{
 
     private Memento memento;
 
+    /**
+     * Required for reflective instantiation in CSVDataManager.
+     */
     @SuppressWarnings("unused")
     private BTOProject(){}
 
+    /**
+     * Constructs a BTOProject manually via parameters.
+     * 
+     * @param HDBManager       the HDB manager assigned to this project
+     * @param name             name of the project
+     * @param neighborhood     neighborhood location of the project
+     * @param openingDate      application opening date
+     * @param closingDate      application closing date
+     * @param HDBOfficerLimit  max number of officers allowed
+     */
     public BTOProject(User HDBManager, String name, String neighborhood, LocalDate openingDate, LocalDate closingDate, int HDBOfficerLimit){
         this.HDBManager = HDBManager;
         this.name = name;
@@ -51,6 +70,13 @@ public class BTOProject implements DataModel{
         this.HDBOfficerLimit = HDBOfficerLimit;
     }
     
+    /**
+     * Factory method to create a BTOProject from a DTO.
+     * 
+     * @param HBDManager      HDB Manager initiating the project
+     * @param btoProjectDTO   Data transfer object containing project details
+     * @return                a constructed BTOProject instance
+     */
     public static BTOProject fromDTO(User HBDManager, BTOProjectDTO btoProjectDTO){
         if(HBDManager.getUserRole() != UserRole.HDB_MANAGER){
             throw new DataModelException("Access Denied. Only HDB Manager can open new project.");
@@ -77,17 +103,26 @@ public class BTOProject implements DataModel{
     }
 
     @Override
+    /**
+     * Returns the primary key for this data model (project name).
+     */
     public String getPK() {
         return name;
     }
 
+    /**
+     * Edits the current BTOProject using data from a DTO.
+     * Preserves the current state in a Memento before changes.
+     * 
+     * @param btoProjectDTO updated project details
+     */
     public void edit(BTOProjectDTO btoProjectDTO){
         validate(btoProjectDTO);
         if(btoProjectDTO.getHDBOfficerLimit() < HDBOfficers.size()){
             throw new DataModelException("New number of HDB Officers cannot be smaller than current number of HDB Officers in charge (%d)".formatted(HDBOfficers.size()));
         }
 
-        memento = new Memento(this);
+        memento = new Memento(this); // Save current state before editing
 
         this.neighborhood = btoProjectDTO.getNeighborhood();
         this.openingDate = btoProjectDTO.getOpeningDate();
@@ -99,10 +134,13 @@ public class BTOProject implements DataModel{
 
     public void revertEdit(){
         if(memento != null){
-            memento.restore(this);
+            memento.restore(this); // Restore the previous state
         }
     }
 
+    /**
+     * Validates a BTOProjectDTO for logical consistency and constraints.
+     */
     private static void validate(BTOProjectDTO btoProjectDTO){
         Map<FlatType, Integer> flatNum = btoProjectDTO.getFlatNum();
         Map<FlatType, Integer> flatPrice = btoProjectDTO.getFlatPrice();
@@ -126,14 +164,19 @@ public class BTOProject implements DataModel{
         }
     }
 
+    /** @return true if the project is visible to users */
     public boolean isVisible() {
         return visible;
     }
 
+    /** Toggles project visibility. */
     public void toggleVisibility(){
         visible = visible ? false : true;
     }
 
+    /**
+     * Getters and setters
+     */
     public String getName() {
         return name;
     }
@@ -146,6 +189,9 @@ public class BTOProject implements DataModel{
         this.flatUnits = flatUnits;
     }
 
+    /**
+     * Updates or creates FlatUnits with new quantity and price data.
+     */
     public void changeFlatUnits(Map<FlatType, Integer> flatNums, Map<FlatType, Integer> flatPrices){
         for(FlatType flatType:FlatType.values()){
             FlatUnit flatUnit = flatUnits.get(flatType);
@@ -216,6 +262,7 @@ public class BTOProject implements DataModel{
                 """, name, neighborhood, getFlatNum(FlatType.TWO_ROOM_FLAT), getFlatPrice(FlatType.TWO_ROOM_FLAT), getFlatNum(FlatType.THREE_ROOM_FLAT), getFlatPrice(FlatType.THREE_ROOM_FLAT), openingDate, closingDate, HDBOfficerLimit, visible ? "Visible" : "Hidden");
     }
 
+    /** @return true if the project is currently active and visible. */
     public boolean isActive(){
         return isOverlappingWith(LocalDate.now(), LocalDate.now()) && visible;
     }
@@ -227,7 +274,10 @@ public class BTOProject implements DataModel{
     public boolean isOverlappingWith(LocalDate openingDate, LocalDate closingDate){
         return !(openingDate.isAfter(this.closingDate) || closingDate.isBefore(this.openingDate));
     }
-        
+    
+    /**
+     * Adds an HDB Officer to the project, ensuring constraints are met.
+     */
     public void addHDBOfficer(User HDBOfficer){
         if(HDBOfficer.getUserRole() != UserRole.HDB_OFFICER){
             throw new DataModelException("User added is not HDB Officer.");
@@ -240,10 +290,14 @@ public class BTOProject implements DataModel{
         HDBOfficers.add(HDBOfficer);
     }
 
+    /** @return true if the number of officers exceeds the limit. */
     public boolean isExceedingHDBOfficerLimit(){
         return HDBOfficers.size() >= HDBOfficerLimit;
     }
 
+    /**
+     * Checks if a user is involved in managing this project.
+     */
     public boolean isHandlingBy(User user){
         if(user.getUserRole() == UserRole.HDB_MANAGER){
             return user == HDBManager;
@@ -255,6 +309,37 @@ public class BTOProject implements DataModel{
         return false;
     }
 
+    /**
+     * Memento class for storing a backup copy of BTOProject state during edits.
+     */
+    /**
+     * A Memento is a design pattern used in OOP to capture and restore an object's state 
+     * without exposing its internal structure. 
+     * It is especially useful for implementing features like undo/redo, rollback, or state history.
+     * In Simple Terms, a memento stores a snapshot of an object’s state so that the object can be restored to that state later.
+     * This is the inner class: private static class Memento 
+     * And it’s used here: memento = new Memento(this);  // Save current state before editing
+     * Then later, we do: memento.restore(this);  // Restore the previous state
+     * This allows our BTOProject object to:
+     * - Save a version of itself before being edited
+     * - Restore that version if something goes wrong or if the user wants to cancel the edit
+     * In our Memento class, we're storing:
+     * - neighborhood
+     * - openingDate and closingDate
+     * - HDBOfficerLimit
+     * - Number and price of flats (for each FlatType)
+     * So, if someone edits a BTO project and changes the flat prices, officer limit, or dates
+     * but later decides to revert, we can roll everything back cleanly using the memento.
+     * Maintains encapsulation (internal state isn't exposed)
+     * Keeps code clean and modular
+     * Drawbacks of using mementos:
+     * - Can increase memory usage (especially if many states are saved)
+     * - If the object's state is large, copying might be expensive
+     * - Can lead to complexity if not managed properly (e.g., when to discard old mementos?)
+     * 
+     * Memento is an inner class, private and only usable by the originator: private static class Memento {...}
+     * - This encapsulation is key to the pattern: no external class can mess with the stored state.
+     */
     private static class Memento {
         private final String neighborhood;
         private final Map<FlatType, Integer> flatNum;
