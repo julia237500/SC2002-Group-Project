@@ -4,6 +4,15 @@ import java.util.UUID;
 
 import config.FlatType;
 
+/**
+ * Represents a flat unit available under a BTO project.
+ * <p>
+ * Each unit has a unique identifier, is associated with a specific BTO project,
+ * and has information such as its flat type, number, and price.
+ * </p>
+ *
+ * <p>This class implements the {@link DataModel} interface to support generic data handling operations.</p>
+ */
 public class FlatUnit implements DataModel{
     @CSVField(index = 0)
     private String uuid;
@@ -20,9 +29,20 @@ public class FlatUnit implements DataModel{
     @CSVField(index = 4)
     private int flatPrice;
 
+    /**
+     * Private no-args constructor for reflective instantiation.
+     */
     @SuppressWarnings("unused")
     private FlatUnit() {}
 
+    /**
+     * Constructs a new FlatUnit with the given parameters.
+     *
+     * @param btoProject the BTO project this flat unit belongs to
+     * @param flatType the type of the flat (e.g., 2-room, 3-room)
+     * @param flatNum the number of the flat unit
+     * @param flatPrice the price of the flat unit
+     */
     public FlatUnit(BTOProject btoProject, FlatType flatType, int flatNum, int flatPrice) {
         UUID uuid = UUID.randomUUID();
         this.uuid = uuid.toString();
@@ -33,35 +53,75 @@ public class FlatUnit implements DataModel{
         this.flatPrice = flatPrice;
     }
 
+    /**
+     * Returns the number of this flat unit.
+     *
+     * @return the flat number
+     */
     public int getFlatNum() {
         return flatNum;
     }
 
+    /**
+     * Updates the flat number.
+     *
+     * @param flatNum the new flat number
+     */
     public void setFlatNum(int flatNum) {
         this.flatNum = flatNum;
     }
 
+    /**
+     * Returns the price of the flat.
+     *
+     * @return the flat price
+     */
     public int getFlatPrice() {
         return flatPrice;
     }
 
+    /**
+     * Updates the price of the flat.
+     *
+     * @param flatPrice the new flat price
+     */
     public void setFlatPrice(int flatPrice) {
         this.flatPrice = flatPrice;
     }
 
+    /**
+     * Returns the flat type of this unit.
+     *
+     * @return the flat type
+     */
     public FlatType getFlatType() {
         return flatType;
     }
 
+    /**
+     * Returns the primary key (UUID string) of this flat unit.
+     *
+     * @return the UUID of the flat unit
+     */
     @Override
     public String getPK() {
         return uuid;
     }
 
+    /**
+     * Returns the BTO project associated with this flat unit.
+     *
+     * @return the related BTOProject object
+     */
     public BTOProject getBTOProject() {
         return btoProject;
     }
 
+    /**
+     * Returns a formatted string representation of this flat unit.
+     *
+     * @return a string containing UUID, project ID, flat number, and price
+     */
     @Override
     public String toString() {
         return "%s, %s, %d, %d".formatted(
