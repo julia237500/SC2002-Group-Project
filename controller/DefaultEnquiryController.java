@@ -22,6 +22,13 @@ import service.interfaces.EnquiryService;
 import view.interfaces.EnquiryView;
 import view.interfaces.MessageView;
 
+
+/**
+ * Default implementation of {@link EnquiryController}.
+ * <p>
+ * This controller handles the operations related to enquiries, such as adding, editing, deleting, replying, and displaying enquiries.
+ * It also provides the necessary functionality to show all enquiries, or filter them by user or BTO project.
+ */
 public class DefaultEnquiryController extends AbstractDefaultController implements EnquiryController{
     private EnquiryService enquiryService;
     private EnquiryView enquiryView;
@@ -29,6 +36,16 @@ public class DefaultEnquiryController extends AbstractDefaultController implemen
     private MenuManager menuManager;
     private SessionManager sessionManager;
 
+    /**
+     * Constructs a new {@code DefaultEnquiryController}.
+     *
+     * @param enquiryService  the service that manages enquiries
+     * @param enquiryView     the view responsible for displaying enquiries
+     * @param formController  the controller responsible for handling form input
+     * @param menuManager     the manager responsible for showing command menus
+     * @param sessionManager  the session manager that provides session-related information
+     * @param messageView     the view for showing messages and errors
+     */
     public DefaultEnquiryController(EnquiryService enquiryService, EnquiryView enquiryView, FormController formController, MenuManager menuManager, SessionManager sessionManager, MessageView messageView){
         super(messageView);
 
@@ -39,6 +56,11 @@ public class DefaultEnquiryController extends AbstractDefaultController implemen
         this.sessionManager = sessionManager;
     }
 
+    /**
+     * Adds a new enquiry for a BTO project.
+     *
+     * @param btoProject the BTO project related to the enquiry
+     */
     @Override
     public void addEnquiry(BTOProject btoProject) {
         User user = sessionManager.getUser();
@@ -52,6 +74,11 @@ public class DefaultEnquiryController extends AbstractDefaultController implemen
         defaultShowServiceResponse(serviceResponse);
     }
 
+    /**
+     * Edits an existing enquiry.
+     *
+     * @param enquiry the enquiry to edit
+     */
     @Override
     public void editEnquiry(Enquiry enquiry) {
         User user = sessionManager.getUser();
@@ -65,6 +92,11 @@ public class DefaultEnquiryController extends AbstractDefaultController implemen
         defaultShowServiceResponse(serviceResponse);
     }
 
+    /**
+     * Deletes an existing enquiry.
+     *
+     * @param enquiry the enquiry to delete
+     */
     @Override
     public void deleteEnquiry(Enquiry enquiry) {
         User user = sessionManager.getUser();
@@ -72,6 +104,11 @@ public class DefaultEnquiryController extends AbstractDefaultController implemen
         defaultShowServiceResponse(serviceResponse);
     }
 
+    /**
+     * Replies to an existing enquiry.
+     *
+     * @param enquiry the enquiry to reply to
+     */
     @Override
     public void replyEnquiry(Enquiry enquiry){
         User user = sessionManager.getUser();
@@ -84,6 +121,10 @@ public class DefaultEnquiryController extends AbstractDefaultController implemen
         defaultShowServiceResponse(serviceResponse);
     }
 
+
+    /**
+     * Displays all enquiries for the logged-in user.
+     */
     @Override
     public void showAllEnquiries() {
         User user = sessionManager.getUser();
@@ -105,6 +146,10 @@ public class DefaultEnquiryController extends AbstractDefaultController implemen
         menuManager.addCommands("Enquiries", commands);
     }
 
+
+    /**
+     * Displays all enquiries made by the logged-in user.
+     */
     @Override
     public void showEnquiriesByUser() {
         User user = sessionManager.getUser();
@@ -126,6 +171,12 @@ public class DefaultEnquiryController extends AbstractDefaultController implemen
         menuManager.addCommands("Enquiries", commands);
     }
 
+
+    /**
+     * Displays all enquiries related to a specific BTO project.
+     *
+     * @param btoProject the BTO project to filter the enquiries by
+     */
     @Override
     public void showEnquiriesByBTOProject(BTOProject btoProject) {
         User user = sessionManager.getUser();
@@ -147,6 +198,12 @@ public class DefaultEnquiryController extends AbstractDefaultController implemen
         menuManager.addCommands("Enquiries", commands);
     }
 
+
+    /**
+     * Displays the details of a specific enquiry and shows possible operations.
+     *
+     * @param enquiry the enquiry to display
+     */
     @Override
     public void showEnquiry(Enquiry enquiry) {
         showEnquiryDetail(enquiry);
@@ -155,6 +212,12 @@ public class DefaultEnquiryController extends AbstractDefaultController implemen
         menuManager.addCommands("Operation", commands);
     }
 
+
+    /**
+     * Displays the detailed view of a specific enquiry.
+     *
+     * @param enquiry the enquiry to display in detail
+     */
     @Override
     public void showEnquiryDetail(Enquiry enquiry) {
         enquiryView.showEnquiryDetail(enquiry);
