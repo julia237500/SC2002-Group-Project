@@ -5,7 +5,6 @@ import java.util.Comparator;
 import java.util.UUID;
 
 import config.RegistrationStatus;
-import config.UserRole;
 import exception.DataModelException;
 
 public class OfficerRegistration implements DataModel{
@@ -23,6 +22,7 @@ public class OfficerRegistration implements DataModel{
 
     @CSVField(index = 3)
     private RegistrationStatus registrationStatus;
+    private RegistrationStatus backupRegistrationStatus;
 
     @CSVField(index = 4)
     private boolean updated;
@@ -41,24 +41,15 @@ public class OfficerRegistration implements DataModel{
         this.createdAt = LocalDateTime.now();
         
         this.btoProject = btoProject;
-
-        if(HDBOfficer.getUserRole() != UserRole.HDB_OFFICER){
-            throw new DataModelException("Access denied. Only HDB Officer can register as officer for project.");
-        }
         this.HDBOfficer = HDBOfficer;
-    }
-
-    public User getHDBOfficer() {
-        return HDBOfficer;
-    }
-
-    @Override
-    public String getPK() {
-        return uuid;
     }
 
     public BTOProject getBTOProject() {
         return btoProject;
+    }
+    
+    public User getHDBOfficer() {
+        return HDBOfficer;
     }
 
     public RegistrationStatus getRegistrationStatus() {
@@ -82,8 +73,10 @@ public class OfficerRegistration implements DataModel{
     }
 
     public void updateRegistrationStatus(boolean isApproving){
+        backup();
+        
         if(registrationStatus != RegistrationStatus.PENDING){
-            throw new DataModelException("Action unsuccessful, The registration is already approved/rejected.");
+            throw new DataModelException("Approve/reject unsuccessful, The registration is already approved/rejected.");
         }
 
         if(isApproving){
@@ -96,12 +89,21 @@ public class OfficerRegistration implements DataModel{
         else{
             registrationStatus = RegistrationStatus.UNSUCCESSFUL;
         }
-
-        markAsUnread();
     }
 
-    public void revertRegistrationStatus(){
-        registrationStatus = RegistrationStatus.PENDING;
+    @Override
+    public String getPK() {
+        return uuid;
+    }
+
+    @Override
+    public void backup() {
+        this.backupRegistrationStatus = registrationStatus;
+    }
+
+    @Override
+    public void restore() {
+        this.registrationStatus = backupRegistrationStatus;
     }
 
     @Override

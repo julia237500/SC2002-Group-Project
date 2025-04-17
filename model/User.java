@@ -56,7 +56,7 @@ public class User implements DataModel{
     }
 
     public void setPassword(String password) {
-        backupPassword = this.password;
+        backup();
         this.password = password;
     }
 
@@ -69,10 +69,12 @@ public class User implements DataModel{
         return NRIC;
     }
 
+    @Override
     public void backup(){
         this.backupPassword = password;
     }
 
+    @Override
     public void restore(){
         this.password = backupPassword;
     }

@@ -123,7 +123,7 @@ public class DefaultOfficerRegistrationService implements OfficerRegistrationSer
         } catch (DataModelException e) {
             return new ServiceResponse<>(ResponseStatus.ERROR, e.getMessage());
         } catch (DataSavingException e) {
-            officerRegistration.revertRegistrationStatus();
+            officerRegistration.restore();;
             return new ServiceResponse<>(ResponseStatus.ERROR, "Internal error. %s".formatted(e.getMessage()));
         }
 

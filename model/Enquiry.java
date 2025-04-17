@@ -21,15 +21,19 @@ public class Enquiry implements DataModel{
 
     @CSVField(index = 3)
     private String subject;
+    private String backupSubject;
 
     @CSVField(index = 4)
     private String enquiry;
+    private String backupEnquiry;
 
     @CSVField(index = 5)
     private String reply;
+    private String backupReply;
 
     @CSVField(index = 6)
     private EnquiryStatus enquiryStatus;
+    private EnquiryStatus backupEnquiryStatus;
 
     @CSVField(index = 7)
     private LocalDateTime createdAt;
@@ -53,11 +57,6 @@ public class Enquiry implements DataModel{
         this.enquirer = enquirer;
     }
 
-    @Override
-    public String getPK() {
-        return uuid;
-    }
-
     public User getEnquirer() {
         return enquirer;
     }
@@ -67,6 +66,7 @@ public class Enquiry implements DataModel{
     }
 
     public void setSubject(String subject) {
+        backup();
         this.subject = subject;
     }
 
@@ -75,6 +75,7 @@ public class Enquiry implements DataModel{
     }
 
     public void setEnquiry(String enquiry) {
+        backup();
         this.enquiry = enquiry;
     }
 
@@ -83,13 +84,9 @@ public class Enquiry implements DataModel{
     }
 
     public void setReply(String reply) {
+        backup();
         this.reply = reply;
         this.enquiryStatus = EnquiryStatus.REPLIED;
-    }
-
-    public void revertReply(){
-        this.reply = "";
-        this.enquiryStatus = EnquiryStatus.UNREPLIED;
     }
 
     public BTOProject getBTOProject() {
@@ -106,5 +103,26 @@ public class Enquiry implements DataModel{
 
     public boolean canBeAltered(){
         return enquiryStatus == EnquiryStatus.UNREPLIED;
+    }
+
+    @Override
+    public String getPK() {
+        return uuid;
+    }
+
+    @Override
+    public void backup() {
+        this.backupSubject = subject;
+        this.backupEnquiry = enquiry;
+        this.backupReply = reply;
+        this.backupEnquiryStatus = enquiryStatus;
+    }
+
+    @Override
+    public void restore() {
+        this.subject = backupSubject;
+        this.enquiry = backupEnquiry;
+        this.reply = backupReply;
+        this.enquiryStatus = backupEnquiryStatus;
     }
 }

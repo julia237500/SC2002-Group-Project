@@ -119,11 +119,6 @@ public class BTOProject implements DataModel{
         return name;
     }
 
-    @Override
-    public String getPK() {
-        return name;
-    }
-
     public String getNeighborhood() {
         return neighborhood;
     }
@@ -273,10 +268,17 @@ public class BTOProject implements DataModel{
                 """, name, neighborhood, getFlatNum(FlatType.TWO_ROOM_FLAT), getFlatPrice(FlatType.TWO_ROOM_FLAT), getFlatNum(FlatType.THREE_ROOM_FLAT), getFlatPrice(FlatType.THREE_ROOM_FLAT), openingDate, closingDate, HDBOfficerLimit, visible ? "Visible" : "Hidden");
     }
 
+    @Override
+    public String getPK() {
+        return name;
+    }
+
+    @Override
     public void backup(){
         memento = new Memento(this);
     }
 
+    @Override
     public void restore(){
         if(memento != null){
             memento.restore(this);

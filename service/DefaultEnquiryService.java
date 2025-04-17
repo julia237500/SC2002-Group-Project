@@ -85,15 +85,12 @@ public class DefaultEnquiryService implements EnquiryService{
             return new ServiceResponse<>(ResponseStatus.ERROR, "Replied enquiries cannot be edited.");
         }
 
-        String oldSubject = enquiry.getSubject();
-        String oldEnquiryString = enquiry.getEnquiry();
         try {
             enquiry.setSubject(subject);
             enquiry.setEnquiry(enquiryString);
             dataManager.save(enquiry);
         } catch (Exception e) {
-            enquiry.setSubject(oldSubject);
-            enquiry.setEnquiry(oldEnquiryString);
+            enquiry.restore();
             return new ServiceResponse<>(ResponseStatus.ERROR, "Internal error. %s".formatted(e.getMessage()));
         } 
 
@@ -133,7 +130,7 @@ public class DefaultEnquiryService implements EnquiryService{
             enquiry.setReply(replyString);
             dataManager.save(enquiry);
         } catch (Exception e) {
-            enquiry.revertReply();
+            enquiry.restore();
             return new ServiceResponse<>(ResponseStatus.ERROR, "Internal error. %s".formatted(e.getMessage()));
         }
 
