@@ -4,6 +4,12 @@ import config.FormField;
 import exception.FieldParsingException;
 import form.FieldData;
 
+/**
+ * Abstract base class representing a form input field that processes
+ * and validates data of a specific type {@code T}.
+ *
+ * @param <T> The type of data this field handles (e.g., String, Integer, LocalDate).
+ */
 public abstract class Field<T> {
     private String name;
     private T originalValue;
@@ -32,6 +38,14 @@ public abstract class Field<T> {
         return formField;
     }
 
+    /**
+     * Processes the user input, applying parsing and validation.
+     * Returns a {@link FieldData} object wrapping the parsed value.
+     *
+     * @param input The input string entered by the user.
+     * @return A {@code FieldData<T>} object containing the processed value.
+     * @throws FieldParsingException if input is empty or fails validation/parsing.
+     */
     public FieldData<T> processData(String input){
         if(input.equals("")){
             if(originalValue != null){
@@ -49,7 +63,20 @@ public abstract class Field<T> {
         return null;
     }
 
+    /**
+     * Validates the parsed value.
+     *
+     * @param value The value to validate
+     */
     public abstract void validate(T value);
+
+    /**
+     * Parses the user input string into an object of type {@code T}.
+     *
+     * @param input The input string.
+     * @return The parsed value of type {@code T}.
+     * @throws FieldParsingException if parsing fails.
+     */
     protected abstract T parseData(String input);
     
 }
