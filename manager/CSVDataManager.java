@@ -94,12 +94,21 @@ public class CSVDataManager implements DataManager{
     private void loadData(){
         try{
             for(Entry<Class<? extends DataModel>, String> filePath:filePaths.entrySet()){
-                List<List<String>> rawData = CSVFileReader.readFile(filePath.getValue());
 
+                /**
+                 * Reads raw CSV for each model and parses into DataModel objects.
+                 * But these objects are still disconnected — like rows in a table, not yet aware of each other.
+                 */
+                List<List<String>> rawData = CSVFileReader.readFile(filePath.getValue());
+                    
                 Class<? extends DataModel> clazz = filePath.getKey();
                 data.put(clazz, parseData(clazz, rawData));
             }
-
+            
+            /**
+             * This loop is where each LoadResolver instance is invoked after all data has been read and parsed. 
+             * The LoadResolver implementations are responsible for linking related objects together in memory 
+             */
             for(LoadResolver loadResolver:loadResolvers){
                 loadResolver.resolveLoad(this);
             }
