@@ -7,6 +7,13 @@ import java.util.Map;
 import exception.DependencyInjectorException;
 import util.interfaces.DIContainer;
 
+/**
+ * A default implementation of the {@link DIContainer} interface using reflection to inject dependencies.
+ * <p>
+ * This container manages the registration and resolution of dependencies for a given interface and its corresponding implementation.
+ * It uses reflection to instantiate objects and inject their dependencies automatically.
+ * </p>
+ */
 public class DefaultDIContainer implements DIContainer {
     private Map<Class<?>, Class<?>> implementations = new HashMap<>();
     private Map<Class<?>, Object> container = new HashMap<>();
