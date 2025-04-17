@@ -52,6 +52,6 @@ public class FieldData<T> {
  * - We don't just deal with raw values but with a structured object that could contain more information, improving maintainability.
  * 4. Separation of Concerns:
  * - By using a wrapper, we keep the logic for parsing, validating, and interacting with the data separate from the data itself. 
- * For instance, FieldData doesn't care about how the value is parsed or validated, it only holds the result.
- * It allows us to separate concerns like formatting, validation, and the actual data.
+ * - For instance, FieldData doesn't care about how the value is parsed or validated, it only holds the result.
+ * - It allows us to separate concerns like formatting, validation, and the actual data.
  */
