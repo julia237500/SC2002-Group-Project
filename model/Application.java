@@ -184,6 +184,10 @@ public class Application implements DataModel{
         else setWithdrawalStatus(WithdrawalStatus.UNSUCCESSFUL);    
     }
 
+    public boolean isWithdrawApprovable() {
+        return withdrawalStatus == WithdrawalStatus.PENDING;
+    }
+
     @Override
     public String getPK() {
         return uuid;

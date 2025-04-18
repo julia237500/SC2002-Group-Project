@@ -14,10 +14,11 @@ import controller.interfaces.BTOProjectController;
 import controller.interfaces.EnquiryController;
 import controller.interfaces.OfficerRegistrationController;
 import manager.DIManager;
-import model.Application;
 import model.BTOProject;
 import model.OfficerRegistration;
 import model.User;
+import policy.interfaces.ApplicationPolicy;
+import policy.interfaces.EnquiryPolicy;
 
 public class BTOProjectCommandFactory extends AbstractCommandFactory{
     private static final DIManager diManager = DIManager.getInstance();
@@ -38,12 +39,15 @@ public class BTOProjectCommandFactory extends AbstractCommandFactory{
 
     public static Map<Integer, Command> getShowBTOProjectsCommands(List<BTOProject> btoProjects) {
         final Map<Integer, Command> commands = new LinkedHashMap<>();
+        final User user = sessionManager.getUser();
 
         final BTOProjectController btoProjectController = diManager.resolve(BTOProjectController.class);
-
+        
         int index = 1;
         for(BTOProject btoProject:btoProjects){
-            commands.put(index++, getShowBTOProjectCommand(btoProjectController, btoProject));
+            // if(!btoProject.isViewableBy(user)) continue;
+            
+            commands.put(index++, getShowBTOProjectCommand(btoProjectController, btoProject, user));
         }
 
         commands.put(BACK_CMD, new MenuBackCommand(menuManager));
@@ -51,11 +55,22 @@ public class BTOProjectCommandFactory extends AbstractCommandFactory{
         return commands;
     }
 
-    private static Command getShowBTOProjectCommand(BTOProjectController btoProjectController, BTOProject btoProject) {
-        final String description = "%s (%s)".formatted(
+    private static Command getShowBTOProjectCommand(BTOProjectController btoProjectController, BTOProject btoProject, User user) {
+        String description = "%s (%s)".formatted(
             btoProject.getName(),
             btoProject.getNeighborhood()
         ); 
+
+        if(btoProject.isActive()){
+            description += " [Active]";
+        }
+        else{
+            description += " [Inactive]";
+        }
+
+        if(btoProject.isHandlingBy(user)){
+            description += " [Handled by you]";
+        }
 
         return new LambdaCommand(description, () -> {
             btoProjectController.showBTOProject(btoProject);
@@ -101,6 +116,7 @@ public class BTOProjectCommandFactory extends AbstractCommandFactory{
 
     private static void addApplicationRelatedCommands(User user, BTOProject btoProject, Map<Integer, Command> commands) {
         final ApplicationController applicationController = diManager.resolve(ApplicationController.class);
+        final ApplicationPolicy applicationPolicy = diManager.resolve(ApplicationPolicy.class);
 
         final Command showApplicationsByBTOProjectCommand = new LambdaCommand("Applications of the Project", () -> {
             applicationController.showApplicationsByBTOProject(btoProject);
@@ -110,29 +126,23 @@ public class BTOProjectCommandFactory extends AbstractCommandFactory{
             applicationController.showApplicationByUserAndBTOProject(btoProject);
         });
 
-        if(btoProject.isHandlingBy(user)){
+        if(applicationPolicy.canViewApplicationsByBTOProject(user, btoProject).isAllowed()){
             commands.put(SHOW_APPLICATIONS_CMD, showApplicationsByBTOProjectCommand);
         }
 
-        if(user.getUserRole() == UserRole.APPLICANT || 
-            (user.getUserRole() == UserRole.HDB_OFFICER && !btoProject.isHandlingBy(user))){
-            
-            final Application application = applicationController.getApplicationByUserAndBTOProject(btoProject);
-            if(application != null){
-                commands.put(SHOW_APPLICATION_CMD, showApplicationByUserAndBTOProjectCommand);
-            }
-            else if(btoProject.isActive()){
-                int subID = 0;
-                for(FlatType flatType:FlatType.values()){
-                    int key = getCommandID(APPLICATION_CMD, ADD_CMD, subID);
+        if(applicationPolicy.canViewApplicationByUserAndBTOProject(user, btoProject).isAllowed()){
+            commands.put(SHOW_APPLICATION_CMD, showApplicationByUserAndBTOProjectCommand);
+        }
 
-                    if(btoProject.hasAvailableFlats(flatType) && flatType.isEligible(user)){
-                        commands.put(key, getAddApplicationCommand(applicationController, btoProject, flatType));
-                    }
+        int subID = 0;
+        for(FlatType flatType:FlatType.values()){
+            int key = getCommandID(APPLICATION_CMD, ADD_CMD, subID);
 
-                    subID++;
-                }
+            if(applicationPolicy.canCreateApplication(user, btoProject, flatType).isAllowed()){
+                commands.put(key, getAddApplicationCommand(applicationController, btoProject, flatType));
             }
+
+            subID++;
         }
     }
 
@@ -145,6 +155,7 @@ public class BTOProjectCommandFactory extends AbstractCommandFactory{
 
     private static void addEnquiryRelatedCommands(User user, BTOProject btoProject, Map<Integer, Command> commands) {
         final EnquiryController enquiryController = diManager.resolve(EnquiryController.class);
+        final EnquiryPolicy enquiryPolicy = diManager.resolve(EnquiryPolicy.class);
 
         final Command showEnquiriesByBTOProjectCommand = new LambdaCommand("Enquiries of the Project", () -> {
             enquiryController.showEnquiriesByBTOProject(btoProject);
@@ -154,11 +165,11 @@ public class BTOProjectCommandFactory extends AbstractCommandFactory{
             enquiryController.addEnquiry(btoProject);
         });
 
-        if(user.getUserRole() == UserRole.HDB_MANAGER || btoProject.isHandlingBy(user)){
+        if(enquiryPolicy.canViewEnquiriesByBTOProject(user, btoProject).isAllowed()){
             commands.put(SHOW_ENQUIRIES_CMD, showEnquiriesByBTOProjectCommand);
         }
 
-        if(user.getUserRole() == UserRole.APPLICANT || (user.getUserRole() == UserRole.HDB_OFFICER && !btoProject.isHandlingBy(user))){
+        if(enquiryPolicy.canCreateEnquiry(user, btoProject).isAllowed()){
             commands.put(ADD_ENQUIRY_CMD, addEnquiryCommand);
         }
     }

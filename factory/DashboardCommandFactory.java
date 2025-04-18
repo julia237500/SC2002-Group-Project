@@ -14,15 +14,22 @@ import controller.interfaces.EnquiryController;
 import controller.interfaces.OfficerRegistrationController;
 import manager.interfaces.ApplicationManager;
 import model.User;
+import policy.interfaces.ApplicationPolicy;
+import policy.interfaces.EnquiryPolicy;
 
 public class DashboardCommandFactory extends AbstractCommandFactory {
     private static final int CHANGE_PASSWORD_CMD = getCommandID(USER_CMD, EDIT_CMD, 0);
+
     private static final int SHOW_ALL_BTO_PROJECTS_CMD = getCommandID(BTO_PROJECT_CMD, LIST_CMD, 0);
+    private static final int SHOW_BTO_PROJECTS_HANDLED_BY_USER_CMD = getCommandID(BTO_PROJECT_CMD, LIST_CMD, 1);
     private static final int ADD_BTO_PROJECT_CMD = getCommandID(BTO_PROJECT_CMD, ADD_CMD, 0);
+
     private static final int SHOW_ALL_APPLICATIONS_CMD = getCommandID(APPLICATION_CMD, LIST_CMD, 0);
     private static final int SHOW_APPLICATIONS_BY_USER_CMD = getCommandID(APPLICATION_CMD, LIST_CMD, 1);
+
     private static final int SHOW_ALL_ENQUIRIES_CMD = getCommandID(ENQUIRY_CMD, LIST_CMD, 0);
     private static final int SHOW_ENQUIRIES_BY_USER_CMD = getCommandID(ENQUIRY_CMD, LIST_CMD, 1);
+
     private static final int SHOW_OFFICER_REGISTRATIONS_BY_OFFICER_CMD = getCommandID(OFFICER_REGISTRATION_CMD, LIST_CMD, 0);
 
     public static Map<Integer, Command> getCommands() {
@@ -62,11 +69,19 @@ public class DashboardCommandFactory extends AbstractCommandFactory {
             btoProjectController.showAllBTOProjects();
         });
 
+        final Command showBTOProjectsByHDBManagerCommand = new LambdaCommand("Your BTO Projects", () -> {
+            btoProjectController.showBTOProjectsHandledByUser();
+        });
+
         final Command addBTOProjectCommand = new LambdaCommand("Add New BTO Project", () -> {
             btoProjectController.addBTOProject();
         });
                 
         commands.put(SHOW_ALL_BTO_PROJECTS_CMD, showAllBTOProjectsCommand);
+
+        if(user.getUserRole() == UserRole.HDB_MANAGER || user.getUserRole() == UserRole.HDB_OFFICER){
+            commands.put(SHOW_BTO_PROJECTS_HANDLED_BY_USER_CMD, showBTOProjectsByHDBManagerCommand);
+        }
 
         if(user.getUserRole() == UserRole.HDB_MANAGER){
             commands.put(ADD_BTO_PROJECT_CMD, addBTOProjectCommand);
@@ -75,6 +90,7 @@ public class DashboardCommandFactory extends AbstractCommandFactory {
 
     private static void addApplicationRelatedCommands(User user, Map<Integer, Command> commands) {
         final ApplicationController applicationController = diManager.resolve(ApplicationController.class);
+        final ApplicationPolicy applicationPolicy = diManager.resolve(ApplicationPolicy.class);
 
         final Command showAllApplicationsCommand = new LambdaCommand("List of All Applications", () -> {
             applicationController.showAllApplications();
@@ -84,17 +100,18 @@ public class DashboardCommandFactory extends AbstractCommandFactory {
             applicationController.showApplicationsByUser();
         });
 
-        if(user.getUserRole() == UserRole.HDB_MANAGER){
+        if(applicationPolicy.canViewAllApplications(user).isAllowed()){
             commands.put(SHOW_ALL_APPLICATIONS_CMD, showAllApplicationsCommand);
         }
 
-        if(user.getUserRole() == UserRole.APPLICANT || user.getUserRole() == UserRole.HDB_OFFICER){
+        if(applicationPolicy.canViewApplicationsByUser(user).isAllowed()){
             commands.put(SHOW_APPLICATIONS_BY_USER_CMD, showApplicationsByUserCommand);
         }
     }
 
     private static void addEnquiryRelatedCommands(User user, Map<Integer, Command> commands) {
         final EnquiryController enquiryController = diManager.resolve(EnquiryController.class);
+        final EnquiryPolicy enquiryPolicy = diManager.resolve(EnquiryPolicy.class);
 
         final Command showAllEnquiriesCommand = new LambdaCommand("List of All Enquiries", () -> {
             enquiryController.showAllEnquiries();
@@ -104,11 +121,11 @@ public class DashboardCommandFactory extends AbstractCommandFactory {
             enquiryController.showEnquiriesByUser();
         });
 
-        if(user.getUserRole() == UserRole.HDB_MANAGER){
+        if(enquiryPolicy.canViewAllEnquiries(user).isAllowed()){
             commands.put(SHOW_ALL_ENQUIRIES_CMD, showAllEnquiriesCommand);
         }
 
-        if(user.getUserRole() == UserRole.APPLICANT || user.getUserRole() == UserRole.HDB_OFFICER){
+        if(enquiryPolicy.canViewEnquiriesByUser(user).isAllowed()){
             commands.put(SHOW_ENQUIRIES_BY_USER_CMD, showEnquiriesByUserCommand);
         }
     }
