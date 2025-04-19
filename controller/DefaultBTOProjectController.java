@@ -135,14 +135,12 @@ public class DefaultBTOProjectController extends AbstractDefaultController imple
     public void showBTOProjectDetail(BTOProject btoProject){
         final User user = sessionManager.getUser();
 
-        // if(user.getUserRole() == UserRole.APPLICANT){
-        //     btoProjectView.showBTOProjectDetailRestricted(btoProject, null);
-        // }
-        // else{
-        //     btoProjectView.showBTOProjectDetailFull(btoProject);
-        // }
-
-        btoProjectView.showBTOProjectDetailFull(btoProject);
+        if(user.getUserRole() == UserRole.APPLICANT){
+            btoProjectView.showBTOProjectDetailRestricted(btoProject);
+        }
+        else{
+            btoProjectView.showBTOProjectDetailFull(btoProject);
+        }
     }
 
     public void toggleBTOProjectVisibilty(BTOProject btoProject){

@@ -15,6 +15,14 @@ public enum FlatType {
             }
             return false;
         }
+
+        @Override
+        public String getEligibilityDetail() {
+            return """
+                1. Single and above 35 years old
+                2. Married and above 21 years old
+                    """;
+        }
     },
     THREE_ROOM_FLAT("3-Room Flat", FormField.THREE_ROOM_FLAT_NUM, FormField.THREE_ROOM_FLAT_PRICE){
         @Override
@@ -26,6 +34,13 @@ public enum FlatType {
                 return applicant.getAge() >= 21;
             }
             return false;
+        }
+
+        @Override
+        public String getEligibilityDetail() {
+            return """
+                1. Married and above 21 years old
+                    """;
         }
     };
 
@@ -60,4 +75,5 @@ public enum FlatType {
     }
 
     public abstract boolean isEligible(User user);
+    public abstract String getEligibilityDetail();
 }

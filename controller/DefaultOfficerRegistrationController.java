@@ -124,7 +124,6 @@ public class DefaultOfficerRegistrationController extends AbstractDefaultControl
 
     @Override
     public void showOfficerRegistrationDetail(OfficerRegistration officerRegistration) {
-        User user = sessionManager.getUser();
-        officerRegistrationView.showOfficerRegistrationDetail(user.getUserRole(), officerRegistration);
+        officerRegistrationView.showOfficerRegistrationDetail(officerRegistration);
     }
 }

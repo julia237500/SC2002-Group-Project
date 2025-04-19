@@ -319,19 +319,13 @@ public class BTOProject implements DataModel{
                 """, name, neighborhood, getFlatNum(FlatType.TWO_ROOM_FLAT), getFlatPrice(FlatType.TWO_ROOM_FLAT), getFlatNum(FlatType.THREE_ROOM_FLAT), getFlatPrice(FlatType.THREE_ROOM_FLAT), openingDate, closingDate, HDBOfficerLimit, visible ? "Visible" : "Hidden");
     }
 
-    public boolean hasEligibleFlat(User user){
-        return !getEligibleFlatTypes(user).isEmpty();
-    }
-
-    public List<FlatType> getEligibleFlatTypes(User user){
-        List<FlatType> flatTypes = new ArrayList<>();
-
+    public boolean canBeAppliedBy(User user){
         for(FlatType flatType:FlatType.values()){
             if(hasAvailableFlats(flatType) && flatType.isEligible(user)){
-                flatTypes.add(flatType);
+                return true;
             }
         }
 
-        return flatTypes;
+        return false;
     }
 }

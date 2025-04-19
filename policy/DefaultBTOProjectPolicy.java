@@ -42,7 +42,7 @@ public class DefaultBTOProjectPolicy implements BTOProjectPolicy {
                 return PolicyResponse.deny("BTO Project is not active.");
             }
             
-            if(!btoProject.hasEligibleFlat(requestedUser)){
+            if(!btoProject.canBeAppliedBy(requestedUser)){
                 return PolicyResponse.deny("No eligible flat type.");
             }
 
