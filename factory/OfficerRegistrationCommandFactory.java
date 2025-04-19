@@ -6,11 +6,10 @@ import java.util.Map;
 import command.Command;
 import command.LambdaCommand;
 import command.general.MenuBackCommand;
-import config.RegistrationStatus;
-import config.UserRole;
 import controller.interfaces.OfficerRegistrationController;
 import model.OfficerRegistration;
 import model.User;
+import policy.interfaces.OfficerRegistrationPolicy;
 
 public class OfficerRegistrationCommandFactory extends AbstractCommandFactory {
     private static final int APPROVE_OFFICER_REGISTRATION_CMD = getCommandID(OFFICER_REGISTRATION_CMD, EDIT_CMD, 0);
@@ -55,6 +54,7 @@ public class OfficerRegistrationCommandFactory extends AbstractCommandFactory {
 
     private static void addOfficerRegistrationUpdateRelatedCommands(User user, OfficerRegistration officerRegistration, Map<Integer, Command> commands) {
         final OfficerRegistrationController officerRegistrationController = diManager.resolve(OfficerRegistrationController.class);
+        final OfficerRegistrationPolicy officerRegistrationPolicy = diManager.resolve(OfficerRegistrationPolicy.class);
 
         final Command approveOfficerRegistrationCommand = new LambdaCommand("Approve Officer Registration", () -> {
             officerRegistrationController.approveOfficerRegistration(officerRegistration, true);
@@ -64,11 +64,12 @@ public class OfficerRegistrationCommandFactory extends AbstractCommandFactory {
             officerRegistrationController.approveOfficerRegistration(officerRegistration, false);
         });
 
-        if(user.getUserRole() == UserRole.HDB_MANAGER && officerRegistration.getBTOProject().getHDBManager() == user){
-            if(officerRegistration.getRegistrationStatus() == RegistrationStatus.PENDING){
-                commands.put(APPROVE_OFFICER_REGISTRATION_CMD, approveOfficerRegistrationCommand);
-                commands.put(REJECT_OFFICER_REGISTRATION_CMD, rejectOfficerRegistrationCommand);
-            }
+        if(officerRegistrationPolicy.canApproveOfficerRegistration(user, officerRegistration, true).isAllowed()){
+            commands.put(APPROVE_OFFICER_REGISTRATION_CMD, approveOfficerRegistrationCommand);
+        }
+
+        if(officerRegistrationPolicy.canApproveOfficerRegistration(user, officerRegistration, false).isAllowed()){
+            commands.put(REJECT_OFFICER_REGISTRATION_CMD, rejectOfficerRegistrationCommand);
         }
     }
 }

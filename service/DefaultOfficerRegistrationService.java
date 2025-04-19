@@ -2,26 +2,33 @@ package service;
 
 import java.util.List;
 
-import config.RegistrationStatus;
 import config.ResponseStatus;
-import config.UserRole;
 import exception.DataModelException;
 import exception.DataSavingException;
 import manager.interfaces.DataManager;
 import model.BTOProject;
 import model.OfficerRegistration;
 import model.User;
+import policy.PolicyResponse;
+import policy.interfaces.OfficerRegistrationPolicy;
 import service.interfaces.OfficerRegistrationService;
 
 public class DefaultOfficerRegistrationService implements OfficerRegistrationService{
-    private DataManager dataManager;
+    private final DataManager dataManager;
+    private final OfficerRegistrationPolicy officerRegistrationPolicy;
 
-    public DefaultOfficerRegistrationService(DataManager dataManager){
+    public DefaultOfficerRegistrationService(DataManager dataManager, OfficerRegistrationPolicy officerRegistrationPolicy) {
         this.dataManager = dataManager;
+        this.officerRegistrationPolicy = officerRegistrationPolicy;
     }
 
     @Override
     public ServiceResponse<OfficerRegistration> getOfficerRegistrationByOfficerAndBTOProject(User HDBOfficer, BTOProject btoProject) {
+        final PolicyResponse policyResponse = officerRegistrationPolicy.canViewOfficerRegistrationByUserAndBTOProject(HDBOfficer, btoProject);
+        if(!policyResponse.isAllowed()){
+            return new ServiceResponse<>(policyResponse);
+        }
+
         List<OfficerRegistration> officerRegistrations = dataManager.getByQueries(OfficerRegistration.class, List.of(
             registration -> registration.getBTOProject() == btoProject,
             registration -> registration.getHDBOfficer() == HDBOfficer
@@ -34,8 +41,9 @@ public class DefaultOfficerRegistrationService implements OfficerRegistrationSer
 
     @Override
     public ServiceResponse<List<OfficerRegistration>> getOfficerRegistrationsByOfficer(User requestedUser) {
-        if(requestedUser.getUserRole() != UserRole.HDB_OFFICER){
-            return new ServiceResponse<>(ResponseStatus.ERROR, "Access denied. Only HDB Officer can performed this action.");
+        final PolicyResponse policyResponse = officerRegistrationPolicy.canViewOfficerRegistrationsByOfficer(requestedUser);
+        if(!policyResponse.isAllowed()){
+            return new ServiceResponse<>(policyResponse);
         }
 
         List<OfficerRegistration> officerRegistrations = dataManager.getByQuery(
@@ -49,8 +57,9 @@ public class DefaultOfficerRegistrationService implements OfficerRegistrationSer
 
     @Override
     public ServiceResponse<List<OfficerRegistration>> getOfficerRegistrationsByBTOProject(User requestedUser, BTOProject btoProject) {
-        if(requestedUser.getUserRole() != UserRole.HDB_MANAGER){
-            return new ServiceResponse<>(ResponseStatus.ERROR, "Access denied. Only HDB Manager can performed this action.");
+        final PolicyResponse policyResponse = officerRegistrationPolicy.canViewOfficerRegistrationsByBTOProject(requestedUser, btoProject);
+        if(!policyResponse.isAllowed()){
+            return new ServiceResponse<>(policyResponse);
         }
 
         List<OfficerRegistration> officerRegistrations = dataManager.getByQuery(
@@ -62,38 +71,11 @@ public class DefaultOfficerRegistrationService implements OfficerRegistrationSer
         return new ServiceResponse<>(ResponseStatus.SUCCESS, officerRegistrations);
     }
     
-    // To do: 
-    // 1. Applicant check logic
     @Override
     public ServiceResponse<?> addOfficerRegistration(User requestedUser, BTOProject btoProject) {
-        if(requestedUser.getUserRole() != UserRole.HDB_OFFICER){
-            return new ServiceResponse<>(ResponseStatus.ERROR, "Access denied. Only HDB Officer can perform this action.");
-        }
-
-        ServiceResponse<OfficerRegistration> serviceResponse = getOfficerRegistrationByOfficerAndBTOProject(requestedUser, btoProject);
-        if(serviceResponse.getData() != null){
-            return new ServiceResponse<>(ResponseStatus.ERROR, "You have registered for the same project before.");
-        }
-
-        if(btoProject.isExceedingHDBOfficerLimit()){
-            return new ServiceResponse<>(ResponseStatus.ERROR, "The project has reach maximum number of officer in-charge.");
-        }
-
-        List<OfficerRegistration> officerRegistrations = dataManager.getByQueries(OfficerRegistration.class, List.of(
-            registration -> registration.getHDBOfficer() == requestedUser,
-            registration -> registration.getRegistrationStatus() != RegistrationStatus.UNSUCCESSFUL,
-            registration -> registration.getBTOProject().isOverlappingWith(btoProject)
-        )); 
-        if(officerRegistrations.size() > 0){
-            BTOProject otherBTOProject = officerRegistrations.get(0).getBTOProject();
-            return new ServiceResponse<>(ResponseStatus.ERROR, """
-                You have Pending/Successful registration under project with overlapping application period:
-                Previous Registered Project: %s (%s - %s)
-                Registering Project: %s (%s - %s)
-                """.formatted(
-                    otherBTOProject.getName(), otherBTOProject.getOpeningDate(), otherBTOProject.getClosingDate(), 
-                    btoProject.getName(), btoProject.getOpeningDate(), btoProject.getClosingDate()
-                ));
+        final PolicyResponse policyResponse = officerRegistrationPolicy.canCreateOfficerRegistration(requestedUser, btoProject);
+        if(!policyResponse.isAllowed()){
+            return new ServiceResponse<>(policyResponse);
         }
 
         try {
@@ -108,12 +90,9 @@ public class DefaultOfficerRegistrationService implements OfficerRegistrationSer
 
     @Override
     public ServiceResponse<?> approveOfficerRegistration(User requestedUser, OfficerRegistration officerRegistration, boolean isApproving) {
-        if(requestedUser.getUserRole() != UserRole.HDB_MANAGER){
-            return new ServiceResponse<>(ResponseStatus.ERROR, "Access denied. Only HDB Manager can perform this action.");
-        }
-
-        if(officerRegistration.getBTOProject().getHDBManager() != requestedUser){
-            return new ServiceResponse<>(ResponseStatus.ERROR, "Access denied. Only Responsible HDB Manager can perform this action.");
+        final PolicyResponse policyResponse = officerRegistrationPolicy.canApproveOfficerRegistration(requestedUser, officerRegistration, isApproving);
+        if(!policyResponse.isAllowed()){
+            return new ServiceResponse<>(policyResponse);
         }
 
         try {
@@ -127,24 +106,6 @@ public class DefaultOfficerRegistrationService implements OfficerRegistrationSer
             return new ServiceResponse<>(ResponseStatus.ERROR, "Internal error. %s".formatted(e.getMessage()));
         }
 
-        if(isApproving) return new ServiceResponse<>(ResponseStatus.SUCCESS, "Approve registration successful.");
-        else return new ServiceResponse<>(ResponseStatus.SUCCESS, "Reject registration successful.");
-    }
-
-    @Override
-    public ServiceResponse<?> markOfficerRegistrationAsRead(OfficerRegistration officerRegistration) {
-        if(!officerRegistration.hasUnreadUpdate()){
-            return new ServiceResponse<>(ResponseStatus.ERROR, "Registration don't have unread update.");
-        }
-
-        officerRegistration.markAsRead();
-        try {
-            dataManager.save(officerRegistration);
-        } catch (Exception e) {
-            officerRegistration.markAsUnread();
-            return new ServiceResponse<>(ResponseStatus.ERROR, "Internal error. %s".formatted(e.getMessage()));
-        }
-
-        return new ServiceResponse<>(ResponseStatus.SUCCESS, "Mark as read success.");
+        return new ServiceResponse<>(ResponseStatus.SUCCESS, "%s registration successful.".formatted(isApproving ? "Approve" : "Reject"));
     }
 }

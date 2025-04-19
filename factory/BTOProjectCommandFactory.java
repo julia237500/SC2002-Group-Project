@@ -19,6 +19,7 @@ import model.OfficerRegistration;
 import model.User;
 import policy.interfaces.ApplicationPolicy;
 import policy.interfaces.EnquiryPolicy;
+import policy.interfaces.OfficerRegistrationPolicy;
 
 public class BTOProjectCommandFactory extends AbstractCommandFactory{
     private static final DIManager diManager = DIManager.getInstance();
@@ -176,6 +177,7 @@ public class BTOProjectCommandFactory extends AbstractCommandFactory{
 
     private static void addOfficerRegistrationRelatedCommands(User user, BTOProject btoProject, Map<Integer, Command> commands) {
         final OfficerRegistrationController officerRegistrationController = diManager.resolve(OfficerRegistrationController.class);
+        final OfficerRegistrationPolicy officerRegistrationPolicy = diManager.resolve(OfficerRegistrationPolicy.class);
 
         final Command showOfficerRegistrationsByBTOProjectCommand = new LambdaCommand("List of Officer Registrations", () -> {
             officerRegistrationController.showOfficerRegistrationsByBTOProject(btoProject);
@@ -185,22 +187,20 @@ public class BTOProjectCommandFactory extends AbstractCommandFactory{
             officerRegistrationController.addOfficerRegistration(btoProject);
         });
 
-        final OfficerRegistration officerRegistration = officerRegistrationController.getOfficerRegistrationByOfficerAndBTOProject(btoProject);
         final Command showOfficerRegistrationCommand = new LambdaCommand("Your Officer Registration", () -> {
-            officerRegistrationController.showOfficerRegistration(officerRegistration);
+            officerRegistrationController.showOfficerRegistrationByOfficerAndBTOProject(btoProject);
         });
 
-        if(user.getUserRole() == UserRole.HDB_MANAGER && btoProject.isHandlingBy(user)){
+        if(officerRegistrationPolicy.canViewOfficerRegistrationsByBTOProject(user, btoProject).isAllowed()){
             commands.put(SHOW_OFFICER_REGISTRATIONS_CMD, showOfficerRegistrationsByBTOProjectCommand);
         }
 
-        if(user.getUserRole() == UserRole.HDB_OFFICER){
-            if(officerRegistration == null){
-                commands.put(ADD_OFFICER_REGISTRATION_CMD, addOfficerRegistrationCommand);
-            }
-            else{
-                commands.put(SHOW_OFFICER_REGISTRATION_CMD, showOfficerRegistrationCommand);
-            }
+        if(officerRegistrationPolicy.canCreateOfficerRegistration(user, btoProject).isAllowed()){
+            commands.put(ADD_OFFICER_REGISTRATION_CMD, addOfficerRegistrationCommand);
+        }
+
+        if(officerRegistrationPolicy.canViewOfficerRegistrationByUserAndBTOProject(user, btoProject).isAllowed()){
+            commands.put(SHOW_OFFICER_REGISTRATION_CMD, showOfficerRegistrationCommand);
         }
     }
 }

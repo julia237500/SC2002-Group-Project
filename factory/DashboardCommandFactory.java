@@ -16,6 +16,7 @@ import manager.interfaces.ApplicationManager;
 import model.User;
 import policy.interfaces.ApplicationPolicy;
 import policy.interfaces.EnquiryPolicy;
+import policy.interfaces.OfficerRegistrationPolicy;
 
 public class DashboardCommandFactory extends AbstractCommandFactory {
     private static final int CHANGE_PASSWORD_CMD = getCommandID(USER_CMD, EDIT_CMD, 0);
@@ -132,12 +133,13 @@ public class DashboardCommandFactory extends AbstractCommandFactory {
 
     private static void addOfficerRegistrationRelatedCommands(User user, Map<Integer, Command> commands) {
         final OfficerRegistrationController officerRegistrationController = diManager.resolve(OfficerRegistrationController.class);
+        final OfficerRegistrationPolicy officerRegistrationPolicy = diManager.resolve(OfficerRegistrationPolicy.class);
 
         final Command showOfficerRegistrationsByOfficerCommand = new LambdaCommand("Your Registrations as Officer", () -> {
             officerRegistrationController.showOfficerRegistrationsByOfficer();
         });
 
-        if(user.getUserRole() == UserRole.HDB_OFFICER){
+        if(officerRegistrationPolicy.canViewOfficerRegistrationsByOfficer(user).isAllowed()){
             commands.put(SHOW_OFFICER_REGISTRATIONS_BY_OFFICER_CMD, showOfficerRegistrationsByOfficerCommand);
         }
     }

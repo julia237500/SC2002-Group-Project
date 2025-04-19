@@ -72,10 +72,14 @@ public class OfficerRegistration implements DataModel{
         return createdAt;
     }
 
+    public boolean isApprovable(){
+        return registrationStatus == RegistrationStatus.PENDING;
+    }
+
     public void updateRegistrationStatus(boolean isApproving){
         backup();
         
-        if(registrationStatus != RegistrationStatus.PENDING){
+        if(!isApprovable()){
             throw new DataModelException("Approve/reject unsuccessful, The registration is already approved/rejected.");
         }
 

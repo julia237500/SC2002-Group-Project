@@ -61,6 +61,7 @@ public class DIManager{
 
         container.register(OfficerRegistrationController.class, DefaultOfficerRegistrationController.class);
         container.register(OfficerRegistrationService.class, DefaultOfficerRegistrationService.class);
+        container.register(OfficerRegistrationPolicy.class, DefaultOfficerRegistrationPolicy.class);
         container.register(OfficerRegistrationView.class, TerminalOfficerRegistrationView.class);
 
         container.register(EnquiryController.class, DefaultEnquiryController.class);

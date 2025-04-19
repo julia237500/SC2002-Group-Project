@@ -13,5 +13,4 @@ public interface OfficerRegistrationService {
     ServiceResponse<List<OfficerRegistration>> getOfficerRegistrationsByBTOProject(User requestedUser, BTOProject btoProject);
     ServiceResponse<?> addOfficerRegistration(User requestedUser, BTOProject btoProject);
     ServiceResponse<?> approveOfficerRegistration(User requestedUser, OfficerRegistration officerRegistration, boolean isApproving);
-    ServiceResponse<?> markOfficerRegistrationAsRead(OfficerRegistration officerRegistration);
 }
