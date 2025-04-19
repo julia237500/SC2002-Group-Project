@@ -57,6 +57,7 @@ public class DIManager{
 
         container.register(BTOProjectController.class, DefaultBTOProjectController.class);
         container.register(BTOProjectService.class, DefaultBTOProjectService.class);
+        container.register(BTOProjectPolicy.class, DefaultBTOProjectPolicy.class);
         container.register(BTOProjectView.class, TerminalBTOProjectView.class);
 
         container.register(OfficerRegistrationController.class, DefaultOfficerRegistrationController.class);

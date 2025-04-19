@@ -6,7 +6,6 @@ import java.util.Map;
 import command.Command;
 import command.LambdaCommand;
 import command.general.LogoutCommand;
-import config.UserRole;
 import controller.interfaces.ApplicationController;
 import controller.interfaces.AuthController;
 import controller.interfaces.BTOProjectController;
@@ -15,6 +14,7 @@ import controller.interfaces.OfficerRegistrationController;
 import manager.interfaces.ApplicationManager;
 import model.User;
 import policy.interfaces.ApplicationPolicy;
+import policy.interfaces.BTOProjectPolicy;
 import policy.interfaces.EnquiryPolicy;
 import policy.interfaces.OfficerRegistrationPolicy;
 
@@ -65,6 +65,7 @@ public class DashboardCommandFactory extends AbstractCommandFactory {
 
     private static void addBTOProjectsRelatedCommands(User user, Map<Integer, Command> commands) {
         final BTOProjectController btoProjectController = diManager.resolve(BTOProjectController.class);
+        final BTOProjectPolicy btoProjectPolicy = diManager.resolve(BTOProjectPolicy.class);
 
         final Command showAllBTOProjectsCommand = new LambdaCommand("List of All BTO Projects", () -> {
             btoProjectController.showAllBTOProjects();
@@ -78,13 +79,15 @@ public class DashboardCommandFactory extends AbstractCommandFactory {
             btoProjectController.addBTOProject();
         });
                 
-        commands.put(SHOW_ALL_BTO_PROJECTS_CMD, showAllBTOProjectsCommand);
+        if(btoProjectPolicy.canViewAllBTOProjects(user).isAllowed()){
+            commands.put(SHOW_ALL_BTO_PROJECTS_CMD, showAllBTOProjectsCommand);
+        }
 
-        if(user.getUserRole() == UserRole.HDB_MANAGER || user.getUserRole() == UserRole.HDB_OFFICER){
+        if(btoProjectPolicy.canViewBTOProjectsHandledByUser(user).isAllowed()){
             commands.put(SHOW_BTO_PROJECTS_HANDLED_BY_USER_CMD, showBTOProjectsByHDBManagerCommand);
         }
 
-        if(user.getUserRole() == UserRole.HDB_MANAGER){
+        if(btoProjectPolicy.canCreateBTOProject(user).isAllowed()){
             commands.put(ADD_BTO_PROJECT_CMD, addBTOProjectCommand);
         }
     }

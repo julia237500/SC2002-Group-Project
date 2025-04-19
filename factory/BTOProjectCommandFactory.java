@@ -8,16 +8,15 @@ import command.Command;
 import command.LambdaCommand;
 import command.general.MenuBackCommand;
 import config.FlatType;
-import config.UserRole;
 import controller.interfaces.ApplicationController;
 import controller.interfaces.BTOProjectController;
 import controller.interfaces.EnquiryController;
 import controller.interfaces.OfficerRegistrationController;
 import manager.DIManager;
 import model.BTOProject;
-import model.OfficerRegistration;
 import model.User;
 import policy.interfaces.ApplicationPolicy;
+import policy.interfaces.BTOProjectPolicy;
 import policy.interfaces.EnquiryPolicy;
 import policy.interfaces.OfficerRegistrationPolicy;
 
@@ -43,10 +42,11 @@ public class BTOProjectCommandFactory extends AbstractCommandFactory{
         final User user = sessionManager.getUser();
 
         final BTOProjectController btoProjectController = diManager.resolve(BTOProjectController.class);
+        final BTOProjectPolicy btoProjectPolicy = diManager.resolve(BTOProjectPolicy.class);
         
         int index = 1;
         for(BTOProject btoProject:btoProjects){
-            // if(!btoProject.isViewableBy(user)) continue;
+            if(!btoProjectPolicy.canViewBTOProject(user, btoProject).isAllowed()) continue;
             
             commands.put(index++, getShowBTOProjectCommand(btoProjectController, btoProject, user));
         }
@@ -95,6 +95,7 @@ public class BTOProjectCommandFactory extends AbstractCommandFactory{
 
     private static void addBTOProjectUpdateRelatedCommands(User user, BTOProject btoProject, Map<Integer, Command> commands) {
         final BTOProjectController btoProjectController = diManager.resolve(BTOProjectController.class);
+        final BTOProjectPolicy btoProjectPolicy = diManager.resolve(BTOProjectPolicy.class);
 
         final Command editBTOProjectCommand = new LambdaCommand("Edit BTO Project", () -> {
             btoProjectController.editBTOProject(btoProject);
@@ -108,9 +109,15 @@ public class BTOProjectCommandFactory extends AbstractCommandFactory{
             btoProjectController.deleteBTOProject(btoProject);
         });
 
-        if(user.getUserRole() == UserRole.HDB_MANAGER && btoProject.isHandlingBy(user)){
+        if(btoProjectPolicy.canEditBTOProject(user, btoProject).isAllowed()){
             commands.put(EDIT_BTO_PROJECT_CMD, editBTOProjectCommand);
+        }
+
+        if(btoProjectPolicy.canToggleBTOProjectVisibility(user, btoProject).isAllowed()){
             commands.put(TOGGLE_BTO_PROJECT_VISIBILITY_CMD, toggleBTOProjectVisibilityCommand);
+        }
+
+        if(btoProjectPolicy.canDeleteBTOProject(user, btoProject).isAllowed()){
             commands.put(DELETE_BTO_PROJECT_CMD, deleteBTOProjectCommand);
         }
     }

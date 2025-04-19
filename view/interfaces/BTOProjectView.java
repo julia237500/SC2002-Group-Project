@@ -1,10 +1,9 @@
 package view.interfaces;
 
-import java.util.List;
-
+import config.FlatType;
 import model.BTOProject;
 
 public interface BTOProjectView {
-    void showBTOProjects(List<BTOProject> btoProjects);
-    void showBTOProject(BTOProject btoProject);
+    void showBTOProjectDetailRestricted(BTOProject btoProject, FlatType[] flatTypesToShow);
+    void showBTOProjectDetailFull(BTOProject btoProject);
 }

@@ -9,8 +9,9 @@ import service.ServiceResponse;
 
 public interface BTOProjectService {
     ServiceResponse<?> addBTOProject(User requestedUser, BTOProjectDTO btoProjectDTO);
-    ServiceResponse<List<BTOProject>> getBTOProjects();
-    ServiceResponse<?> editBTOProject(User user, BTOProjectDTO btoProjectDTO, BTOProject btoProject);
+    ServiceResponse<List<BTOProject>> getAllBTOProjects(User requestedUser);
+    ServiceResponse<List<BTOProject>> getBTOProjectsHandledByUser(User requestedUser);
+    ServiceResponse<?> editBTOProject(User requestedUser, BTOProjectDTO btoProjectDTO, BTOProject btoProject);
     ServiceResponse<?> toggleBTOProjectVisibilty(User requestedUser, BTOProject btoProject);
     ServiceResponse<?> deleteBTOProject(User requestedUser, BTOProject btoProject);
 }
