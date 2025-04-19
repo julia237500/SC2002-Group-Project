@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import command.Command;
 import config.FlatType;
@@ -15,6 +16,8 @@ import controller.interfaces.BTOProjectController;
 import controller.interfaces.FormController;
 import dto.BTOProjectDTO;
 import factory.BTOProjectCommandFactory;
+import filter.BTOProjectFilter;
+import form.BTOProjectFilterForm;
 import form.BTOProjectForm;
 import form.FieldData;
 import manager.interfaces.MenuManager;
@@ -28,6 +31,8 @@ import view.interfaces.ConfirmationView;
 import view.interfaces.MessageView;
 
 public class DefaultBTOProjectController extends AbstractDefaultController implements BTOProjectController{
+    private static final String BTO_PROJECT_FILTER_SESSION_KEY = "bto_project_filter";
+
     private final BTOProjectService btoProjectService;
     private final BTOProjectView btoProjectView;
     private final FormController formController;
@@ -97,14 +102,35 @@ public class DefaultBTOProjectController extends AbstractDefaultController imple
             return null;
         }
 
-        final List<BTOProject> btoProjects = serviceResponse.getData();
+        List<BTOProject> btoProjects = serviceResponse.getData();
 
         if(btoProjects.isEmpty()){
             messageView.info("BTO Projects not found");
             return null;
         }
 
+        BTOProjectFilter btoProjectFilter = sessionManager.getSessionVariable(BTO_PROJECT_FILTER_SESSION_KEY);
+        if(btoProjectFilter != null){
+            btoProjects = btoProjects.stream()
+                .filter(btoProjectFilter.getFilter())
+                .collect(Collectors.toList());
+        }
+
         return BTOProjectCommandFactory.getShowBTOProjectsCommands(btoProjects);
+    }
+
+    @Override
+    public void setBTOProjectFilter(){
+        formController.setForm(new BTOProjectFilterForm());
+        Map<FormField, FieldData<?>> formData = formController.getFormData();
+
+        BTOProjectFilter btoProjectFilter = BTOProjectFilter.fromFormData(formData);
+        sessionManager.setSessionVariable(BTO_PROJECT_FILTER_SESSION_KEY, btoProjectFilter);
+    }
+
+    @Override
+    public void resetBTOProjectFilter() {
+        sessionManager.setSessionVariable(BTO_PROJECT_FILTER_SESSION_KEY, null);
     }
 
     public void showAllBTOProjects(){

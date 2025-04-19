@@ -43,6 +43,17 @@ public class BTOProjectCommandFactory extends AbstractCommandFactory{
 
         final BTOProjectController btoProjectController = diManager.resolve(BTOProjectController.class);
         final BTOProjectPolicy btoProjectPolicy = diManager.resolve(BTOProjectPolicy.class);
+
+        final Command setBTOProjectFilterCommand = new LambdaCommand("Set Filter", 
+            () -> btoProjectController.setBTOProjectFilter()
+        );
+
+        final Command resetBTOProjectFilterCommand = new LambdaCommand("Reset Filter", 
+            () -> btoProjectController.resetBTOProjectFilter()
+        );
+
+        commands.put(SET_FILTER_CMD, setBTOProjectFilterCommand);
+        commands.put(RESET_FILTER_CMD, resetBTOProjectFilterCommand);
         
         int index = 1;
         for(BTOProject btoProject:btoProjects){

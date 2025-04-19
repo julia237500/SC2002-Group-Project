@@ -72,6 +72,6 @@ public class DefaultApplicationManager implements ApplicationManager{
 
     public void logout(){
         menuManager.stopDashboardLoop();
-        sessionManager.resetUser();
+        sessionManager.logout();
     }
 }
