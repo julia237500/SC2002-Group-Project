@@ -5,5 +5,9 @@ import model.User;
 public interface SessionManager {
     void setUser(User user);
     User getUser();
-    void resetUser();
+
+    <T> void setSessionVariable(String key, T variable);
+    <T> T getSessionVariable(String key);
+
+    void logout();
 }

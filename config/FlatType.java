@@ -4,7 +4,7 @@ import exception.EnumParsingException;
 import model.User;
 
 public enum FlatType {
-    TWO_ROOM_FLAT("2-Room Flat", FormField.TWO_ROOM_FLAT_NUM, FormField.TWO_ROOM_FLAT_PRICE){
+    TWO_ROOM_FLAT("2-Room Flat", FormField.TWO_ROOM_FLAT_NUM, FormField.TWO_ROOM_FLAT_PRICE, FormField.FILTER_TWO_ROOM_FLAT){
         @Override
         public boolean isEligible(User applicant) {
             if(applicant.getMaritalStatus() == MaritalStatus.SINGLE){
@@ -24,7 +24,7 @@ public enum FlatType {
                     """;
         }
     },
-    THREE_ROOM_FLAT("3-Room Flat", FormField.THREE_ROOM_FLAT_NUM, FormField.THREE_ROOM_FLAT_PRICE){
+    THREE_ROOM_FLAT("3-Room Flat", FormField.THREE_ROOM_FLAT_NUM, FormField.THREE_ROOM_FLAT_PRICE, FormField.FILTER_THREE_ROOM_FLAT){
         @Override
         public boolean isEligible(User applicant){
             if(applicant.getMaritalStatus() == MaritalStatus.SINGLE){
@@ -44,14 +44,16 @@ public enum FlatType {
         }
     };
 
-    private String storedString;
-    private FormField numFormField;
-    private FormField priceFormField;
+    private final String storedString;
+    private final FormField numFormField;
+    private final FormField priceFormField;
+    private final FormField filterFormField;
 
-    private FlatType(String storedString, FormField numFormField, FormField priceFormField){
+    private FlatType(String storedString, FormField numFormField, FormField priceFormField, FormField filterFormField){
         this.storedString = storedString;
         this.numFormField = numFormField;
         this.priceFormField = priceFormField;
+        this.filterFormField = filterFormField;
     }
 
     public static FlatType parseFlatType(String s){
@@ -72,6 +74,10 @@ public enum FlatType {
 
     public FormField getPriceFormField() {
         return priceFormField;
+    }
+
+    public FormField getFilterFormField() {
+        return filterFormField;
     }
 
     public abstract boolean isEligible(User user);

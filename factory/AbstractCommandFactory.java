@@ -11,6 +11,8 @@ public class AbstractCommandFactory {
 
     protected static final int BACK_CMD = -1;
     protected static final int LOGOUT_CMD = 9;
+    protected static final int SET_FILTER_CMD = -2;
+    protected static final int RESET_FILTER_CMD = -3;
 
     protected static final int USER_CMD = 1;
     protected static final int BTO_PROJECT_CMD = 2;

@@ -11,4 +11,7 @@ public interface BTOProjectController {
     void showBTOProjectDetail(BTOProject btoProject);
     void toggleBTOProjectVisibilty(BTOProject btoProject);
     void deleteBTOProject(BTOProject btoProject);
+
+    void setBTOProjectFilter();
+    void resetBTOProjectFilter();
 }

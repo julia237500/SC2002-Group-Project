@@ -17,5 +17,8 @@ public enum FormField {
 
     SUBJECT,
     ENQUIRY,
-    REPLY
+    REPLY,
+
+    FILTER_TWO_ROOM_FLAT,
+    FILTER_THREE_ROOM_FLAT,
 }
