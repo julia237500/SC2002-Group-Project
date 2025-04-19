@@ -3,12 +3,18 @@ package controller;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import command.Command;
+import config.ApplicationStatus;
 import config.FlatType;
 import config.ResponseStatus;
 import controller.interfaces.ApplicationController;
+import controller.interfaces.FormController;
 import factory.ApplicationCommandFactory;
+import filter.ApplicationFilter;
+import form.ApplicationFilterForm;
+import generator.report.ReportGenerator;
 import manager.interfaces.MenuManager;
 import manager.interfaces.SessionManager;
 import model.Application;
@@ -26,8 +32,10 @@ public class DefaultApplicationController extends AbstractDefaultController impl
     private final SessionManager sessionManager;
     private final MenuManager menuManager;
     private final ConfirmationView confirmationView;
+    private final ReportGenerator reportGenerator;
+    private final FormController formController;
 
-    public DefaultApplicationController(ApplicationService applicationService, ApplicationView applicationView, MessageView messageView, SessionManager sessionManager, MenuManager menuManager, ConfirmationView confirmationView) {
+    public DefaultApplicationController(ApplicationService applicationService, ApplicationView applicationView, MessageView messageView, SessionManager sessionManager, MenuManager menuManager, ConfirmationView confirmationView, ReportGenerator reportGenerator, FormController formController) {
         super(messageView);
 
         this.applicationService = applicationService;
@@ -35,6 +43,8 @@ public class DefaultApplicationController extends AbstractDefaultController impl
         this.sessionManager = sessionManager;
         this.menuManager = menuManager;
         this.confirmationView = confirmationView;
+        this.reportGenerator = reportGenerator;
+        this.formController = formController;
     }
 
     @Override
@@ -162,8 +172,35 @@ public class DefaultApplicationController extends AbstractDefaultController impl
         return ApplicationCommandFactory.getApplicationOperationCommands(application);
     }
 
-
+    @Override
     public void showApplicationDetail(Application application) {
         applicationView.showApplicationDetail(application);
+    }
+
+    @Override
+    public void generateReport(BTOProject btoProject) {
+        final User user = sessionManager.getUser();
+        final ServiceResponse<List<Application>> serviceResponse = applicationService.getApplicationsByBTOProject(user, btoProject);
+
+        if(serviceResponse.getResponseStatus() != ResponseStatus.SUCCESS){
+            defaultShowServiceResponse(serviceResponse);
+        }
+
+        List<Application> applications = serviceResponse.getData();
+
+        formController.setForm(new ApplicationFilterForm());
+        final ApplicationFilter applicationFilter = ApplicationFilter.fromFormData(formController.getFormData());
+
+        applications = applications.stream()
+            .filter(application -> application.getApplicationStatus() == ApplicationStatus.BOOKED)
+            .filter(applicationFilter.getFilter())
+            .collect(Collectors.toList());
+
+        if(applications.size() == 0){
+            messageView.info("Application not found");
+            return;
+        }
+
+        reportGenerator.generateReport(applications);
     }
 }

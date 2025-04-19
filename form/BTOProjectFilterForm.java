@@ -19,5 +19,4 @@ public class BTOProjectFilterForm extends Form{
             addFields(new BoolField("Has available %s".formatted(flatType.getStoredString()), flatType.getFilterFormField()));
         }
     }
-    
 }

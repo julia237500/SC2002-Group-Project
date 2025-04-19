@@ -29,6 +29,7 @@ public class BTOProjectCommandFactory extends AbstractCommandFactory{
 
     private static final int SHOW_APPLICATIONS_CMD = getCommandID(APPLICATION_CMD, LIST_CMD, 0);
     private static final int SHOW_APPLICATION_CMD = getCommandID(APPLICATION_CMD, LIST_CMD, 1);
+    private static final int GENERATE_REPORT_CMD = getCommandID(APPLICATION_CMD, OTHER_OPERATION_CMD, 0);
 
     private static final int SHOW_ENQUIRIES_CMD = getCommandID(ENQUIRY_CMD, LIST_CMD, 0);
     private static final int ADD_ENQUIRY_CMD = getCommandID(ENQUIRY_CMD, ADD_CMD, 0);
@@ -145,12 +146,20 @@ public class BTOProjectCommandFactory extends AbstractCommandFactory{
             applicationController.showApplicationByUserAndBTOProject(btoProject);
         });
 
+        final Command generateReportCommand = new LambdaCommand("Generate Report", () -> {
+            applicationController.generateReport(btoProject);
+        });
+
         if(applicationPolicy.canViewApplicationsByBTOProject(user, btoProject).isAllowed()){
             commands.put(SHOW_APPLICATIONS_CMD, showApplicationsByBTOProjectCommand);
         }
 
         if(applicationPolicy.canViewApplicationByUserAndBTOProject(user, btoProject).isAllowed()){
             commands.put(SHOW_APPLICATION_CMD, showApplicationByUserAndBTOProjectCommand);
+        }
+
+        if(applicationPolicy.canGenerateReport(user, btoProject).isAllowed()){
+            commands.put(GENERATE_REPORT_CMD, generateReportCommand);
         }
 
         int subID = 0;

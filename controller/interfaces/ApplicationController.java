@@ -16,4 +16,6 @@ public interface ApplicationController {
     void bookApplication(Application application);
     void withdrawApplication(Application application);
     void approveWithdrawApplication(Application application, boolean isApproving);
+
+    void generateReport(BTOProject btoProject);
 }

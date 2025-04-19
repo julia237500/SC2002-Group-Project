@@ -18,4 +18,6 @@ public interface ApplicationPolicy {
 
     PolicyResponse canWithdrawApplication(User requestedUser, Application application);
     PolicyResponse canApproveWithdrawApplication(User requestedUser, Application application);
+
+    PolicyResponse canGenerateReport(User requestedUser, BTOProject btoProject);
 }

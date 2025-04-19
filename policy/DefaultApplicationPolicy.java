@@ -167,6 +167,15 @@ public class DefaultApplicationPolicy implements ApplicationPolicy{
         return PolicyResponse.allow();
     }
 
+    @Override
+    public PolicyResponse canGenerateReport(User requestedUser, BTOProject btoProject) {
+        if(requestedUser != btoProject.getHDBManager()){
+            return PolicyResponse.deny("Access denied. Only HDB Manager handling the project can generate report");
+        }
+
+        return PolicyResponse.allow();
+    }
+
     private boolean hasAppliedForBTOProject(User requestedUser, BTOProject btoProject) {
         return dataManager.countByQueries(Application.class, List.of(
             application -> application.getBTOProject() == btoProject,

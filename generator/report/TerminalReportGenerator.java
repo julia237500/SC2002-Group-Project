@@ -31,9 +31,8 @@ public class TerminalReportGenerator implements ReportGenerator {
                 Project Name      : %s
                 Flat Type         : %s
                 Application Date  : %s
-                ======================================
                 """.formatted(
-                    i,                   // index
+                    i + 1,                   // index
                     applicantName,
                     applicantNRIC,
                     applicantAge,
@@ -45,6 +44,6 @@ public class TerminalReportGenerator implements ReportGenerator {
 
             System.out.print(report);
         }
-        System.out.println("================================");
+        System.out.println("======================================");
     }
 }
