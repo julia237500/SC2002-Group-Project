@@ -17,7 +17,7 @@ public class TerminalReceiptGenerator implements ReceiptGenerator{
         MaritalStatus applicantMaritalStatus = application.getApplicant().getMaritalStatus();
 
         String projectName = application.getBTOProject().getName();
-        String flatType = application.getFlatType().toString();
+        String flatType = application.getFlatType().getStoredString();
         String createdAt = application.getCreatedAt().toString();
 
         String receipt = """

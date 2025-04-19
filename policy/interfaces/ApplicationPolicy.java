@@ -15,6 +15,7 @@ public interface ApplicationPolicy {
     PolicyResponse canCreateApplication(User requestedUser, BTOProject btoProject, FlatType flatType);
     PolicyResponse canApproveApplication(User requestedUser, Application application, boolean isApproving);
     PolicyResponse canBookApplication(User requestedUser, Application application);
+    PolicyResponse canGenerateReceipt(User requestedUser, Application application);
 
     PolicyResponse canWithdrawApplication(User requestedUser, Application application);
     PolicyResponse canApproveWithdrawApplication(User requestedUser, Application application);

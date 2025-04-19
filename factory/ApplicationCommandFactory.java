@@ -16,6 +16,7 @@ public class ApplicationCommandFactory extends AbstractCommandFactory{
     private static final int APPROVE_APPLICATION_CMD = getCommandID(APPLICATION_CMD, EDIT_CMD, 0);
     private static final int REJECT_APPLICATION_CMD = getCommandID(APPLICATION_CMD, EDIT_CMD, 1);
     private static final int BOOK_APPLICATION_CMD = getCommandID(APPLICATION_CMD, EDIT_CMD, 2);
+    private static final int GENERATE_RECEIPT_CMD = getCommandID(APPLICATION_CMD, OTHER_OPERATION_CMD, 0);
     private static final int WITHDRAW_APPLICATION_CMD = getCommandID(APPLICATION_CMD, EDIT_CMD, 3);
     private static final int APPROVE_WITHDRAW_APPLICATION_CMD = getCommandID(APPLICATION_CMD, EDIT_CMD, 4);
     private static final int REJECT_WITHDRAW_APPLICATION_CMD = getCommandID(APPLICATION_CMD, EDIT_CMD, 5);
@@ -75,6 +76,10 @@ public class ApplicationCommandFactory extends AbstractCommandFactory{
             applicationController.bookApplication(application);
         });
 
+        final Command generateReceiptCommand = new LambdaCommand("Generate Receipt" , () -> {
+            applicationController.generateReceipt(application);
+        });
+
         if(applicationPolicy.canApproveApplication(user, application, true).isAllowed()){
             commands.put(APPROVE_APPLICATION_CMD, approveApplicationCommand);
         }
@@ -85,6 +90,10 @@ public class ApplicationCommandFactory extends AbstractCommandFactory{
 
         if(applicationPolicy.canBookApplication(user, application).isAllowed()){
             commands.put(BOOK_APPLICATION_CMD, bookApplicationCommand);
+        }
+
+        if(applicationPolicy.canGenerateReceipt(user, application).isAllowed()){
+            commands.put(GENERATE_RECEIPT_CMD, generateReceiptCommand);
         }
     }
 

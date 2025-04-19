@@ -12,6 +12,7 @@ import config.ResponseStatus;
 import controller.interfaces.ApplicationController;
 import controller.interfaces.FormController;
 import factory.ApplicationCommandFactory;
+import generator.receipt.ReceiptGenerator;
 import filter.ApplicationFilter;
 import form.ApplicationFilterForm;
 import generator.report.ReportGenerator;
@@ -32,10 +33,11 @@ public class DefaultApplicationController extends AbstractDefaultController impl
     private final SessionManager sessionManager;
     private final MenuManager menuManager;
     private final ConfirmationView confirmationView;
+    private final ReceiptGenerator receiptGenerator;
     private final ReportGenerator reportGenerator;
     private final FormController formController;
 
-    public DefaultApplicationController(ApplicationService applicationService, ApplicationView applicationView, MessageView messageView, SessionManager sessionManager, MenuManager menuManager, ConfirmationView confirmationView, ReportGenerator reportGenerator, FormController formController) {
+    public DefaultApplicationController(ApplicationService applicationService, ApplicationView applicationView, MessageView messageView, SessionManager sessionManager, MenuManager menuManager, ConfirmationView confirmationView, ReceiptGenerator receiptGenerator, ReportGenerator reportGenerator, FormController formController) {
         super(messageView);
 
         this.applicationService = applicationService;
@@ -43,6 +45,7 @@ public class DefaultApplicationController extends AbstractDefaultController impl
         this.sessionManager = sessionManager;
         this.menuManager = menuManager;
         this.confirmationView = confirmationView;
+        this.receiptGenerator = receiptGenerator;
         this.reportGenerator = reportGenerator;
         this.formController = formController;
     }
@@ -77,6 +80,15 @@ public class DefaultApplicationController extends AbstractDefaultController impl
 
         final ServiceResponse<?> serviceResponse = applicationService.bookApplication(user, application);
         defaultShowServiceResponse(serviceResponse);
+
+        if(serviceResponse.getResponseStatus() == ResponseStatus.SUCCESS){
+            generateReceipt(application);
+        }
+    }
+
+    @Override
+    public void generateReceipt(Application application) {
+        receiptGenerator.generateReceipt(application);
     }
 
     @Override
