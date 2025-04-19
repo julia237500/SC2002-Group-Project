@@ -9,6 +9,7 @@ import config.FlatType;
 import config.ResponseStatus;
 import controller.interfaces.ApplicationController;
 import factory.ApplicationCommandFactory;
+import generator.receipt.ReceiptGenerator;
 import manager.interfaces.MenuManager;
 import manager.interfaces.SessionManager;
 import model.Application;
@@ -26,8 +27,9 @@ public class DefaultApplicationController extends AbstractDefaultController impl
     private final SessionManager sessionManager;
     private final MenuManager menuManager;
     private final ConfirmationView confirmationView;
+    private final ReceiptGenerator receiptGenerator;
 
-    public DefaultApplicationController(ApplicationService applicationService, ApplicationView applicationView, MessageView messageView, SessionManager sessionManager, MenuManager menuManager, ConfirmationView confirmationView) {
+    public DefaultApplicationController(ApplicationService applicationService, ApplicationView applicationView, MessageView messageView, SessionManager sessionManager, MenuManager menuManager, ConfirmationView confirmationView, ReceiptGenerator receiptGenerator) {
         super(messageView);
 
         this.applicationService = applicationService;
@@ -35,6 +37,7 @@ public class DefaultApplicationController extends AbstractDefaultController impl
         this.sessionManager = sessionManager;
         this.menuManager = menuManager;
         this.confirmationView = confirmationView;
+        this.receiptGenerator = receiptGenerator;
     }
 
     @Override
@@ -67,6 +70,15 @@ public class DefaultApplicationController extends AbstractDefaultController impl
 
         final ServiceResponse<?> serviceResponse = applicationService.bookApplication(user, application);
         defaultShowServiceResponse(serviceResponse);
+
+        if(serviceResponse.getResponseStatus() == ResponseStatus.SUCCESS){
+            generateReceipt(application);
+        }
+    }
+
+    @Override
+    public void generateReceipt(Application application) {
+        receiptGenerator.generateReceipt(application);
     }
 
     @Override
