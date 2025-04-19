@@ -24,16 +24,24 @@ public class TerminalReceiptGenerator implements ReceiptGenerator{
                 ======================================
                 BTO APPLICATION RECEIPT
                 ======================================
-                Applicant Name: %s
-                Applicant NRIC: %s
-                Applicant Age: %d
-                Marital Status: %s
-                Project Name:   %s
-                Flat Type:      %s
-                Application Date: %s
+                Applicant Name   : %s
+                Applicant NRIC   : %s
+                Applicant Age    : %d
+                Marital Status   : %s
+                Project Name     : %s
+                Flat Type        : %s
+                Application Date : %s
                 ======================================
-                """.formatted(applicantName,applicantNRIC,applicantAge,applicantMaritalStatus,projectName,flatType,createdAt);
-        System.out.println(receipt);
+                """.formatted(
+                    applicantName,
+                    applicantNRIC,
+                    applicantAge,
+                    applicantMaritalStatus,
+                    projectName,
+                    flatType,
+                    createdAt
+                );
 
+        System.out.println(receipt);
     }
 }
