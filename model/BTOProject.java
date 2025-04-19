@@ -2,6 +2,7 @@ package model;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +13,10 @@ import dto.BTOProjectDTO;
 import exception.DataModelException;
 
 public class BTOProject implements DataModel{
+    public static final Comparator<BTOProject> DEFAULT_COMPARATOR = 
+        Comparator.comparing(BTOProject::isActive, Comparator.reverseOrder())
+        .thenComparing(BTOProject::getOpeningDate);
+
     public static int MIN_HDB_OFFICER_LIMIT = 1;
     public static int MAX_HDB_OFFICER_LIMIT = 10;
 
@@ -116,11 +121,6 @@ public class BTOProject implements DataModel{
     }
 
     public String getName() {
-        return name;
-    }
-
-    @Override
-    public String getPK() {
         return name;
     }
 
@@ -258,25 +258,17 @@ public class BTOProject implements DataModel{
         return false;
     }
 
-    public String toString(){
-        return String.format("""
-                Name                  : %s
-                Neighbourhood         : %s
-                Number of 2-Room Flat : %d
-                Price of 2-Room Flat  : %d
-                Number of 3-Room Flat : %d
-                Price of 3-Room Flat  : %d
-                Opening Date          : %s
-                Closing Date          : %s
-                HDB Officer Limit     : %d
-                Visibility            : %s
-                """, name, neighborhood, getFlatNum(FlatType.TWO_ROOM_FLAT), getFlatPrice(FlatType.TWO_ROOM_FLAT), getFlatNum(FlatType.THREE_ROOM_FLAT), getFlatPrice(FlatType.THREE_ROOM_FLAT), openingDate, closingDate, HDBOfficerLimit, visible ? "Visible" : "Hidden");
+    @Override
+    public String getPK() {
+        return name;
     }
 
+    @Override
     public void backup(){
         memento = new Memento(this);
     }
 
+    @Override
     public void restore(){
         if(memento != null){
             memento.restore(this);
@@ -310,5 +302,30 @@ public class BTOProject implements DataModel{
                 flatUnit.backup();
             }
         }
+    }
+
+    public String toString(){
+        return String.format("""
+                Name                  : %s
+                Neighbourhood         : %s
+                Number of 2-Room Flat : %d
+                Price of 2-Room Flat  : %d
+                Number of 3-Room Flat : %d
+                Price of 3-Room Flat  : %d
+                Opening Date          : %s
+                Closing Date          : %s
+                HDB Officer Limit     : %d
+                Visibility            : %s
+                """, name, neighborhood, getFlatNum(FlatType.TWO_ROOM_FLAT), getFlatPrice(FlatType.TWO_ROOM_FLAT), getFlatNum(FlatType.THREE_ROOM_FLAT), getFlatPrice(FlatType.THREE_ROOM_FLAT), openingDate, closingDate, HDBOfficerLimit, visible ? "Visible" : "Hidden");
+    }
+
+    public boolean canBeAppliedBy(User user){
+        for(FlatType flatType:FlatType.values()){
+            if(hasAvailableFlats(flatType) && flatType.isEligible(user)){
+                return true;
+            }
+        }
+
+        return false;
     }
 }

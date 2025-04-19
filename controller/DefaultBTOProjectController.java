@@ -4,11 +4,13 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import command.Command;
 import config.FlatType;
 import config.FormField;
 import config.ResponseStatus;
+import config.UserRole;
 import controller.interfaces.BTOProjectController;
 import controller.interfaces.FormController;
 import dto.BTOProjectDTO;
@@ -88,39 +90,57 @@ public class DefaultBTOProjectController extends AbstractDefaultController imple
         defaultShowServiceResponse(editBTOProjectResponse);
     }
 
-    public void showAllBTOProjects(){
-        menuManager.addCommands("BTO Projects", () -> showAllBTOProjectsCommandGenerator());
-    }
-
-    private Map<Integer, Command> showAllBTOProjectsCommandGenerator(){
-        ServiceResponse<List<BTOProject>> getBTOProjectServiceResponse = btoProjectService.getBTOProjects();
-
-        if(getBTOProjectServiceResponse.getResponseStatus() != ResponseStatus.SUCCESS){
-            messageView.error(getBTOProjectServiceResponse.getMessage());
+    private Map<Integer, Command> generateShowBTOProjectsCommand(Supplier<ServiceResponse<List<BTOProject>>> serviceResponseSupplier){
+        final ServiceResponse<List<BTOProject>> serviceResponse = serviceResponseSupplier.get();
+        if(serviceResponse.getResponseStatus() != ResponseStatus.SUCCESS){
+            messageView.error(serviceResponse.getMessage());
             return null;
         }
 
-        List<BTOProject> btoProjects = getBTOProjectServiceResponse.getData();
+        final List<BTOProject> btoProjects = serviceResponse.getData();
 
         if(btoProjects.isEmpty()){
-            messageView.info("No BTO Project is opened currently. Returning to dashboard.");
+            messageView.info("BTO Projects not found");
             return null;
         }
 
         return BTOProjectCommandFactory.getShowBTOProjectsCommands(btoProjects);
     }
 
-    public void showBTOProject(BTOProject btoProject){
-        menuManager.addCommands("Operations", () -> showBTOProjectCommandGenerator(btoProject));
+    public void showAllBTOProjects(){
+        final User user = sessionManager.getUser();
+
+        menuManager.addCommands("BTO Projects", () -> 
+            generateShowBTOProjectsCommand(() -> btoProjectService.getAllBTOProjects(user)
+        ));
     }
 
-    private Map<Integer, Command> showBTOProjectCommandGenerator(BTOProject btoProject){
+    public void showBTOProjectsHandledByUser(){
+        final User user = sessionManager.getUser();
+
+        menuManager.addCommands("Your BTO Projects", () -> 
+            generateShowBTOProjectsCommand(() -> btoProjectService.getBTOProjectsHandledByUser(user))
+        );
+    }
+
+    public void showBTOProject(BTOProject btoProject){
+        menuManager.addCommands("Operations", () -> generateShowBTOProjectCommand(btoProject));
+    }
+
+    private Map<Integer, Command> generateShowBTOProjectCommand(BTOProject btoProject){
         showBTOProjectDetail(btoProject);
         return BTOProjectCommandFactory.getBTOProjectsOperationCommands(btoProject);
     }
 
     public void showBTOProjectDetail(BTOProject btoProject){
-        btoProjectView.showBTOProject(btoProject);
+        final User user = sessionManager.getUser();
+
+        if(user.getUserRole() == UserRole.APPLICANT){
+            btoProjectView.showBTOProjectDetailRestricted(btoProject);
+        }
+        else{
+            btoProjectView.showBTOProjectDetailFull(btoProject);
+        }
     }
 
     public void toggleBTOProjectVisibilty(BTOProject btoProject){

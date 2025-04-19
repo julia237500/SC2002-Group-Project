@@ -8,7 +8,8 @@ public interface OfficerRegistrationController {
     void approveOfficerRegistration(OfficerRegistration officerRegistration, boolean isApproving);
     void showOfficerRegistrationsByOfficer();
     void showOfficerRegistrationsByBTOProject(BTOProject btoProject);
+    void showOfficerRegistrationByOfficerAndBTOProject(BTOProject btoProject);
     void showOfficerRegistration(OfficerRegistration officerRegistration);
     void showOfficerRegistrationDetail(OfficerRegistration officerRegistration);
-    OfficerRegistration getOfficerRegistrationByOfficerAndBTOProject(BTOProject btoProject);
+    
 }

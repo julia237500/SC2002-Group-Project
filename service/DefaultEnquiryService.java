@@ -3,26 +3,30 @@ package service;
 import java.util.List;
 
 import config.ResponseStatus;
-import config.UserRole;
 import exception.DataModelException;
 import exception.DataSavingException;
 import manager.interfaces.DataManager;
 import model.BTOProject;
 import model.Enquiry;
 import model.User;
+import policy.PolicyResponse;
+import policy.interfaces.EnquiryPolicy;
 import service.interfaces.EnquiryService;
 
 public class DefaultEnquiryService implements EnquiryService{
-    private DataManager dataManager;
+    private final DataManager dataManager;
+    private final EnquiryPolicy enquiryPolicy;
 
-    public DefaultEnquiryService(DataManager dataManager){
+    public DefaultEnquiryService(DataManager dataManager, EnquiryPolicy enquiryPolicy){
         this.dataManager = dataManager;
+        this.enquiryPolicy = enquiryPolicy;
     }
 
     @Override
     public ServiceResponse<List<Enquiry>> getAllEnquiries(User requestedUser) {
-        if(requestedUser.getUserRole() != UserRole.HDB_MANAGER){
-            return new ServiceResponse<>(ResponseStatus.ERROR, "Access denied. Only HDB Manager can performed this action.");
+        final PolicyResponse policyResponse = enquiryPolicy.canViewAllEnquiries(requestedUser);
+        if(!policyResponse.isAllowed()){
+            return new ServiceResponse<>(policyResponse);
         }
 
         List<Enquiry> enquiries = dataManager.getAll(Enquiry.class, Enquiry.SORT_BY_CREATED_AT_DESC);
@@ -31,8 +35,9 @@ public class DefaultEnquiryService implements EnquiryService{
 
     @Override
     public ServiceResponse<List<Enquiry>> getEnquiriesByUser(User requestedUser) {
-        if(requestedUser.getUserRole() != UserRole.APPLICANT && requestedUser.getUserRole() != UserRole.HDB_OFFICER){
-            return new ServiceResponse<>(ResponseStatus.ERROR, "Access denied. Only Applicant/HDB Officer can performed this action.");
+        final PolicyResponse policyResponse = enquiryPolicy.canViewEnquiriesByUser(requestedUser);
+        if(!policyResponse.isAllowed()){
+            return new ServiceResponse<>(policyResponse);
         }
 
         List<Enquiry> enquiries = dataManager.getByQuery(
@@ -45,8 +50,9 @@ public class DefaultEnquiryService implements EnquiryService{
 
     @Override
     public ServiceResponse<List<Enquiry>> getEnquiriesByBTOProject(User requestedUser, BTOProject btoProject) {
-        if(requestedUser.getUserRole() != UserRole.HDB_MANAGER && !btoProject.isHandlingBy(requestedUser)){
-            return new ServiceResponse<>(ResponseStatus.ERROR, "Access denied. Only HDB Officer/Manager handling the project can performed this action.");
+        final PolicyResponse policyResponse = enquiryPolicy.canViewEnquiriesByBTOProject(requestedUser, btoProject);
+        if(!policyResponse.isAllowed()){
+            return new ServiceResponse<>(policyResponse);
         }
 
         List<Enquiry> enquiries = dataManager.getByQuery(
@@ -59,8 +65,9 @@ public class DefaultEnquiryService implements EnquiryService{
 
     @Override
     public ServiceResponse<?> addEnquiry(User requestedUser, BTOProject btoProject, String subject, String enquiryString) {
-        if(requestedUser.getUserRole() != UserRole.APPLICANT && requestedUser.getUserRole() != UserRole.HDB_OFFICER){
-            return new ServiceResponse<>(ResponseStatus.ERROR, "Access denied. Only Applicant/HDB Officer can performed this action.");
+        PolicyResponse policyResponse = enquiryPolicy.canCreateEnquiry(requestedUser, btoProject);
+        if(!policyResponse.isAllowed()){
+            return new ServiceResponse<>(policyResponse);
         }
 
         try {
@@ -77,23 +84,17 @@ public class DefaultEnquiryService implements EnquiryService{
     
     @Override
     public ServiceResponse<?> editEnquiry(User requestedUser, Enquiry enquiry, String subject, String enquiryString) {
-        if(requestedUser != enquiry.getEnquirer()){
-            return new ServiceResponse<>(ResponseStatus.ERROR, "Access denied. Only enquirer can performed this action.");
+        PolicyResponse policyResponse = enquiryPolicy.canEditEnquiry(requestedUser, enquiry);
+        if(!policyResponse.isAllowed()){
+            return new ServiceResponse<>(policyResponse);
         }
 
-        if(!enquiry.canBeAltered()){
-            return new ServiceResponse<>(ResponseStatus.ERROR, "Replied enquiries cannot be edited.");
-        }
-
-        String oldSubject = enquiry.getSubject();
-        String oldEnquiryString = enquiry.getEnquiry();
         try {
             enquiry.setSubject(subject);
             enquiry.setEnquiry(enquiryString);
             dataManager.save(enquiry);
-        } catch (Exception e) {
-            enquiry.setSubject(oldSubject);
-            enquiry.setEnquiry(oldEnquiryString);
+        } catch (DataSavingException e) {
+            enquiry.restore();
             return new ServiceResponse<>(ResponseStatus.ERROR, "Internal error. %s".formatted(e.getMessage()));
         } 
 
@@ -102,12 +103,9 @@ public class DefaultEnquiryService implements EnquiryService{
 
     @Override
     public ServiceResponse<?> deleteEnquiry(User requestedUser, Enquiry enquiry) {
-        if(requestedUser != enquiry.getEnquirer()){
-            return new ServiceResponse<>(ResponseStatus.ERROR, "Access denied. Only enquirer can performed this action.");
-        }
-
-        if(!enquiry.canBeAltered()){
-            return new ServiceResponse<>(ResponseStatus.ERROR, "Replied enquiries cannot be deleted.");
+        PolicyResponse policyResponse = enquiryPolicy.canDeleteEnquiry(requestedUser, enquiry);
+        if(!policyResponse.isAllowed()){
+            return new ServiceResponse<>(policyResponse);
         }
 
         try {
@@ -118,22 +116,19 @@ public class DefaultEnquiryService implements EnquiryService{
 
         return new ServiceResponse<>(ResponseStatus.SUCCESS, "Enquiry deleted successful.");
     }
-
+ 
     @Override
     public ServiceResponse<?> replyEnquiry(User requestedUser, Enquiry enquiry, String replyString) {
-        if(!enquiry.getBTOProject().isHandlingBy(requestedUser)){
-            return new ServiceResponse<>(ResponseStatus.ERROR, "Access denied. Only Manager/Officer in-charge can performed this action.");
-        }
-
-        if(!enquiry.canBeAltered()){
-            return new ServiceResponse<>(ResponseStatus.ERROR, "Enquiries already been replied.");
+        PolicyResponse policyResponse = enquiryPolicy.canReplyEnquiry(requestedUser, enquiry);
+        if(!policyResponse.isAllowed()){
+            return new ServiceResponse<>(policyResponse);
         }
 
         try {
             enquiry.setReply(replyString);
             dataManager.save(enquiry);
         } catch (Exception e) {
-            enquiry.revertReply();
+            enquiry.restore();
             return new ServiceResponse<>(ResponseStatus.ERROR, "Internal error. %s".formatted(e.getMessage()));
         }
 

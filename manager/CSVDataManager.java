@@ -148,62 +148,53 @@ public class CSVDataManager implements DataManager{
         return (T) data.get(clazz).get(PK);
     }
 
-    @Override
     @SuppressWarnings("unchecked")
+    private <T extends DataModel> Stream<T> getStreamByQueries(Class<T> clazz, List<Predicate<T>> queries){
+        Map<String, T> classData = (Map<String, T>) data.get(clazz);
+
+        if (classData == null) {
+            return Stream.empty();
+        }
+        return classData.values().stream()
+                .filter(queries.stream().reduce(Predicate::and).orElse(_ -> true));
+    }
+
+    @Override
     public <T extends DataModel> List<T> getByQuery(Class<T> clazz, Predicate<T> query) {
-        Map<String, T> classData = (Map<String, T>) data.get(clazz);
-        
-        if (classData == null) {
-            return List.of();
-        }
-
-        return classData.values().stream()
-                .filter(query)
-                .collect(Collectors.toList());
+        return getStreamByQueries(clazz, List.of(query))
+            .collect(Collectors.toList());
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <T extends DataModel> List<T> getByQuery(Class<T> clazz, Predicate<T> query, Comparator<T> comparator) {
-        Map<String, T> classData = (Map<String, T>) data.get(clazz);
-        
-        if (classData == null) {
-            return List.of();
-        }
-
-        return classData.values().stream()
-                .filter(query)
+        return getStreamByQueries(clazz, List.of(query))
                 .sorted(comparator)
                 .collect(Collectors.toList());
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <T extends DataModel> List<T> getByQueries(Class<T> clazz, List<Predicate<T>> queries) {
-        Map<String, T> classData = (Map<String, T>) data.get(clazz);
-        
-        if (classData == null) {
-            return List.of();
-        }
-
-        return classData.values().stream()
-                .filter(queries.stream().reduce(Predicate::and).orElse(_ -> true))
+        return getStreamByQueries(clazz, queries)
                 .collect(Collectors.toList());
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <T extends DataModel> List<T> getByQueries(Class<T> clazz, List<Predicate<T>> queries, Comparator<T> comparator) {
-        Map<String, T> classData = (Map<String, T>) data.get(clazz);
-        
-        if (classData == null) {
-            return List.of();
-        }
-
-        return classData.values().stream()
-                .filter(queries.stream().reduce(Predicate::and).orElse(_ -> true))
+        return getStreamByQueries(clazz, queries)
                 .sorted(comparator)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public <T extends DataModel> long countByQuery(Class<T> clazz, Predicate<T> query) {
+        return getStreamByQueries(clazz, List.of(query))
+                .count();
+    }
+
+    @Override
+    public <T extends DataModel> long countByQueries(Class<T> clazz, List<Predicate<T>> queries) {
+        return getStreamByQueries(clazz, queries)
+                .count();
     }
     
     @Override

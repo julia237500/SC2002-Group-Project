@@ -11,6 +11,7 @@ import config.EnquiryStatus;
 import controller.interfaces.EnquiryController;
 import model.Enquiry;
 import model.User;
+import policy.interfaces.EnquiryPolicy;
 
 public class EnquiryCommandFactory extends AbstractCommandFactory {
     private static final int EDIT_ENQUIRY_CMD = getCommandID(ENQUIRY_CMD, EDIT_CMD, 0);
@@ -56,6 +57,7 @@ public class EnquiryCommandFactory extends AbstractCommandFactory {
 
     private static void addEnquiryUpdateRelatedCommands(User user, Enquiry enquiry, Map<Integer, Command> commands) {
         final EnquiryController enquiryController = diManager.resolve(EnquiryController.class);
+        final EnquiryPolicy enquiryPolicy = diManager.resolve(EnquiryPolicy.class);
 
         final Command editEnquiryCommand = new LambdaCommand("Edit Enquiry", () -> {
             enquiryController.editEnquiry(enquiry);
@@ -69,12 +71,15 @@ public class EnquiryCommandFactory extends AbstractCommandFactory {
             enquiryController.replyEnquiry(enquiry);
         });
 
-        if(enquiry.getEnquirer() == user && enquiry.canBeAltered()){
+        if(enquiryPolicy.canEditEnquiry(user, enquiry).isAllowed()){
             commands.put(EDIT_ENQUIRY_CMD, editEnquiryCommand);
+        }
+
+        if(enquiryPolicy.canDeleteEnquiry(user, enquiry).isAllowed()){
             commands.put(DELETE_ENQUIRY_CMD, deleteEnquiryCommand);
         }
         
-        if(enquiry.getBTOProject().isHandlingBy(user) && enquiry.canBeAltered()){
+        if(enquiryPolicy.canReplyEnquiry(user, enquiry).isAllowed()){
             commands.put(REPLY_ENQUIRY_CMD, replyEnquiryCommand);
         }
     }

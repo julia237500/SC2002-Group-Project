@@ -54,11 +54,6 @@ public class Application implements DataModel{
         this.createdAt = LocalDateTime.now();
     }
 
-    @Override
-    public String getPK() {
-        return uuid;
-    }
-
     public User getApplicant() {
         return applicant;
     }
@@ -189,12 +184,23 @@ public class Application implements DataModel{
         else setWithdrawalStatus(WithdrawalStatus.UNSUCCESSFUL);    
     }
 
+    public boolean isWithdrawApprovable() {
+        return withdrawalStatus == WithdrawalStatus.PENDING;
+    }
+
+    @Override
+    public String getPK() {
+        return uuid;
+    }
+
+    @Override
     public void backup(){
         this.backupApplicationStatus = this.applicationStatus;
         this.backupWithdrawalStatus = this.withdrawalStatus;
         btoProject.backup();
     }
 
+    @Override
     public void restore(){
         this.applicationStatus = this.backupApplicationStatus;
         this.withdrawalStatus = this.backupWithdrawalStatus;

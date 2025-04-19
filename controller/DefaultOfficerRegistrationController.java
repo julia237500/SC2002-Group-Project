@@ -94,6 +94,23 @@ public class DefaultOfficerRegistrationController extends AbstractDefaultControl
     }
 
     @Override
+    public void showOfficerRegistrationByOfficerAndBTOProject(BTOProject btoProject) {
+        final User user = sessionManager.getUser();
+        final ServiceResponse<OfficerRegistration> serviceResponse = officerRegistrationService.getOfficerRegistrationByOfficerAndBTOProject(user, btoProject);
+        
+        if(serviceResponse.getResponseStatus() != ResponseStatus.SUCCESS){
+            messageView.error(serviceResponse.getMessage());
+        }
+
+        if(serviceResponse.getData() == null){
+            messageView.info("Officer Registration not found.");
+            return;
+        }
+
+        showOfficerRegistration(serviceResponse.getData());
+    }
+
+    @Override
     public void showOfficerRegistration(OfficerRegistration officerRegistration) {
         menuManager.addCommands("Operations", () ->
             generateShowOfficerRegistrationCommand(officerRegistration)
@@ -107,19 +124,6 @@ public class DefaultOfficerRegistrationController extends AbstractDefaultControl
 
     @Override
     public void showOfficerRegistrationDetail(OfficerRegistration officerRegistration) {
-        User user = sessionManager.getUser();
-        officerRegistrationView.showOfficerRegistrationDetail(user.getUserRole(), officerRegistration);
-    }
-
-    @Override
-    public OfficerRegistration getOfficerRegistrationByOfficerAndBTOProject(BTOProject btoProject) {
-        User user = sessionManager.getUser();
-        ServiceResponse<OfficerRegistration> serviceResponse = officerRegistrationService.getOfficerRegistrationByOfficerAndBTOProject(user, btoProject);
-        
-        if(serviceResponse.getResponseStatus() != ResponseStatus.SUCCESS){
-            messageView.error(serviceResponse.getMessage());
-        }
-
-        return serviceResponse.getData();
+        officerRegistrationView.showOfficerRegistrationDetail(officerRegistration);
     }
 }

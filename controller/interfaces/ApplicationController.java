@@ -8,7 +8,6 @@ public interface ApplicationController {
     void showAllApplications();
     void showApplicationsByUser();
     void showApplicationsByBTOProject(BTOProject btoProject);
-    Application getApplicationByUserAndBTOProject(BTOProject btoProject);
     void showApplicationByUserAndBTOProject(BTOProject btoProject);
     void showApplication(Application application);
     void showApplicationDetail(Application application);

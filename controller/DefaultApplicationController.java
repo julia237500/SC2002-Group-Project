@@ -134,25 +134,19 @@ public class DefaultApplicationController extends AbstractDefaultController impl
     }
 
     @Override
-    public Application getApplicationByUserAndBTOProject(BTOProject btoProject) {
-        final User user = sessionManager.getUser();
-        final ServiceResponse<Application> serviceResponse = applicationService.getApplicationByUserAndBTOProject(user, btoProject);
-        
+    public void showApplicationByUserAndBTOProject(BTOProject btoProject) {
+        ServiceResponse<Application> serviceResponse = applicationService.getApplicationByUserAndBTOProject(sessionManager.getUser(), btoProject);
         if(serviceResponse.getResponseStatus() != ResponseStatus.SUCCESS){
             defaultShowServiceResponse(serviceResponse);
-            return null;
+            return;
         }
 
-        return serviceResponse.getData();
-    }
-
-    @Override
-    public void showApplicationByUserAndBTOProject(BTOProject btoProject) {
-        final Application application = getApplicationByUserAndBTOProject(btoProject);
+        final Application application = serviceResponse.getData();
         if(application == null){
             messageView.info("Application not found.");
             return;
         }
+        
         showApplication(application);
     }
 

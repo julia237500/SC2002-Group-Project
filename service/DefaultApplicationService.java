@@ -2,29 +2,32 @@ package service;
 
 import java.util.List;
 
-import config.ApplicationStatus;
 import config.FlatType;
 import config.ResponseStatus;
-import config.UserRole;
 import exception.DataModelException;
 import exception.DataSavingException;
 import manager.interfaces.DataManager;
 import model.Application;
 import model.BTOProject;
 import model.User;
+import policy.PolicyResponse;
+import policy.interfaces.ApplicationPolicy;
 import service.interfaces.ApplicationService;
 
 public class DefaultApplicationService implements ApplicationService{
-    private DataManager dataManager;
+    private final DataManager dataManager;
+    private final ApplicationPolicy applicationPolicy;
 
-    public DefaultApplicationService(DataManager dataManager){
+    public DefaultApplicationService(DataManager dataManager, ApplicationPolicy applicationPolicy) {
         this.dataManager = dataManager;
+        this.applicationPolicy = applicationPolicy;
     }
 
     @Override
     public ServiceResponse<List<Application>> getAllApplications(User requestedUser) {
-        if(requestedUser.getUserRole() != UserRole.HDB_MANAGER){
-            return new ServiceResponse<>(ResponseStatus.ERROR, "Access denied. Only HDB Manager can view all applications.");
+        PolicyResponse policyResponse = applicationPolicy.canViewAllApplications(requestedUser);
+        if(!policyResponse.isAllowed()){
+            return new ServiceResponse<>(policyResponse);
         }
 
         List<Application> applications = dataManager.getAll(Application.class, Application.SORT_BY_CREATED_AT_DESC);
@@ -33,8 +36,9 @@ public class DefaultApplicationService implements ApplicationService{
 
     @Override
     public ServiceResponse<List<Application>> getApplicationsByUser(User requestedUser) {
-        if(requestedUser.getUserRole() != UserRole.APPLICANT && requestedUser.getUserRole() != UserRole.HDB_OFFICER){
-            return new ServiceResponse<>(ResponseStatus.ERROR, "Access denied. Only Applicant/HDB Officer can view their applications.");
+        PolicyResponse policyResponse = applicationPolicy.canViewApplicationsByUser(requestedUser);
+        if(!policyResponse.isAllowed()){
+            return new ServiceResponse<>(policyResponse);
         }
 
         List<Application> applications = dataManager.getByQuery(Application.class,
@@ -47,12 +51,9 @@ public class DefaultApplicationService implements ApplicationService{
 
     @Override
     public ServiceResponse<List<Application>> getApplicationsByBTOProject(User requestedUser, BTOProject btoProject) {
-        if(requestedUser.getUserRole() != UserRole.HDB_MANAGER && requestedUser.getUserRole() != UserRole.HDB_OFFICER){
-            return new ServiceResponse<>(ResponseStatus.ERROR, "Access denied. Only HDB Manager/HDB Officer can view applications for this project.");
-        }
-
-        if(requestedUser.getUserRole() != UserRole.HDB_OFFICER && !btoProject.isHandlingBy(requestedUser)){
-            return new ServiceResponse<>(ResponseStatus.ERROR, "Access denied. Only HDB Officer handling the project can view applications for this project.");
+        PolicyResponse policyResponse = applicationPolicy.canViewApplicationsByBTOProject(requestedUser, btoProject);
+        if(!policyResponse.isAllowed()){
+            return new ServiceResponse<>(policyResponse);
         }
 
         List<Application> applications = dataManager.getByQuery(Application.class,
@@ -65,8 +66,9 @@ public class DefaultApplicationService implements ApplicationService{
 
     @Override
     public ServiceResponse<Application> getApplicationByUserAndBTOProject(User requestedUser, BTOProject btoProject) {
-        if(requestedUser.getUserRole() != UserRole.APPLICANT && requestedUser.getUserRole() != UserRole.HDB_OFFICER){
-            return new ServiceResponse<>(ResponseStatus.ERROR, "Access denied. Only Applicant/HDB Officer can view their applications.");
+        PolicyResponse policyResponse = applicationPolicy.canViewApplicationByUserAndBTOProject(requestedUser, btoProject);
+        if(!policyResponse.isAllowed()){
+            return new ServiceResponse<>(policyResponse);
         }
 
         List<Application> applications = dataManager.getByQueries(Application.class, List.of(
@@ -84,34 +86,9 @@ public class DefaultApplicationService implements ApplicationService{
 
     @Override
     public ServiceResponse<?> addApplication(User requestedUser, BTOProject btoProject, FlatType flatType) {
-        if(requestedUser.getUserRole() != UserRole.APPLICANT && requestedUser.getUserRole() != UserRole.HDB_OFFICER){
-            return new ServiceResponse<>(ResponseStatus.ERROR, "Access denied. Only Applicant/HDB Officer can apply for BTO Project.");
-        }
-
-        if(btoProject.isHandlingBy(requestedUser)){
-            return new ServiceResponse<>(ResponseStatus.ERROR, "Application unsuccessful. You are handling this project as HDB Officer.");
-        }
-
-        if(!btoProject.isActive()){
-            return new ServiceResponse<>(ResponseStatus.ERROR, "Application unsuccessful. This project is not opened for application currently.");
-        }
-
-        List<Application> applications = dataManager.getByQueries(Application.class, List.of(
-            application -> application.getApplicant() == requestedUser,
-            application -> application.getApplicationStatus() != ApplicationStatus.UNSUCCESSFUL
-        ));
-
-        if(applications.size() > 0){
-            return new ServiceResponse<>(ResponseStatus.ERROR, "Application unsuccessful. You are applying for other projects.");
-        }
-
-        applications = dataManager.getByQueries(Application.class, List.of(
-            application -> application.getApplicant() == requestedUser,
-            application -> application.getBTOProject() == btoProject
-        ));
-
-        if(applications.size() > 0){
-            return new ServiceResponse<>(ResponseStatus.ERROR, "Application unsuccessful. You have applied for this project before.");
+        PolicyResponse policyResponse = applicationPolicy.canCreateApplication(requestedUser, btoProject, flatType);
+        if(!policyResponse.isAllowed()){
+            return new ServiceResponse<>(policyResponse);
         }
 
         try {
@@ -128,17 +105,9 @@ public class DefaultApplicationService implements ApplicationService{
 
     @Override
     public ServiceResponse<?> approveApplication(User requestedUser, Application application, boolean isApproving) {
-        if(application.getBTOProject().getHDBManager() != requestedUser){
-            return new ServiceResponse<>(ResponseStatus.ERROR, "Access denied. Only HDB Manager handling the project can approve/reject application.");
-        }
-
-        List<Application> applications = dataManager.getByQueries(Application.class, List.of(
-            application1 -> application1.getApplicationStatus() == ApplicationStatus.SUCCESSFUL,
-            application1 -> application1.getBTOProject() == application.getBTOProject()
-        ));
-
-        if(isApproving && applications.size() >= application.getFlatNum()){
-            return new ServiceResponse<>(ResponseStatus.ERROR, "Application unsuccessful. %s is not available for all approved application.".formatted(application.getFlatType().getStoredString()));
+        PolicyResponse policyResponse = applicationPolicy.canApproveApplication(requestedUser, application, isApproving);
+        if(!policyResponse.isAllowed()){
+            return new ServiceResponse<>(policyResponse);
         }
 
         try {
@@ -155,14 +124,11 @@ public class DefaultApplicationService implements ApplicationService{
     }
 
     public ServiceResponse<?> bookApplication(User requestedUser, Application application) {
-        if(requestedUser.getUserRole() != UserRole.HDB_OFFICER){
-            return new ServiceResponse<>(ResponseStatus.ERROR, "Access denied. Only HDB Officer can book application.");
+        PolicyResponse policyResponse = applicationPolicy.canBookApplication(requestedUser, application);
+        if(!policyResponse.isAllowed()){
+            return new ServiceResponse<>(policyResponse);
         }
-
-        if(!application.getBTOProject().isHandlingBy(requestedUser)){
-            return new ServiceResponse<>(ResponseStatus.ERROR, "Access denied. Only HDB Officer handling the project can book application.");
-        }
-
+        
         try {
             application.bookApplication();
             dataManager.save(application);
@@ -178,8 +144,9 @@ public class DefaultApplicationService implements ApplicationService{
 
     @Override
     public ServiceResponse<?> withdrawApplication(User requestedUser, Application application) {
-        if(requestedUser != application.getApplicant()){
-            return new ServiceResponse<>(ResponseStatus.ERROR, "Access denied. Only applicant of this registration can withdraw.");
+        PolicyResponse policyResponse = applicationPolicy.canWithdrawApplication(requestedUser, application);
+        if(!policyResponse.isAllowed()){
+            return new ServiceResponse<>(policyResponse);
         }
 
         try {
@@ -197,8 +164,9 @@ public class DefaultApplicationService implements ApplicationService{
 
     @Override
     public ServiceResponse<?> approveWithdrawApplication(User requestedUser, Application application, boolean isApproving) {
-        if(!application.getBTOProject().isHandlingBy(requestedUser)){
-            return new ServiceResponse<>(ResponseStatus.ERROR, "Access denied. Only HDB Manager/Officer handling the project can approve/reject withdrawal.");
+        PolicyResponse policyResponse = applicationPolicy.canApproveWithdrawApplication(requestedUser, application);
+        if(!policyResponse.isAllowed()){
+            return new ServiceResponse<>(policyResponse);
         }
 
         try {
