@@ -168,6 +168,15 @@ public class DefaultApplicationPolicy implements ApplicationPolicy{
     }
 
     @Override
+    public PolicyResponse canGenerateReport(User requestedUser, BTOProject btoProject) {
+        if(requestedUser != btoProject.getHDBManager()){
+            return PolicyResponse.deny("Access denied. Only HDB Manager handling the project can generate report");
+        }
+
+        return PolicyResponse.allow();
+    }
+
+    @Override
     public PolicyResponse canGenerateReceipt(User requestedUser, Application application) {
         if(requestedUser.getUserRole() != UserRole.HDB_OFFICER){
             return PolicyResponse.deny("Access denied. Only HDB Manager can generate receipt.");

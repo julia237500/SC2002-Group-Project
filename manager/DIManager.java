@@ -3,6 +3,8 @@ package manager;
 import controller.*;
 import controller.interfaces.*;
 import exception.DependencyInjectorException;
+import generator.report.ReportGenerator;
+import generator.report.TerminalReportGenerator;
 import generator.receipt.ReceiptGenerator;
 import generator.receipt.TerminalReceiptGenerator;
 import manager.interfaces.*;
@@ -81,5 +83,7 @@ public class DIManager{
         container.register(ConfirmationView.class, TerminalConfirmationView.class);
 
         container.register(ReceiptGenerator.class, TerminalReceiptGenerator.class);
+
+        container.register(ReportGenerator.class, TerminalReportGenerator.class);
     }
 }

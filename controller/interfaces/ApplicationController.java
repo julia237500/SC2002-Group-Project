@@ -18,4 +18,6 @@ public interface ApplicationController {
     void approveWithdrawApplication(Application application, boolean isApproving);
 
     void generateReceipt(Application application);
+
+    void generateReport(BTOProject btoProject);
 }

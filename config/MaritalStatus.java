@@ -3,13 +3,15 @@ package config;
 import exception.EnumParsingException;
 
 public enum MaritalStatus {
-    SINGLE("Single"),
-    MARRIED("Married");
+    SINGLE("Single", FormField.FILTER_SINGLE),
+    MARRIED("Married", FormField.FILTER_MARRIED);
 
-    private String storedString;
+    private final String storedString;
+    private final FormField filterFormField;
 
-    private MaritalStatus(String storedString){
+    private MaritalStatus(String storedString, FormField filterFormField){
         this.storedString = storedString;
+        this.filterFormField = filterFormField;
     }
 
     public static MaritalStatus parseMaritalStatus(String s){
@@ -22,5 +24,9 @@ public enum MaritalStatus {
 
     public String getStoredString() {
         return storedString;
+    }
+
+    public FormField getFilterFormField() {
+        return filterFormField;
     }
 }

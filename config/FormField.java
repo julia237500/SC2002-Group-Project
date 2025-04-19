@@ -21,4 +21,7 @@ public enum FormField {
 
     FILTER_TWO_ROOM_FLAT,
     FILTER_THREE_ROOM_FLAT,
+
+    FILTER_SINGLE,
+    FILTER_MARRIED
 }
