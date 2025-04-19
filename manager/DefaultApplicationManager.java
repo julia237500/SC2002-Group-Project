@@ -25,7 +25,9 @@ public class DefaultApplicationManager implements ApplicationManager{
         while(true){ 
             User user = null;
             DataManager dataManager = DIManager.getInstance().resolve(DataManager.class);
-            // user = authController.handleLogin();
+            // Uncomment here to login with credential
+            authController.handleLogin();
+            // Until here
             
             User applicant1 = dataManager.getByPK(User.class, "S3456789E");
             User applicant2 = dataManager.getByPK(User.class, "S9876543C");
@@ -41,31 +43,32 @@ public class DefaultApplicationManager implements ApplicationManager{
             System.out.println("5. Manager 1");
             System.out.println("6. Manager 2");
             System.out.print("Login Using (Debugging): ");
-
-            switch (AbstractTerminalView.getSc().nextInt()) {
-                case 1:
-                    user = applicant1;
-                    break;
-                case 2:
-                    user = applicant2;
-                    break;
-                case 3:
-                    user = officer1;
-                    break;
-                case 4:
-                    user = officer2;
-                    break;
-                case 5:
-                    user = manager1;
-                    break;
-                case 6:
-                    user = manager2;
-                    break;
-                default:
-                    break;
-            }
             
-            sessionManager.setUser(user);
+            // Uncomment here to login without credential
+            // switch (AbstractTerminalView.getSc().nextInt()) {
+            //     case 1:
+            //         user = applicant1;
+            //         break;
+            //     case 2:
+            //         user = applicant2;
+            //         break;
+            //     case 3:
+            //         user = officer1;
+            //         break;
+            //     case 4:
+            //         user = officer2;
+            //         break;
+            //     case 5:
+            //         user = manager1;
+            //         break;
+            //     case 6:
+            //         user = manager2;
+            //         break;
+            //     default:
+            //         break;
+            // }
+            // sessionManager.setUser(user);
+            // Until here
             menuManager.startDashboardLoop();
         }
     }
