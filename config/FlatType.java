@@ -149,6 +149,7 @@ public enum FlatType {
      * 
      * @param user The user to evaluate.
      * @return {@code true} if the user meets the flat's eligibility criteria; {@code false} otherwise.
+     * @see User
      */
     public abstract boolean isEligible(User user);
 
