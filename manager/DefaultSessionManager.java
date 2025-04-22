@@ -1,5 +1,8 @@
 package manager;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import manager.interfaces.SessionManager;
 import model.User;
 
@@ -9,12 +12,14 @@ import model.User;
  */
 public class DefaultSessionManager implements SessionManager{
     private User user;
+    private final Map<String, Object> sessionVariables = new HashMap<>();
 
     /**
      * Sets the current logged-in user for the session.
      *
      * @param user the {@link User} to be set in the session
      */
+    @Override
     public void setUser(User user) {
         this.user = user;
     }
@@ -24,15 +29,29 @@ public class DefaultSessionManager implements SessionManager{
      *
      * @return the current {@link User} in session
      */
+    @Override
     public User getUser() {
         return user;
     }
 
+    @Override
+    public <T> void setSessionVariable(String key, T variable) {
+        sessionVariables.put(key, variable);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> T getSessionVariable(String key) {
+        return (T) sessionVariables.get(key);
+    }
+
+    @Override
     /**
      * Clears the current session by resetting the user to {@code null}.
      * Typically used during logout.
      */
-    public void resetUser() {
-        this.user = null;
+    public void logout() {
+        user = null;
+        sessionVariables.clear();
     }
 }

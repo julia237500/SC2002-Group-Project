@@ -6,9 +6,13 @@ import java.util.List;
 import config.ResponseStatus;
 import config.UserRole;
 import dto.BTOProjectDTO;
+import exception.DataModelException;
+import exception.DataSavingException;
 import manager.interfaces.DataManager;
 import model.BTOProject;
 import model.User;
+import policy.PolicyResponse;
+import policy.interfaces.BTOProjectPolicy;
 import service.interfaces.BTOProjectService;
 
 /**
@@ -17,16 +21,43 @@ import service.interfaces.BTOProjectService;
  * Enforces business rules and access control for HDB managers.
  */
 public class DefaultBTOProjectService implements BTOProjectService{
-    private DataManager dataManager;
+    private final DataManager dataManager;
+    private final BTOProjectPolicy btoProjectPolicy;
+
+    public DefaultBTOProjectService(DataManager dataManager, BTOProjectPolicy btoProjectPolicy){
+        this.dataManager = dataManager;
+        this.btoProjectPolicy = btoProjectPolicy;
+    }
     
     /**
      * Constructs a DefaultBTOProjectService with the specified data manager.
      * 
      * @param dataManager the data manager used for persistence operations 
      */
-    public DefaultBTOProjectService(DataManager dataManager){
-        this.dataManager = dataManager;
+    public ServiceResponse<List<BTOProject>> getAllBTOProjects(User requestedUser){
+        PolicyResponse policyResponse = btoProjectPolicy.canViewAllBTOProjects(requestedUser);
+        if(!policyResponse.isAllowed()){
+            return new ServiceResponse<>(policyResponse);
+        }
+
+        List<BTOProject> btoProjects = dataManager.getAll(BTOProject.class, BTOProject.DEFAULT_COMPARATOR);
+        return new ServiceResponse<>(ResponseStatus.SUCCESS, btoProjects);
     }
+
+    public ServiceResponse<List<BTOProject>> getBTOProjectsHandledByUser(User requestedUser){
+        PolicyResponse policyResponse = btoProjectPolicy.canViewBTOProjectsHandledByUser(requestedUser);
+        if(!policyResponse.isAllowed()){
+            return new ServiceResponse<>(policyResponse);
+        }
+
+        List<BTOProject> btoProjects = dataManager.getByQuery(BTOProject.class, 
+            btoProject -> btoProject.isHandlingBy(requestedUser),
+            BTOProject.DEFAULT_COMPARATOR
+        );
+
+        return new ServiceResponse<>(ResponseStatus.SUCCESS, btoProjects);
+    }
+
 
     /**
      * Creates a new BTO project after validating:
@@ -43,74 +74,26 @@ public class DefaultBTOProjectService implements BTOProjectService{
      *         - ERROR status with message if validation fails
      */
     public ServiceResponse<?> addBTOProject(User requestedUser, BTOProjectDTO btoProjectDTO){
-        if(requestedUser.getUserRole() != UserRole.HDB_MANAGER){
-            return new ServiceResponse<>(ResponseStatus.ERROR, "Access Denied. Only HDB Manager can create BTO Project");
+        PolicyResponse policyResponse = btoProjectPolicy.canCreateBTOProject(requestedUser);
+        if(!policyResponse.isAllowed()){
+            return new ServiceResponse<>(policyResponse);
         }
 
-        ServiceResponse<?> response = hasActiveBTOProject(requestedUser);
-        if(response.getResponseStatus() != ResponseStatus.SUCCESS) return response;
-
-        try {
-            BTOProject btoProject = dataManager.getByPK(BTOProject.class, btoProjectDTO.getName());
-            if(btoProject != null){
-                return new ServiceResponse<>(ResponseStatus.ERROR, "Project name must be unique.");
-            }
-        } catch (Exception e) {
-            return new ServiceResponse<>(ResponseStatus.ERROR, "Internal error. %s".formatted(e));
+        BTOProject btoProject = dataManager.getByPK(BTOProject.class, btoProjectDTO.getName());
+        if(btoProject != null){
+            return new ServiceResponse<>(ResponseStatus.ERROR, "Project name must be unique.");
         }
 
         try {
-            BTOProject btoProject = BTOProject.fromDTO(requestedUser, btoProjectDTO);
+            btoProject = BTOProject.fromDTO(requestedUser, btoProjectDTO);
             dataManager.save(btoProject);
-        } catch (Exception e) {
-            return new ServiceResponse<>(ResponseStatus.ERROR, "Internal error. %s".formatted(e));
+        } catch (DataModelException e) { 
+            return new ServiceResponse<>(ResponseStatus.ERROR, e.getMessage());
+        } catch (DataSavingException e) {
+            return new ServiceResponse<>(ResponseStatus.ERROR, "Internal error. %s".formatted(e.getMessage()));
         }
 
         return new ServiceResponse<>(ResponseStatus.SUCCESS, "BTO Project added successfully.");
-    }
-
-    /**
-     * Checks if the specified user is currently managing any active BTO projects.
-     * 
-     * @param requestedUser the user to check
-     * @return ServiceResponse with:
-     *         - SUCCESS status if no active projects found
-     *         - ERROR status if user has active projects
-     */
-    private ServiceResponse<?> hasActiveBTOProject(User requestedUser){
-        List<BTOProject> btoProjects = null;
-
-        try {
-            if(requestedUser.getUserRole() == UserRole.HDB_MANAGER){
-                btoProjects = dataManager.getByQuery(BTOProject.class, 
-                    btoProject -> btoProject.getHDBManager() == requestedUser
-                );
-            }
-        } catch (Exception e) {
-            return new ServiceResponse<>(ResponseStatus.ERROR, "Internal error. %s".formatted(e));
-        }
-
-        for(BTOProject btoProject:btoProjects){
-            if(btoProject.isActive()) return new ServiceResponse<>(ResponseStatus.ERROR, "You are involving in active project: %s. This action cannot be performed.".formatted(btoProject.getName()));
-        }
-
-        return new ServiceResponse<>(ResponseStatus.SUCCESS);
-    }
-
-    /**
-     * Retrieves all BTO projects from the system.
-     * 
-     * @return ServiceResponse containing:
-     *         - SUCCESS status with List<BTOProject> if successful
-     *         - ERROR status with message if retrieval fails
-     */
-    public ServiceResponse<List<BTOProject>> getBTOProjects(){
-        try {
-            List<BTOProject> btoProjects = dataManager.getAll(BTOProject.class);
-            return new ServiceResponse<>(ResponseStatus.SUCCESS, btoProjects);
-        } catch (Exception e) {
-            return new ServiceResponse<>(ResponseStatus.ERROR, "Internal error. %s".formatted(e));
-        }
     }
 
     /**
@@ -129,12 +112,9 @@ public class DefaultBTOProjectService implements BTOProjectService{
      *         - ERROR status with message if validation fails
      */
     public ServiceResponse<?> editBTOProject(User requestedUser, BTOProjectDTO btoProjectDTO, BTOProject editingBTOProject){
-        if(requestedUser.getUserRole() != UserRole.HDB_MANAGER){
-            return new ServiceResponse<>(ResponseStatus.ERROR, "Access Denied. Only HDB Manager can edit BTO Project");
-        }
-
-        if(requestedUser != editingBTOProject.getHDBManager()){
-            return new ServiceResponse<>(ResponseStatus.ERROR, "Access Denied. Only Responsible HDB Manager can edit this BTO Project");
+        PolicyResponse policyResponse = btoProjectPolicy.canEditBTOProject(requestedUser, editingBTOProject);
+        if(!policyResponse.isAllowed()){
+            return new ServiceResponse<>(policyResponse);
         }
 
         if(editingBTOProject.isVisible()){
@@ -145,9 +125,11 @@ public class DefaultBTOProjectService implements BTOProjectService{
         try {
             editingBTOProject.edit(btoProjectDTO);
             dataManager.save(editingBTOProject);
-        } catch (Exception e) {
-            editingBTOProject.revertEdit();
+        } catch (DataModelException e) {
             return new ServiceResponse<>(ResponseStatus.ERROR, e.getMessage());
+        } catch (DataSavingException e) {
+            editingBTOProject.restore();
+            return new ServiceResponse<>(ResponseStatus.ERROR, "Internal error. %s".formatted(e.getMessage()));
         }
         
         return new ServiceResponse<>(ResponseStatus.SUCCESS, "BTO Project edited successfully.");
@@ -165,26 +147,17 @@ public class DefaultBTOProjectService implements BTOProjectService{
      *         - ERROR status with details if overlap exists
      */
     private ServiceResponse<?> hasOverlappingVisibleProject(User requestedUser, LocalDate openingDate, LocalDate closingDate, BTOProject editingBTOProject){
-        List<BTOProject> btoProjects = null;
+        List<BTOProject> btoProjects = dataManager.getByQueries(BTOProject.class, List.of(
+            btoProject -> btoProject.getHDBManager() == requestedUser,
+            btoProject -> btoProject.isVisible() && btoProject != editingBTOProject,
+            btoProject -> btoProject.isOverlappingWith(openingDate, closingDate)
+        ));
 
-        try {
-            btoProjects = dataManager.getByQuery(BTOProject.class, 
-                btoProject -> btoProject.getHDBManager() == requestedUser
-            );
-        } catch (Exception e) {
-            return new ServiceResponse<>(ResponseStatus.ERROR, "Internal error. %s".formatted(e));
-        }
-
-        for(BTOProject btoProject:btoProjects){
-            if(btoProject.isVisible() && btoProject.isOverlappingWith(openingDate, closingDate)){
-                if(btoProject == editingBTOProject) continue;
-
-                return new ServiceResponse<>(ResponseStatus.ERROR, 
-                    "Application period (%s to %s) overlap with other project: %s (%s to %s). No two project can be visible at the same time".formatted(
-                        openingDate, closingDate, btoProject.getName(), btoProject.getOpeningDate(), btoProject.getClosingDate()
-                    )
-                );
-            } 
+        if(!btoProjects.isEmpty()){
+            BTOProject btoProject = btoProjects.get(0);
+            return new ServiceResponse<>(ResponseStatus.ERROR, "Application period (%s to %s) overlap with other project: %s (%s to %s). No two project can be visible at the same time".formatted(
+                openingDate, closingDate, btoProject.getName(), btoProject.getOpeningDate(), btoProject.getClosingDate()
+            ));
         }
 
         return new ServiceResponse<>(ResponseStatus.SUCCESS);
@@ -206,12 +179,9 @@ public class DefaultBTOProjectService implements BTOProjectService{
      *         - ERROR status with message if validation fails
      */
     public ServiceResponse<?> toggleBTOProjectVisibilty(User requestedUser, BTOProject btoProject){
-        if(requestedUser.getUserRole() != UserRole.HDB_MANAGER){
-            return new ServiceResponse<>(ResponseStatus.ERROR, "Access Denied. Only HDB Manager can edit BTO Project");
-        }
-
-        if(requestedUser != btoProject.getHDBManager()){
-            return new ServiceResponse<>(ResponseStatus.ERROR, "Access Denied. Only Responsible HDB Manager can edit this BTO Project");
+        PolicyResponse policyResponse = btoProjectPolicy.canToggleBTOProjectVisibility(requestedUser, btoProject);
+        if(!policyResponse.isAllowed()){
+            return new ServiceResponse<>(policyResponse);
         }
 
         if(!btoProject.isVisible()){
@@ -245,17 +215,14 @@ public class DefaultBTOProjectService implements BTOProjectService{
      *         - ERROR status with message if validation fails
      */
     public ServiceResponse<?> deleteBTOProject(User requestedUser, BTOProject btoProject){
-        if(requestedUser.getUserRole() != UserRole.HDB_MANAGER){
-            return new ServiceResponse<>(ResponseStatus.ERROR, "Access Denied. Only HDB Manager can delete BTO Project");
-        }
-
-        if(requestedUser != btoProject.getHDBManager()){
-            return new ServiceResponse<>(ResponseStatus.ERROR, "Access Denied. Only Responsible HDB Manager can delete this BTO Project");
+        PolicyResponse policyResponse = btoProjectPolicy.canDeleteBTOProject(requestedUser, btoProject);
+        if(!policyResponse.isAllowed()){
+            return new ServiceResponse<>(policyResponse);
         }
 
         try {
             dataManager.delete(btoProject);
-        } catch (Exception e) {
+        } catch (DataSavingException e) {
             return new ServiceResponse<>(ResponseStatus.ERROR, "Internal error. %s".formatted(e));
         }
 

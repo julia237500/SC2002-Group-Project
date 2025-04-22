@@ -49,5 +49,11 @@ public enum FormField {
     ENQUIRY,
 
     /** Field for enquiry reply */
-    REPLY
+    REPLY,
+
+    FILTER_TWO_ROOM_FLAT,
+    FILTER_THREE_ROOM_FLAT,
+
+    FILTER_SINGLE,
+    FILTER_MARRIED
 }

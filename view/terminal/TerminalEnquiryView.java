@@ -30,7 +30,7 @@ public class TerminalEnquiryView extends AbstractTerminalView implements Enquiry
                 Enquiry    : %s
                 Reply      : %s
                 """.formatted(
-                    enquiry.getBtoProject().getName(),
+                    enquiry.getBTOProject().getName(),
                     enquiry.getEnquirer().getName(),
                     enquiry.getSubject(),
                     enquiry.getEnquiry(),

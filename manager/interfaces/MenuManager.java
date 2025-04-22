@@ -1,6 +1,7 @@
 package manager.interfaces;
 
 import java.util.Map;
+import java.util.function.Supplier;
 
 import command.Command;
 
@@ -29,7 +30,7 @@ public interface MenuManager {
      * @param commandTitle The title or label for the new command menu.
      * @param commands     A map of command options where keys are option numbers and values are {@code Command} instances.
      */
-    void addCommands(String commandTitle, Map<Integer, Command> commands);
+    void addCommands(String commandTitle,  Supplier<Map<Integer, Command>> commandGenerator);
 
     /**
      * Navigates back to the previous menu by popping the current command set

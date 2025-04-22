@@ -4,15 +4,20 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import command.Command;
 import config.FlatType;
 import config.FormField;
 import config.ResponseStatus;
+import config.UserRole;
 import controller.interfaces.BTOProjectController;
 import controller.interfaces.FormController;
 import dto.BTOProjectDTO;
 import factory.BTOProjectCommandFactory;
+import filter.BTOProjectFilter;
+import form.BTOProjectFilterForm;
 import form.BTOProjectForm;
 import form.FieldData;
 import manager.interfaces.MenuManager;
@@ -22,6 +27,7 @@ import model.User;
 import service.ServiceResponse;
 import service.interfaces.BTOProjectService;
 import view.interfaces.BTOProjectView;
+import view.interfaces.ConfirmationView;
 import view.interfaces.MessageView;
 
 /**
@@ -31,11 +37,14 @@ import view.interfaces.MessageView;
  * including creating, editing, showing, and managing their visibility and deletion.
  */
 public class DefaultBTOProjectController extends AbstractDefaultController implements BTOProjectController{
-    private BTOProjectService btoProjectService;
-    private BTOProjectView btoProjectView;
-    private FormController formController;
-    private SessionManager sessionManager;
-    private MenuManager menuManager;
+    private static final String BTO_PROJECT_FILTER_SESSION_KEY = "bto_project_filter";
+
+    private final BTOProjectService btoProjectService;
+    private final BTOProjectView btoProjectView;
+    private final FormController formController;
+    private final SessionManager sessionManager;
+    private final MenuManager menuManager;
+    private final ConfirmationView confirmationView;
 
     /**
      * Constructs a new {@code DefaultBTOProjectController}.
@@ -47,7 +56,7 @@ public class DefaultBTOProjectController extends AbstractDefaultController imple
      * @param sessionManager    the session manager that provides session-related information
      * @param menuManager       the manager responsible for showing command menus
      */
-    public DefaultBTOProjectController(BTOProjectService btoProjectService, BTOProjectView btoProjectView, MessageView messageView, FormController formController, SessionManager sessionManager, MenuManager menuManager){
+    public DefaultBTOProjectController(BTOProjectService btoProjectService, BTOProjectView btoProjectView, MessageView messageView, FormController formController, SessionManager sessionManager, MenuManager menuManager, ConfirmationView confirmationView) {
         super(messageView);
 
         this.btoProjectService = btoProjectService;
@@ -55,6 +64,7 @@ public class DefaultBTOProjectController extends AbstractDefaultController imple
         this.formController = formController;
         this.sessionManager = sessionManager;
         this.menuManager = menuManager;
+        this.confirmationView = confirmationView;
     }
 
     /**
@@ -120,22 +130,58 @@ public class DefaultBTOProjectController extends AbstractDefaultController imple
      * Displays a list of all current BTO projects as selectable commands.
      * If no projects are available, an info message is shown instead.
      */
-    public void showBTOProjects(){
-        ServiceResponse<List<BTOProject>> getBTOProjectServiceResponse = btoProjectService.getBTOProjects();
-
-        if(getBTOProjectServiceResponse.getResponseStatus() != ResponseStatus.SUCCESS){
-            messageView.error(getBTOProjectServiceResponse.getMessage());
+    private Map<Integer, Command> generateShowBTOProjectsCommand(Supplier<ServiceResponse<List<BTOProject>>> serviceResponseSupplier){
+        final ServiceResponse<List<BTOProject>> serviceResponse = serviceResponseSupplier.get();
+        if(serviceResponse.getResponseStatus() != ResponseStatus.SUCCESS){
+            messageView.error(serviceResponse.getMessage());
+            return null;
         }
 
-        List<BTOProject> btoProjects = getBTOProjectServiceResponse.getData();
+        List<BTOProject> btoProjects = serviceResponse.getData();
 
         if(btoProjects.isEmpty()){
-            messageView.info("No BTO Project is opened currently. Returning to dashboard.");
-            return;
+            messageView.info("BTO Projects not found");
+            return null;
         }
 
-        Map<Integer, Command> commands = BTOProjectCommandFactory.getShowBTOProjectsCommands(btoProjects);
-        menuManager.addCommands("List of BTO Project", commands);
+        BTOProjectFilter btoProjectFilter = sessionManager.getSessionVariable(BTO_PROJECT_FILTER_SESSION_KEY);
+        if(btoProjectFilter != null){
+            btoProjects = btoProjects.stream()
+                .filter(btoProjectFilter.getFilter())
+                .collect(Collectors.toList());
+        }
+
+        return BTOProjectCommandFactory.getShowBTOProjectsCommands(btoProjects);
+    }
+
+    @Override
+    public void setBTOProjectFilter(){
+        formController.setForm(new BTOProjectFilterForm());
+        Map<FormField, FieldData<?>> formData = formController.getFormData();
+
+        BTOProjectFilter btoProjectFilter = BTOProjectFilter.fromFormData(formData);
+        sessionManager.setSessionVariable(BTO_PROJECT_FILTER_SESSION_KEY, btoProjectFilter);
+    }
+
+    @Override
+    public void resetBTOProjectFilter() {
+        sessionManager.setSessionVariable(BTO_PROJECT_FILTER_SESSION_KEY, null);
+    }
+
+    public void showAllBTOProjects(){
+        final User user = sessionManager.getUser();
+
+        menuManager.addCommands("BTO Projects", () -> 
+            generateShowBTOProjectsCommand(() -> btoProjectService.getAllBTOProjects(user)
+        ));
+    }
+
+    public void showBTOProjectsHandledByUser(){
+        final User user = sessionManager.getUser();
+
+        menuManager.addCommands("Your BTO Projects", () -> 
+            generateShowBTOProjectsCommand(() -> btoProjectService.getBTOProjectsHandledByUser(user))
+        );
     }
 
     /**
@@ -144,10 +190,12 @@ public class DefaultBTOProjectController extends AbstractDefaultController imple
      * @param btoProject the selected BTO project
      */
     public void showBTOProject(BTOProject btoProject){
-        showBTOProjectDetail(btoProject);
+        menuManager.addCommands("Operations", () -> generateShowBTOProjectCommand(btoProject));
+    }
 
-        Map<Integer, Command> commands = BTOProjectCommandFactory.getBTOProjectsOperationCommands(btoProject);
-        menuManager.addCommands("Operations", commands);
+    private Map<Integer, Command> generateShowBTOProjectCommand(BTOProject btoProject){
+        showBTOProjectDetail(btoProject);
+        return BTOProjectCommandFactory.getBTOProjectsOperationCommands(btoProject);
     }
 
     /**
@@ -156,7 +204,14 @@ public class DefaultBTOProjectController extends AbstractDefaultController imple
      * @param btoProject the project to display
      */
     public void showBTOProjectDetail(BTOProject btoProject){
-        btoProjectView.showBTOProject(btoProject);
+        final User user = sessionManager.getUser();
+
+        if(user.getUserRole() == UserRole.APPLICANT){
+            btoProjectView.showBTOProjectDetailRestricted(btoProject);
+        }
+        else{
+            btoProjectView.showBTOProjectDetailFull(btoProject);
+        }
     }
     
     /**
@@ -176,8 +231,16 @@ public class DefaultBTOProjectController extends AbstractDefaultController imple
      * @param btoProject the project to delete
      */
     public void deleteBTOProject(BTOProject btoProject){
+        if(!confirmationView.confirm("Are you sure you want to delete this BTO Project? This is irreversible.")){
+            return;
+        }
+
         User user = sessionManager.getUser();
         ServiceResponse<?> serviceResponse = btoProjectService.deleteBTOProject(user, btoProject);
         defaultShowServiceResponse(serviceResponse);
+
+        if(serviceResponse.getResponseStatus() == ResponseStatus.SUCCESS){
+            menuManager.back();
+        }
     }
 }

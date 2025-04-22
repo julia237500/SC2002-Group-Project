@@ -28,10 +28,8 @@ import model.FlatUnit;
 import model.OfficerRegistration;
 import model.User;
 import parser.DataParser;
-import relationship.BTOProjectRelationshipResolver;
-import relationship.resolver.DeleteResolver;
-import relationship.resolver.LoadResolver;
-import relationship.resolver.SaveResolver;
+import relationship.*;
+import relationship.resolver.*;
 import util.CSVFileReader;
 import util.CSVFileWriter;
 
@@ -86,6 +84,7 @@ public class CSVDataManager implements DataManager{
      */
     private void configSaveResolver(){
         saveResolvers.put(BTOProject.class, new BTOProjectRelationshipResolver());
+        saveResolvers.put(Application.class, new ApplicationRelationshipResolver());
     }
 
     /**
@@ -186,66 +185,57 @@ public class CSVDataManager implements DataManager{
         return (T) data.get(clazz).get(PK);
     }
 
-    @Override
     /** {@inheritDoc} */
     @SuppressWarnings("unchecked")
+    private <T extends DataModel> Stream<T> getStreamByQueries(Class<T> clazz, List<Predicate<T>> queries){
+        Map<String, T> classData = (Map<String, T>) data.get(clazz);
+
+        if (classData == null) {
+            return Stream.empty();
+        }
+        return classData.values().stream()
+                .filter(queries.stream().reduce(Predicate::and).orElse(_ -> true));
+    }
+
+    @Override
     public <T extends DataModel> List<T> getByQuery(Class<T> clazz, Predicate<T> query) {
-        Map<String, T> classData = (Map<String, T>) data.get(clazz);
-        
-        if (classData == null) {
-            return List.of();
-        }
-
-        return classData.values().stream()
-                .filter(query)
-                .collect(Collectors.toList());
+        return getStreamByQueries(clazz, List.of(query))
+            .collect(Collectors.toList());
     }
 
     @Override
     /** {@inheritDoc} */
-    @SuppressWarnings("unchecked")
     public <T extends DataModel> List<T> getByQuery(Class<T> clazz, Predicate<T> query, Comparator<T> comparator) {
-        Map<String, T> classData = (Map<String, T>) data.get(clazz);
-        
-        if (classData == null) {
-            return List.of();
-        }
-
-        return classData.values().stream()
-                .filter(query)
+        return getStreamByQueries(clazz, List.of(query))
                 .sorted(comparator)
                 .collect(Collectors.toList());
     }
 
     @Override
     /** {@inheritDoc} */
-    @SuppressWarnings("unchecked")
     public <T extends DataModel> List<T> getByQueries(Class<T> clazz, List<Predicate<T>> queries) {
-        Map<String, T> classData = (Map<String, T>) data.get(clazz);
-        
-        if (classData == null) {
-            return List.of();
-        }
-
-        return classData.values().stream()
-                .filter(queries.stream().reduce(Predicate::and).orElse(_ -> true))
+        return getStreamByQueries(clazz, queries)
                 .collect(Collectors.toList());
     }
 
     @Override
     /** {@inheritDoc} */
-    @SuppressWarnings("unchecked")
     public <T extends DataModel> List<T> getByQueries(Class<T> clazz, List<Predicate<T>> queries, Comparator<T> comparator) {
-        Map<String, T> classData = (Map<String, T>) data.get(clazz);
-        
-        if (classData == null) {
-            return List.of();
-        }
-
-        return classData.values().stream()
-                .filter(queries.stream().reduce(Predicate::and).orElse(_ -> true))
+        return getStreamByQueries(clazz, queries)
                 .sorted(comparator)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public <T extends DataModel> long countByQuery(Class<T> clazz, Predicate<T> query) {
+        return getStreamByQueries(clazz, List.of(query))
+                .count();
+    }
+
+    @Override
+    public <T extends DataModel> long countByQueries(Class<T> clazz, List<Predicate<T>> queries) {
+        return getStreamByQueries(clazz, queries)
+                .count();
     }
     
     @Override

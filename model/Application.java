@@ -1,10 +1,12 @@
 package model;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.UUID;
 
 import config.ApplicationStatus;
 import config.FlatType;
+import config.WithdrawalStatus;
 import exception.DataModelException;
 
 /**
@@ -24,6 +26,9 @@ import exception.DataModelException;
  * the flat type, application status, and its creation timestamp.
  */
 public class Application implements DataModel{
+    public static final Comparator<Application> SORT_BY_CREATED_AT_DESC =
+        Comparator.comparing(Application::getCreatedAt).reversed();
+
     /**
      * @CSVField is an annotation that is custom and used for mapping the fields of the object to columns in a CSV file 
      * (like Excel but in plain text).
@@ -58,9 +63,11 @@ public class Application implements DataModel{
 
     @CSVField(index = 4)
     private ApplicationStatus applicationStatus;
+    private ApplicationStatus backupApplicationStatus;
 
     @CSVField(index = 5)
-    private boolean isWithdrawing;
+    private WithdrawalStatus withdrawalStatus;
+    private WithdrawalStatus backupWithdrawalStatus;
 
     @CSVField(index = 6)
     private LocalDateTime createdAt;
@@ -94,21 +101,8 @@ public class Application implements DataModel{
         this.uuid = uuid.toString();
 
         this.applicationStatus = ApplicationStatus.PENDING;
-        this.isWithdrawing = false;
+        this.withdrawalStatus = WithdrawalStatus.NOT_APPLICABLE;
         this.createdAt = LocalDateTime.now();
-    }
-
-    /**
-     * Returns the primary key (UUID) of the application.
-     * A UUID stands for Universally Unique Identifier.
-     * It's a 128-bit number that is guaranteed to be unique, often used as a primary key (getPK() in this class).
-     * In our application, UUID is used as the ID for the application 
-     * so it can be stored, retrieved, or referenced without confusion.
-     * @return the UUID as a string
-     */
-    @Override
-    public String getPK() {
-        return uuid;
     }
 
     /**
@@ -125,7 +119,7 @@ public class Application implements DataModel{
      *
      * @return the BTO project
      */
-    public BTOProject getBtoProject() {
+    public BTOProject getBTOProject() {
         return btoProject;
     }
 
@@ -148,6 +142,20 @@ public class Application implements DataModel{
         return applicationStatus;
     }
 
+    private void setApplicationStatus(ApplicationStatus applicationStatus) {
+        this.backupApplicationStatus = this.applicationStatus;
+        this.applicationStatus = applicationStatus;
+    }
+
+    public WithdrawalStatus getWithdrawalStatus() {
+        return withdrawalStatus;
+    }
+
+    private void setWithdrawalStatus(WithdrawalStatus withdrawalStatus) {
+        this.backupWithdrawalStatus = this.withdrawalStatus;
+        this.withdrawalStatus = withdrawalStatus;
+    }
+    
     /**
      * Gets the timestamp of when the application was created.
      *
@@ -156,6 +164,14 @@ public class Application implements DataModel{
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
+
+    public int getFlatNum() {
+        return btoProject.getFlatNum(flatType);
+    }
+
+    public int getFlatNum() {
+        return btoProject.getFlatNum(flatType);
+    } 
 
     /**
      * Checks if the user is eligible to apply for the given flat type in the BTO project.
@@ -174,7 +190,122 @@ public class Application implements DataModel{
             throw new DataModelException("You are not eligible to apply for %s".formatted(flatType.getStoredString()));
         }
     }
+
+    private boolean isUpdatable() {
+        return withdrawalStatus == WithdrawalStatus.NOT_APPLICABLE || withdrawalStatus == WithdrawalStatus.UNSUCCESSFUL;
+    }
+
+    public boolean isApprovable() {
+        return isUpdatable() && applicationStatus == ApplicationStatus.PENDING;
+    }
+
+    public void approveApplication(boolean isApproving) {
+        if(applicationStatus != ApplicationStatus.PENDING){
+            throw new DataModelException("Application approval unsuccessful. The project is not under pending.");
+        }
+
+        if(withdrawalStatus == WithdrawalStatus.PENDING){
+            throw new DataModelException("Application approval unsuccessful. The project is under pending withdrawal.");
+        }
+
+        if(withdrawalStatus == WithdrawalStatus.SUCCESSFUL){
+            throw new DataModelException("Application approval unsuccessful. The project is under withdrawed.");
+        }
+        
+        if(isApproving) setApplicationStatus(ApplicationStatus.SUCCESSFUL);
+        else setApplicationStatus(ApplicationStatus.UNSUCCESSFUL);
+    }
+
+    public boolean isBookable() {
+        return isUpdatable() && applicationStatus == ApplicationStatus.SUCCESSFUL;
+    }
+
+    public void bookApplication(){
+        if(applicationStatus == ApplicationStatus.BOOKED){
+            throw new DataModelException("Application booking unsuccessful. The application is already booked.");
+        }
+
+        if(applicationStatus != ApplicationStatus.SUCCESSFUL){
+            throw new DataModelException("Application booking unsuccessful. The application is not approved.");
+        }
+
+        if(withdrawalStatus == WithdrawalStatus.PENDING){
+            throw new DataModelException("Application booking unsuccessful. The project is under pending withdrawal.");
+        }
+
+        if(withdrawalStatus == WithdrawalStatus.SUCCESSFUL){
+            throw new DataModelException("Application booking unsuccessful. The project is withdrawed.");
+        }
+        
+        setApplicationStatus(ApplicationStatus.BOOKED);
+        btoProject.bookFlat(flatType);
+    }
+
+    public boolean isWithdrawable() {
+        return withdrawalStatus == WithdrawalStatus.UNSUCCESSFUL || withdrawalStatus == WithdrawalStatus.NOT_APPLICABLE;
+    }
+
+    public void requestWithdrawal() {
+        if(withdrawalStatus == WithdrawalStatus.PENDING){
+            throw new DataModelException("Withdrawal requested unsuccessful. The project is already under pending withdrawal.");
+        }
+
+        if(withdrawalStatus == WithdrawalStatus.SUCCESSFUL){
+            throw new DataModelException("Withdrawal requested unsuccessful. The project is already withdrawed.");
+        }
+        
+        setWithdrawalStatus(WithdrawalStatus.PENDING);
+    }
+
+    public void approveWithdrawal(boolean isApproving) {
+        if(withdrawalStatus != WithdrawalStatus.PENDING){
+            throw new DataModelException("Withdrawal approval unsuccessful. The project is not under pending withdrawal.");
+        }
+
+        if(isApproving){
+            if(applicationStatus == ApplicationStatus.BOOKED){
+                btoProject.unbookFlat(flatType);
+            }
+
+            setWithdrawalStatus(WithdrawalStatus.SUCCESSFUL);
+            setApplicationStatus(ApplicationStatus.UNSUCCESSFUL);
+        }
+        else setWithdrawalStatus(WithdrawalStatus.UNSUCCESSFUL);    
+    }
+
+    public boolean isWithdrawApprovable() {
+        return withdrawalStatus == WithdrawalStatus.PENDING;
+    }
+
+        /**
+     * Returns the primary key (UUID) of the application.
+     * A UUID stands for Universally Unique Identifier.
+     * It's a 128-bit number that is guaranteed to be unique, often used as a primary key (getPK() in this class).
+     * In our application, UUID is used as the ID for the application 
+     * so it can be stored, retrieved, or referenced without confusion.
+     * @return the UUID as a string
+     */
+
+    @Override
+    public String getPK() {
+        return uuid;
+    }
+
+    @Override
+    public void backup(){
+        this.backupApplicationStatus = this.applicationStatus;
+        this.backupWithdrawalStatus = this.withdrawalStatus;
+        btoProject.backup();
+    }
+
+    @Override
+    public void restore(){
+        this.applicationStatus = this.backupApplicationStatus;
+        this.withdrawalStatus = this.backupWithdrawalStatus;
+        btoProject.restore();
+    }
 }
+    
 
 /**
  * Here are the following design principles for this class:

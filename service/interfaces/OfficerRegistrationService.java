@@ -72,16 +72,4 @@ public interface OfficerRegistrationService {
      *           - Processing fails
      */
     ServiceResponse<?> approveOfficerRegistration(User requestedUser, OfficerRegistration officerRegistration, boolean isApproving);
-
-    /**
-     * Marks a registration status update as read by the officer.
-     * 
-     * @param officerRegistration the registration to update (cannot be null)
-     * @return ServiceResponse containing:
-     *         - SUCCESS status if marked read
-     *         - ERROR status if:
-     *           - No unread updates exist
-     *           - Update fails
-     */
-    ServiceResponse<?> markOfficerRegistrationAsRead(OfficerRegistration officerRegistration);
 }

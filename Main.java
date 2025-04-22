@@ -35,7 +35,7 @@ public class Main {
             ApplicationManager applicationManager = DIManager.getInstance().resolve(ApplicationManager.class);
             applicationManager.startApplication();
         } catch(Exception e){
-            System.err.println("Program terminated unexpectedly: " + e.getMessage());
+            System.err.println("Program terminated unexpectedly:");
             e.printStackTrace();
         }
     }

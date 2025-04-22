@@ -3,6 +3,7 @@ package model;
 import java.util.UUID;
 
 import config.FlatType;
+import exception.DataModelException;
 
 /**
  * Represents a flat unit available under a BTO project.
@@ -25,9 +26,11 @@ public class FlatUnit implements DataModel{
 
     @CSVField(index = 3)
     private int flatNum;
+    private int backupFlatNum;
 
     @CSVField(index = 4)
     private int flatPrice;
+    private int backupFlatPrice;
 
     /**
      * Private no-args constructor for reflective instantiation.
@@ -68,7 +71,20 @@ public class FlatUnit implements DataModel{
      * @param flatNum the new flat number
      */
     public void setFlatNum(int flatNum) {
+        if(flatNum < 0) {
+            throw new DataModelException("Flat number cannot be negative.");
+        }
+
+        backup();
         this.flatNum = flatNum;
+    }
+
+    public void adjustFlatNum(int change) {
+        if(flatNum + change < 0) {
+            throw new DataModelException("Flat number cannot be negative.");
+        }
+
+        this.flatNum += change;
     }
 
     /**
@@ -86,6 +102,11 @@ public class FlatUnit implements DataModel{
      * @param flatPrice the new flat price
      */
     public void setFlatPrice(int flatPrice) {
+        if(flatPrice < 0) {
+            throw new DataModelException("Flat price cannot be negative.");
+        }
+
+        backup();
         this.flatPrice = flatPrice;
     }
 
@@ -130,5 +151,15 @@ public class FlatUnit implements DataModel{
             flatNum,
             flatPrice
         );
+    }
+
+    public void backup(){
+        this.backupFlatNum = this.flatNum;
+        this.backupFlatPrice = this.flatPrice;
+    }
+
+    public void restore() {
+        this.flatNum = this.backupFlatNum;
+        this.flatPrice = this.backupFlatPrice;
     }
 }

@@ -2,6 +2,7 @@ package manager;
 
 import java.util.Map;
 import java.util.Stack;
+import java.util.function.Supplier;
 
 import command.Command;
 import controller.interfaces.CommandController;
@@ -19,10 +20,10 @@ import manager.interfaces.MenuManager;
  * When we press "Back" or want to return to the previous menu, the top item is popped off, and we're brought back to the last menu.
  */
 public class DefaultMenuManager implements MenuManager{
-    private CommandController commandController;
+    final private CommandController commandController;
 
-    private Stack<Map<Integer, Command>> commandsStack = new Stack<>();
-    private Stack<String> commandsTitleStack = new Stack<>();
+    final private Stack<Supplier<Map<Integer, Command>>> commandGeneratorsStack = new Stack<>();
+    final private Stack<String> commandsTitleStack = new Stack<>();
 
     /**
      * Constructs a DefaultMenuManager with the specified {@link CommandController}.
@@ -40,12 +41,19 @@ public class DefaultMenuManager implements MenuManager{
      */
     @Override
     public void startDashboardLoop() {
-        commandsStack.add(DashboardCommandFactory.getCommands());
-        commandsTitleStack.add("Dashboard");
+        addCommands("Dashboard", () -> DashboardCommandFactory.getCommands());
         
-        while(!commandsStack.isEmpty()){
-            commandController.setCommands(commandsStack.peek());
+        while(!commandGeneratorsStack.isEmpty()){
+            final Supplier<Map<Integer, Command>> commandGenerator = commandGeneratorsStack.peek();
+            final Map<Integer, Command> commands = commandGenerator.get();
+
+            if(commands == null || commands.isEmpty()){
+                back();
+                continue;
+            }
+            
             commandController.setCommandsTitle(commandsTitleStack.peek());
+            commandController.setCommands(commands);
 
             commandController.executeCommand();
         }
@@ -58,9 +66,9 @@ public class DefaultMenuManager implements MenuManager{
      * @param commandTitle the title of the new command set/menu
      * @param commands     the map of command options to be added to the stack
      */
-    public void addCommands(String commandTitle, Map<Integer, Command> commands){
+    public void addCommands(String commandTitle, Supplier<Map<Integer, Command>> commandGenerator){
         commandsTitleStack.add(commandTitle);
-        commandsStack.add(commands);
+        commandGeneratorsStack.add(commandGenerator);
     }
 
     /**
@@ -69,7 +77,7 @@ public class DefaultMenuManager implements MenuManager{
      */
     public void back(){
         commandsTitleStack.pop();
-        commandsStack.pop();
+        commandGeneratorsStack.pop();
     }
 
     /**
@@ -78,6 +86,6 @@ public class DefaultMenuManager implements MenuManager{
      */
     public void stopDashboardLoop(){
         commandsTitleStack.removeAllElements();
-        commandsStack.removeAllElements();
+        commandGeneratorsStack.removeAllElements();
     }
 }

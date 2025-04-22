@@ -9,7 +9,7 @@ import view.interfaces.MessageView;
  * This class handles the standard workflow of showing success/error messages from service operations.
  */
 public class AbstractDefaultController {
-    protected MessageView messageView;
+    protected final MessageView messageView;
 
     /**
      * Constructs an AbstractDefaultController with the specified message view.

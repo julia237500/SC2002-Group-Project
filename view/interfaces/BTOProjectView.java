@@ -1,7 +1,5 @@
 package view.interfaces;
 
-import java.util.List;
-
 import model.BTOProject;
 
 /**
@@ -26,12 +24,12 @@ public interface BTOProjectView {
      *
      * @param btoProjects A list of {@link BTOProject} objects to be shown.
      */
-    void showBTOProjects(List<BTOProject> btoProjects);
+    void showBTOProjectDetailRestricted(BTOProject btoProject);
 
     /**
      * Displays the details of a single BTO project.
      *
      * @param btoProject The {@link BTOProject} object to be shown.
      */
-    void showBTOProject(BTOProject btoProject);
+    void showBTOProjectDetailFull(BTOProject btoProject);
 }

@@ -16,4 +16,6 @@ public interface DataModel {
      * @return a {@code String} representing the primary key
      */
     String getPK();
+    void backup();
+    void restore();
 }

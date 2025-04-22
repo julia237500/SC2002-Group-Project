@@ -5,7 +5,6 @@ import java.util.Comparator;
 import java.util.UUID;
 
 import config.RegistrationStatus;
-import config.UserRole;
 import exception.DataModelException;
 
 /**
@@ -35,6 +34,7 @@ public class OfficerRegistration implements DataModel{
 
     @CSVField(index = 3)
     private RegistrationStatus registrationStatus;
+    private RegistrationStatus backupRegistrationStatus;
 
     @CSVField(index = 4)
     private boolean updated;
@@ -63,30 +63,7 @@ public class OfficerRegistration implements DataModel{
         this.createdAt = LocalDateTime.now();
         
         this.btoProject = btoProject;
-
-        if(HDBOfficer.getUserRole() != UserRole.HDB_OFFICER){
-            throw new DataModelException("Access denied. Only HDB Officer can register as officer for project.");
-        }
         this.HDBOfficer = HDBOfficer;
-    }
-
-    /**
-     * Returns the officer who submitted the registration.
-     *
-     * @return the HDB officer
-     */
-    public User getHDBOfficer() {
-        return HDBOfficer;
-    }
-
-    /**
-     * Returns the primary key (UUID) of the registration.
-     *
-     * @return the UUID string
-     */
-    @Override
-    public String getPK() {
-        return uuid;
     }
 
     /**
@@ -96,6 +73,15 @@ public class OfficerRegistration implements DataModel{
      */
     public BTOProject getBTOProject() {
         return btoProject;
+    }
+    
+    /**
+     * Returns the officer who submitted the registration.
+     *
+     * @return the HDB officer
+     */
+    public User getHDBOfficer() {
+        return HDBOfficer;
     }
 
     /**
@@ -139,6 +125,11 @@ public class OfficerRegistration implements DataModel{
         return createdAt;
     }
 
+    
+    public boolean isApprovable(){
+        return registrationStatus == RegistrationStatus.PENDING;
+    }
+
     /**
      * Updates the registration status based on approval or rejection.
      *
@@ -147,8 +138,10 @@ public class OfficerRegistration implements DataModel{
      *                            or if approving would exceed project officer limits
      */
     public void updateRegistrationStatus(boolean isApproving){
-        if(registrationStatus != RegistrationStatus.PENDING){
-            throw new DataModelException("Action unsuccessful, The registration is already approved/rejected.");
+        backup();
+        
+        if(!isApprovable()){
+            throw new DataModelException("Approve/reject unsuccessful, The registration is already approved/rejected.");
         }
 
         if(isApproving){
@@ -161,15 +154,26 @@ public class OfficerRegistration implements DataModel{
         else{
             registrationStatus = RegistrationStatus.UNSUCCESSFUL;
         }
-
-        markAsUnread();
     }
 
     /**
-     * Reverts the registration status to pending.
+     * Returns the primary key (UUID) of the registration.
+     *
+     * @return the UUID string
      */
-    public void revertRegistrationStatus(){
-        registrationStatus = RegistrationStatus.PENDING;
+    @Override
+    public String getPK() {
+        return uuid;
+    }
+
+    @Override
+    public void backup() {
+        this.backupRegistrationStatus = registrationStatus;
+    }
+
+    @Override
+    public void restore() {
+        this.registrationStatus = backupRegistrationStatus;
     }
 
     /**

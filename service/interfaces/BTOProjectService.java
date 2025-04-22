@@ -34,7 +34,8 @@ public interface BTOProjectService {
      *         - SUCCESS status with List<BTOProject> of all projects
      *         - ERROR status with message if retrieval fails
      */
-    ServiceResponse<List<BTOProject>> getBTOProjects();
+    ServiceResponse<List<BTOProject>> getAllBTOProjects(User requestedUser);
+    ServiceResponse<List<BTOProject>> getBTOProjectsHandledByUser(User requestedUser);
 
     /**
      * Modifies an existing BTO project.
@@ -49,7 +50,7 @@ public interface BTOProjectService {
      *           - Project cannot be modified
      *           - Validation fails
      */
-    ServiceResponse<?> editBTOProject(User user, BTOProjectDTO btoProjectDTO, BTOProject btoProject);
+    ServiceResponse<?> editBTOProject(User requestedUser, BTOProjectDTO btoProjectDTO, BTOProject btoProject);
 
     /**
      * Toggles the visibility status of a BTO project.

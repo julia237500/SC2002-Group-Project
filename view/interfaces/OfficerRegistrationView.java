@@ -1,6 +1,5 @@
 package view.interfaces;
 
-import config.UserRole;
 import model.OfficerRegistration;
 
 /**
@@ -20,5 +19,5 @@ public interface OfficerRegistrationView {
      *                  This can be used to conditionally show or hide information.
      * @param officerRegistration The officer registration data to be displayed.
      */
-    void showOfficerRegistrationDetail(UserRole showingTo, OfficerRegistration officerRegistration);
+    void showOfficerRegistrationDetail(OfficerRegistration officerRegistration);
 }

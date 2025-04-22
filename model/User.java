@@ -31,6 +31,7 @@ public class User implements DataModel{
     
     @CSVField(index = 4)
     private String password;
+    private String backupPassword;
 
     /**
      * The role of the user in the system (e.g., applicant, HDB officer, HDB manager).
@@ -81,6 +82,7 @@ public class User implements DataModel{
     }
 
     public void setPassword(String password) {
+        backup();
         this.password = password;
     }
 
@@ -110,5 +112,15 @@ public class User implements DataModel{
     @Override
     public String getPK() {
         return NRIC;
+    }
+
+    @Override
+    public void backup(){
+        this.backupPassword = password;
+    }
+
+    @Override
+    public void restore(){
+        this.password = backupPassword;
     }
 }

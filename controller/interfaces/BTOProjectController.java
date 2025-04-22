@@ -22,11 +22,12 @@ public interface BTOProjectController {
      * @param btoProject the {@link BTOProject} to be edited.
      */
     void editBTOProject(BTOProject btoProject);
+    void showAllBTOProjects();
 
     /**
      * Displays a list of all existing BTO projects.
      */
-    void showBTOProjects();
+    void showBTOProjectsHandledByUser();
 
     /**
      * Displays a summary or overview of a specific BTO project.
@@ -55,4 +56,7 @@ public interface BTOProjectController {
      * @param btoProject the {@link BTOProject} to delete.
      */
     void deleteBTOProject(BTOProject btoProject);
+
+    void setBTOProjectFilter();
+    void resetBTOProjectFilter();
 }

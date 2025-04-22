@@ -90,6 +90,9 @@ public interface DataManager {
      */
     <T extends DataModel> List<T> getByQueries(Class<T> clazz, List<Predicate<T>> predicates, Comparator<T> comparator);
 
+    <T extends DataModel> long countByQuery(Class<T> clazz, Predicate<T> predicate);
+    <T extends DataModel> long countByQueries(Class<T> clazz, List<Predicate<T>> predicates);
+
     /**
      * Saves a new or updated data model to the storage.
      *
@@ -107,5 +110,5 @@ public interface DataManager {
      * @throws DataSavingException if deletion fails due to saving issues
      * @throws Exception if the model cannot be deleted due to dependency or logic issues
      */
-    <T extends DataModel> void delete(T model) throws DataSavingException, Exception;
+    <T extends DataModel> void delete(T model) throws DataSavingException;
 }

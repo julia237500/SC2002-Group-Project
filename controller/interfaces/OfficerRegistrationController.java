@@ -36,6 +36,7 @@ public interface OfficerRegistrationController {
      * @param btoProject the {@link BTOProject} whose registrations should be shown.
      */
     void showOfficerRegistrationsByBTOProject(BTOProject btoProject);
+    void showOfficerRegistrationByOfficerAndBTOProject(BTOProject btoProject);
 
     /**
      * Displays a brief summary of a specific officer registration.
@@ -58,5 +59,5 @@ public interface OfficerRegistrationController {
      * @param btoProject the {@link BTOProject} in question.
      * @return the {@link OfficerRegistration} matching the officer and project
      */
-    OfficerRegistration getOfficerRegistrationByOfficerAndBTOProject(BTOProject btoProject);
+    
 }

@@ -1,6 +1,7 @@
 package service;
 
 import config.ResponseStatus;
+import policy.PolicyResponse;
 
 /**
  * A generic container for service operation responses, including status, message, and data.
@@ -63,6 +64,12 @@ public class ServiceResponse<T> {
         this.responseStatus = responseStatus;
         this.message = message;
         this.data = data;
+    }
+
+    public ServiceResponse(PolicyResponse policyResponse){
+        this.responseStatus = policyResponse.isAllowed() ? ResponseStatus.SUCCESS : ResponseStatus.ERROR;
+        this.message = policyResponse.getMessage();
+        this.data = null;
     }
 
     /**

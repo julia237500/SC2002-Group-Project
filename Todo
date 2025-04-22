@@ -1,8 +1,6 @@
 Mandatory:
-Check if manager is applicant before register
 Add readonly to FormField
-Show BTO Project details based on userRole
-Show enquries by bto project
+Add ToDTO to DTO
 
 Optional:
 Fix unread feature: Updated can be seen and mark as unread by Manager (Unintented)

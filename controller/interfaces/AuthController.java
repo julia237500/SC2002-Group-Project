@@ -1,8 +1,5 @@
 package controller.interfaces;
 
-import model.User;
-
-
 /**
  * Interface for handling user authentication operations.
  * <p>
@@ -16,7 +13,7 @@ public interface AuthController {
      *
      * @return the authenticated {@link User} if login is successful
      */
-    public User handleLogin();
+    public void handleLogin();
 
     /**
      * Initiates and processes a password change for the currently authenticated user.

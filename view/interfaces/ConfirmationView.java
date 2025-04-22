@@ -14,5 +14,6 @@ public interface ConfirmationView {
      *
      * @return {@code true} if the user confirms the action, {@code false} otherwise.
      */
-    boolean getConfirmation();
+    boolean confirm();
+    boolean confirm(String message);
 }

@@ -11,21 +11,23 @@ public enum MaritalStatus {
     /**
      * Represents an unmarried individual.
      */
-    SINGLE("Single"),
+    SINGLE("Single", FormField.FILTER_SINGLE),
 
     /**
      * Represents a married individual.
      */
-    MARRIED("Married");
+    MARRIED("Married", FormField.FILTER_MARRIED);
 
-    private String storedString;
+    private final String storedString;
+    private final FormField filterFormField;
 
     /**
      * Constructs a MaritalStatus enum constant with its string representation.
      * @param storedString The human-readable string representation of this marital status
      */
-    private MaritalStatus(String storedString) {
+    private MaritalStatus(String storedString, FormField filterFormField) {
         this.storedString = storedString;
+        this.filterFormField = filterFormField;
     }
 
     /**
@@ -50,5 +52,9 @@ public enum MaritalStatus {
      */
     public String getStoredString() {
         return storedString;
+    }
+
+    public FormField getFilterFormField() {
+        return filterFormField;
     }
 }

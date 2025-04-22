@@ -25,9 +25,13 @@ public interface SessionManager {
      */
     User getUser();
 
+    <T> void setSessionVariable(String key, T variable);
+    <T> T getSessionVariable(String key);
+
+
     /**
      * Resets the current session by clearing the user data.
      * Typically used during logout.
      */
-    void resetUser();
+    void logout();
 }

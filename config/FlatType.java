@@ -19,7 +19,7 @@ public enum FlatType {
      * Since FlatType declares an abstract isEligible(User) method, each enum constant must provide its own implementation of the abstract method.
      * This allows each flat type to have different eligibility rules while keeping the logic neatly organized inside the enum itself.
      */
-    TWO_ROOM_FLAT("2-Room Flat", FormField.TWO_ROOM_FLAT_NUM, FormField.TWO_ROOM_FLAT_PRICE){
+    TWO_ROOM_FLAT("2-Room Flat", FormField.TWO_ROOM_FLAT_NUM, FormField.TWO_ROOM_FLAT_PRICE, FormField.FILTER_TWO_ROOM_FLAT){
         @Override
         public boolean isEligible(User applicant) {
             if(applicant.getMaritalStatus() == MaritalStatus.SINGLE){
@@ -30,6 +30,14 @@ public enum FlatType {
             }
             return false;
         }
+
+        @Override
+        public String getEligibilityDetail() {
+            return """
+                1. Single and above 35 years old
+                2. Married and above 21 years old
+                    """;
+        }
     },
 
     /**
@@ -37,7 +45,7 @@ public enum FlatType {
      * - Only available to married couples at least 21 years old
      * - Not available to singles 
      */
-    THREE_ROOM_FLAT("3-Room Flat", FormField.THREE_ROOM_FLAT_NUM, FormField.THREE_ROOM_FLAT_PRICE){
+    THREE_ROOM_FLAT("3-Room Flat", FormField.THREE_ROOM_FLAT_NUM, FormField.THREE_ROOM_FLAT_PRICE, FormField.FILTER_THREE_ROOM_FLAT){
         /**
          * Checks if a user is eligible for a 3-Room Flat.
          * @param applicant the user applying for the flat
@@ -53,11 +61,19 @@ public enum FlatType {
             }
             return false;
         }
+
+        @Override
+        public String getEligibilityDetail() {
+            return """
+                1. Married and above 21 years old
+                    """;
+        }
     };
 
-    private String storedString;
-    private FormField numFormField;
-    private FormField priceFormField;
+    private final String storedString;
+    private final FormField numFormField;
+    private final FormField priceFormField;
+    private final FormField filterFormField;
 
     /**
      * Constructs a FlatType enum constant.
@@ -65,10 +81,11 @@ public enum FlatType {
      * @param numFormField the form field associated with quantity for this flat type
      * @param priceFormField the form field associated with price for this flat type
      */
-    private FlatType(String storedString, FormField numFormField, FormField priceFormField){
+    private FlatType(String storedString, FormField numFormField, FormField priceFormField, FormField filterFormField){
         this.storedString = storedString;
         this.numFormField = numFormField;
         this.priceFormField = priceFormField;
+        this.filterFormField = filterFormField;
     }
 
     /**
@@ -109,11 +126,10 @@ public enum FlatType {
         return priceFormField;
     }
 
-    /**
-     * Abstract method to determine if a user is eligible for this flat type.
-     * Each flat type must implement its own eligibility rules.
-     * @param user the user to check eligibility for
-     * @return true if the user is eligible, false otherwise
-     */
+    public FormField getFilterFormField() {
+        return filterFormField;
+    }
+
     public abstract boolean isEligible(User user);
+    public abstract String getEligibilityDetail();
 }
