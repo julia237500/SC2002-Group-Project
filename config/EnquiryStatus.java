@@ -22,15 +22,16 @@ public enum EnquiryStatus {
     private String storedString;
 
     /**
-     * Constructs a EnquiryStatus enum constant with its string representation.
-     * @param storedString the human-readable string representation of this status
+     * Constructs a EnquiryStatus enum constant.
+     * @param storedString The human-readable string representation of the status.
+     *                     This string is also used for file storage and is passed to the parser for reconstruction.
      */
     private EnquiryStatus(String storedString){
         this.storedString = storedString;
     }
 
     /**
-     * Parses a string into the corresponding EnquiryStatus enum value.
+     * Parses a string into the corresponding {@code EnquiryStatus} enum value.
      * The comparison is case-sensitive and requires an exact match.
      * @param s the string to parse (must match one of the stored string representations)
      * @return the matching EnquiryStatus enum value
@@ -47,8 +48,8 @@ public enum EnquiryStatus {
 
     /**
      * Gets the string representation of this enquiry status.
-     *
-     * @return the human-readable string representation of this status
+     * This string is also used for file storage and is passed to the parser for reconstruction.
+     * @return The human-readable string representation of the status.
      */
     public String getStoredString() {
         return storedString;

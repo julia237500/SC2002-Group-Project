@@ -10,7 +10,7 @@ import exception.EnumParsingException;
 public enum UserRole {
 
     /**
-     * User is an applicant 
+     * User is an applicant
      */
     APPLICANT("Applicant"),
 
@@ -28,7 +28,8 @@ public enum UserRole {
 
     /**
      * Constructs a UserRole enum constant with its string representation.
-     * @param storedString the human-readable string representation of this status
+     * @param storedString the human-readable string representation of this status.
+     *                     This string is also used for file storage and is passed to the parser for reconstruction.
      */
     private UserRole(String storedString){
         this.storedString = storedString;
@@ -52,7 +53,7 @@ public enum UserRole {
 
     /**
      * Gets the string representation of this user role. 
-     *
+     * This string is also used for file storage and is passed to the parser for reconstruction.
      * @return the human-readable string representation of this user role 
      */
     public String getStoredString() {

@@ -35,15 +35,16 @@ public enum ApplicationStatus {
     private String storedString;
 
     /**
-     * Constructs a ApplicationStatus enum constant with its string representation.
-     * @param storedString the human-readable string representation of this status
+     * Constructs a ApplicationStatus enum constant.
+      * @param storedString The human-readable string representation of the status.
+      *                     This string is also used for file storage and is passed to the parser for reconstruction.
      */
     private ApplicationStatus(String storedString){
         this.storedString = storedString;
     }
 
     /**
-     * Parses a string into the corresponding ApplicationStatus enum value.
+     * Parses a string into the corresponding {@code ApplicationStatus} enum value.
      * The comparison is case-sensitive and requires an exact match.
      * @param s the string to parse (must match one of the stored string representations)
      * @return the matching ApplicationStatus enum value
@@ -60,8 +61,8 @@ public enum ApplicationStatus {
 
     /**
      * Gets the string representation of this application status.
-     *
-     * @return the human-readable string representation of this status
+     * This string is also used for file storage and is passed to the parser for reconstruction.
+     * @return The human-readable string representation of the status.
      */
     public String getStoredString() {
         return storedString;

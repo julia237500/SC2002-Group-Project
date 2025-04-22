@@ -5,19 +5,19 @@ import model.User;
 
 /**
  * Represents the different types of HDB flats available.
- * Each flat type has specific eligibility criteria, form fields for quantity and price,
+ * Each flat type has specific eligibility criteria, {@code FormField} for quantity, price, and filter,
  * and a string representation for display and parsing purposes.
+ * 
+ * Each flat type overrides the {@code isEligible(User)} method to define its own egilibity rules.
+ * @see FormField
  */
-
-
 public enum FlatType {
     /**
      * 2-Room Flat type with specific eligibility rules:
-     * - Singles must be at least 35 years old
-     * - Married couples must be at least 21 years old
-     * TWO_ROOM_FLAT and THREE_ROOM_FLAT are enum constants.
-     * Since FlatType declares an abstract isEligible(User) method, each enum constant must provide its own implementation of the abstract method.
-     * This allows each flat type to have different eligibility rules while keeping the logic neatly organized inside the enum itself.
+     * <ul>
+     *  <li> Singles must be at least 35 years old
+     *  <li> Married couples must be at least 21 years old
+     * <ul>
      */
     TWO_ROOM_FLAT("2-Room Flat", FormField.TWO_ROOM_FLAT_NUM, FormField.TWO_ROOM_FLAT_PRICE, FormField.FILTER_TWO_ROOM_FLAT){
         @Override
@@ -42,15 +42,12 @@ public enum FlatType {
 
     /**
      * 3-Room Flat type with specific eligibility rules:
-     * - Only available to married couples at least 21 years old
-     * - Not available to singles 
+     * <ul>
+     *  <li> Only available to married couples at least 21 years old
+     *  <li> Not available to singles 
+     * <ul> 
      */
     THREE_ROOM_FLAT("3-Room Flat", FormField.THREE_ROOM_FLAT_NUM, FormField.THREE_ROOM_FLAT_PRICE, FormField.FILTER_THREE_ROOM_FLAT){
-        /**
-         * Checks if a user is eligible for a 3-Room Flat.
-         * @param applicant the user applying for the flat
-         * @return true if eligible, false otherwise
-         */
         @Override
         public boolean isEligible(User applicant){
             if(applicant.getMaritalStatus() == MaritalStatus.SINGLE){
@@ -77,9 +74,11 @@ public enum FlatType {
 
     /**
      * Constructs a FlatType enum constant.
-     * @param storedString the string representation of this flat type (eg. "2-Room Flat")
-     * @param numFormField the form field associated with quantity for this flat type
-     * @param priceFormField the form field associated with price for this flat type
+     * @param storedString The human-readable string representation of the status.
+     *                     This string is also used for file storage and is passed to the parser for reconstruction.
+     * @param numFormField the {@code FormField} associated with quantity for this flat type
+     * @param priceFormField the {@code FormField} associated with price for this flat type
+     * @param filterFormField the {@code FormField} associated with filter for this flat type
      */
     private FlatType(String storedString, FormField numFormField, FormField priceFormField, FormField filterFormField){
         this.storedString = storedString;
@@ -89,10 +88,12 @@ public enum FlatType {
     }
 
     /**
-     * Parses a string into the corresponding FlatType enum value.
-     * @param s the string to parse
-     * @return the matching FlatType
-     * @throws EnumParsingException if the string doesn't match any FlatType
+     * Parses a string into the corresponding {@code FlatType} enum value.
+     * The comparison is case-sensitive and requires an exact match.
+     * @param s the string to parse (must match one of the stored string representations)
+     * @return the matching FlatType enum value
+     * @throws EnumParsingException if the string doesn't match any flat type
+     * @see EnumParsingException
      */
     public static FlatType parseFlatType(String s){
         for(FlatType flatType:values()){
@@ -104,32 +105,58 @@ public enum FlatType {
 
     /**
      * Gets the string representation of this flat type.
-     * @return the stored string representation
+     * This string is also used for file storage and is passed to the parser for reconstruction.
+     * @return The human-readable string representation of the type.
      */
     public String getStoredString() {
         return storedString;
     }
 
     /**
-     * Gets the form field associated with quantity for this flat type.
-     * @return the quantity form field
+     * Gets the {@code FormField} associated with quantity for this flat type.
+     * This method is to support polymorphism when creating {@code Form}.
+     * @return the associated quantity FormField
+     * @see FormField
      */
     public FormField getNumFormField() {
         return numFormField;
     }
 
     /**
-     * Gets the form field associated with price for this flat type.
-     * @return the price form field
+     * Gets the {@code FormField} associated with price for this flat type.
+     * This method is to support polymorphism when creating {@code Form}.
+     * @return the associated price FormField
+     * @see FormField
      */
     public FormField getPriceFormField() {
         return priceFormField;
     }
 
+    /**
+     * Gets the {@code FormField} associated with filter for this flat type.
+     * This method is to support polymorphism when creating {@code Form}.
+     * @return the associated filter FormField
+     * @see FormField
+     */
     public FormField getFilterFormField() {
         return filterFormField;
     }
 
+    /**
+     * Checks whether the given user is eligible for this flat type.
+     * Each {@code FlatType} constant provides its own implementation
+     * to handle eligibility based on different rules.
+     * 
+     * @param user The user to evaluate.
+     * @return {@code true} if the user meets the flat's eligibility criteria; {@code false} otherwise.
+     */
     public abstract boolean isEligible(User user);
+
+    /**
+     * Gets the description of the eligibility rules for this flat type.
+     * Mainly used for displaying the criteria to users.
+     *
+     * @return a human-readable description of the eligibility rules
+     */
     public abstract String getEligibilityDetail();
 }
