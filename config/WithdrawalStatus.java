@@ -23,7 +23,7 @@ public enum WithdrawalStatus {
     private String storedString;
 
     /**
-     * Constructs a UserRole enum constant with its string representation.
+     * Constructs a {@code WithdrawalStatus} enum constant with its string representation.
      * @param storedString the human-readable string representation of this status.
      *                     This string is also used for file storage and is passed to the parser for reconstruction.
      */
@@ -31,6 +31,14 @@ public enum WithdrawalStatus {
         this.storedString = storedString;
     }
 
+    /**
+     * Parses a string into the corresponding {@code WithdrawalStatus} enum value.
+     * The comparison is case-sensitive and requires an exact match.
+     * @param s the string to parse (must match one of the stored string representations)
+     * @return the matching WithdrawalStatus enum value
+     * @throws EnumParsingException if the string doesn't match any withdrawal status 
+     * @see EnumParsingException
+     */
     public static WithdrawalStatus parseWithdrawalStatus(String s){
         for(WithdrawalStatus withdrawalStatus:values()){
             if(s.equals(withdrawalStatus.getStoredString())) return withdrawalStatus;
@@ -39,6 +47,11 @@ public enum WithdrawalStatus {
         throw new EnumParsingException("Cannot parse WithdrawalStatus: " + s);
     }
 
+    /**
+     * Gets the string representation of this withdrawal status. 
+     * This string is also used for file storage and is passed to the parser for reconstruction.
+     * @return the human-readable string representation of this withdrawal status
+     */
     public String getStoredString() {
         return storedString;
     }

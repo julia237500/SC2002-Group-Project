@@ -26,7 +26,7 @@ public enum RegistrationStatus {
     private String storedString;
 
     /**
-     * Constructs a RegistrationStatus enum constant.
+     * Constructs a {@code RegistrationStatus} enum constant.
      * @param storedString the human-readable string representation of this status.
      *                     This string is also used for file storage and is passed to the parser for reconstruction.
      */

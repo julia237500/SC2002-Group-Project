@@ -22,7 +22,7 @@ public enum EnquiryStatus {
     private String storedString;
 
     /**
-     * Constructs a EnquiryStatus enum constant.
+     * Constructs a {@code EnquiryStatus} enum constant.
      * @param storedString The human-readable string representation of the status.
      *                     This string is also used for file storage and is passed to the parser for reconstruction.
      */

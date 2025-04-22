@@ -27,7 +27,7 @@ public enum UserRole {
     private String storedString;
 
     /**
-     * Constructs a UserRole enum constant with its string representation.
+     * Constructs a {@code UserRole} enum constant with its string representation.
      * @param storedString the human-readable string representation of this status.
      *                     This string is also used for file storage and is passed to the parser for reconstruction.
      */

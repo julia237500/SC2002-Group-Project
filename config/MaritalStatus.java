@@ -22,7 +22,7 @@ public enum MaritalStatus {
     private final FormField filterFormField;
 
     /**
-     * Constructs a MaritalStatus enum.
+     * Constructs a {@code MaritalStatus} enum.
      * @param storedString The human-readable string representation of the status.
      *                     This string is also used for file storage and is passed to the parser for reconstruction.
      */
@@ -58,7 +58,7 @@ public enum MaritalStatus {
     }
 
     /**
-     * Gets the {@code FormField} associated with filter for this marital status.
+     * Gets the {@link FormField} associated with filter for this marital status.
      * This method is to support polymorphism when creating {@code Form}.
      * @return the associated filter FormField
      * @see FormField

@@ -4,7 +4,7 @@ import command.Command;
 import manager.interfaces.ApplicationManager;
 
 /**
- * An implementation of {@code Command} for user to log out.
+ * An implementation of {@link Command} for user to log out.
  * 
  * @see Command
  */
@@ -12,7 +12,7 @@ public class LogoutCommand implements Command{
     private ApplicationManager applicationManager;
 
     /**
-     * Constructs a {@code LogoutCommand} with an {@code ApplicationManager}.
+     * Constructs a {@code LogoutCommand} with an {@link ApplicationManager}.
      * @param applicationManager the {@code ApplicationManager} to logout of.
      * 
      * @see ApplicationManager
@@ -22,7 +22,7 @@ public class LogoutCommand implements Command{
     }
 
     /**
-     * Logout the current user using {@code ApplicationManager}.
+     * Logout the current user using {@link ApplicationManager}.
      * 
      * @see ApplicationManager
      */

@@ -73,7 +73,7 @@ public enum FlatType {
     private final FormField filterFormField;
 
     /**
-     * Constructs a FlatType enum constant.
+     * Constructs a {@code FlatType} enum constant.
      * @param storedString The human-readable string representation of the status.
      *                     This string is also used for file storage and is passed to the parser for reconstruction.
      * @param numFormField the {@code FormField} associated with quantity for this flat type
@@ -113,7 +113,7 @@ public enum FlatType {
     }
 
     /**
-     * Gets the {@code FormField} associated with quantity for this flat type.
+     * Gets the {@link FormField} associated with quantity for this flat type.
      * This method is to support polymorphism when creating {@code Form}.
      * @return the associated quantity FormField
      * @see FormField
@@ -123,7 +123,7 @@ public enum FlatType {
     }
 
     /**
-     * Gets the {@code FormField} associated with price for this flat type.
+     * Gets the {@link FormField} associated with price for this flat type.
      * This method is to support polymorphism when creating {@code Form}.
      * @return the associated price FormField
      * @see FormField
@@ -133,7 +133,7 @@ public enum FlatType {
     }
 
     /**
-     * Gets the {@code FormField} associated with filter for this flat type.
+     * Gets the {@link FormField} associated with filter for this flat type.
      * This method is to support polymorphism when creating {@code Form}.
      * @return the associated filter FormField
      * @see FormField

@@ -4,7 +4,7 @@ import command.Command;
 import manager.interfaces.MenuManager;
 
 /**
- * An implementation of {@code Command} for user to go back to previous menu.
+ * An implementation of {@link Command} for user to go back to previous menu.
  * 
  * @see Command
  */
@@ -12,7 +12,7 @@ public class MenuBackCommand implements Command {
     private MenuManager menuManager;
 
     /**
-     * Constructs a {@code MenuBackCommand} with a {@code MenuManager}.
+     * Constructs a {@code MenuBackCommand} with a {@link MenuManager}.
      * @param menuManager the {@code MenuManager} that control the menu.
      * 
      * @see MenuManager
@@ -22,7 +22,7 @@ public class MenuBackCommand implements Command {
     }
 
     /**
-     * Go back to previous menu using {@code MenuManager}.
+     * Go back to previous menu using {@link MenuManager}.
      * 
      * @see MenuManager
      */

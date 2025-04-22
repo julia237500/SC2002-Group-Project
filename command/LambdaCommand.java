@@ -1,7 +1,7 @@
 package command;
 
 /**
- * An implementation of {@code Command}.
+ * An implementation of {@link Command}.
  * 
  * {@code LambdaCommand} encapsulates an action to be executed upon user selection.
  * It defines its execution logic using a {@code Runnable} and provides a human-readable description.
@@ -20,7 +20,7 @@ public class LambdaCommand implements Command {
      * 
      * @param description a human-readable description of the executed action,
      *                    used primarily for display purposes.
-     * @param action the {@code Runnable} that encapsulates the logic to execute when this command is executed.
+     * @param action the {@link Runnable} that encapsulates the logic to execute when this command is executed.
      *               This is commonly defined using lambda expression
      * @see Runnable
      */

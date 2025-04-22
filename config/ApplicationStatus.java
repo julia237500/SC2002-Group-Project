@@ -35,7 +35,7 @@ public enum ApplicationStatus {
     private String storedString;
 
     /**
-     * Constructs a ApplicationStatus enum constant.
+     * Constructs a {@code ApplicationStatus} enum constant.
       * @param storedString The human-readable string representation of the status.
       *                     This string is also used for file storage and is passed to the parser for reconstruction.
      */
