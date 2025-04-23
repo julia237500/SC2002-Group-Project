@@ -3,8 +3,24 @@ package generator.receipt;
 import config.MaritalStatus;
 import model.Application;
 
+/**
+ * The {@code TerminalReceiptGenerator} class provides a concrete implementation
+ * of the {@link ReceiptGenerator} interface that outputs a formatted BTO application
+ * receipt to the terminal.
+ *
+ * <p>This generator does not perform any checks on the booking status of the application;
+ * it simply extracts and prints the application details in a readable format.</p>
+ */
 public class TerminalReceiptGenerator implements ReceiptGenerator{
 
+    /**
+     * Generates and prints a formatted receipt to the terminal using the details
+     * from the specified {@link Application}.
+     *
+     * @param application the application for which the receipt is to be generated;
+     * must not be {@code null}
+     * @throws NullPointerException if the application or any of its required fields are {@code null}
+     */
     @Override
     public void generateReceipt(Application application) {
         // Generate receipt based on application

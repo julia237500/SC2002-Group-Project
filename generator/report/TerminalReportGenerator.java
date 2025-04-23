@@ -5,8 +5,27 @@ import java.util.List;
 import config.MaritalStatus;
 import model.Application;
 
+/**
+ * {@code TerminalReportGenerator} is a concrete implementation of the {@link ReportGenerator}
+ * interface that outputs a formatted report of BTO applications to the terminal.
+ *
+ * <p>This class gives a quick summary
+ * of application details for auditing, monitoring, or decision-making purposes.
+ * Each application is displayed with personal details of the applicant, project information,
+ * and application timestamp.</p>
+ */
 public class TerminalReportGenerator implements ReportGenerator {
 
+    /**
+     * Generates a formatted terminal report for a list of BTO applications.
+     * 
+     * <p>Each application's details are displayed in a human-readable format,
+     * with a unique index and clearly labeled fields.</p>
+     *
+     * @param applications the list of {@link Application} objects to report on;
+     * must not be {@code null}
+     * @throws NullPointerException if {@code applications} is {@code null}
+     */
     @Override
     public void generateReport(List<Application> applications) {
         System.out.println("========= APPLICATION REPORT =========");
