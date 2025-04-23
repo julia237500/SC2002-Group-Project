@@ -9,16 +9,14 @@ import view.interfaces.MessageView;
 
 
 /**
- * Controller responsible for managing and executing user commands.
+ * Default implementation of {@link CommandController}.
  * <p>
- * This controller:
- * <ul>
- *   <li>Displays a list of available commands to the user</li>
- *   <li>Handles user input for selecting a command</li>
- *   <li>Executes the selected command</li>
- * </ul>
- * It delegates UI responsibilities to {@link CommandView} and displays
- * messages (like invalid selections) using {@link MessageView}.
+ * This controller is responsible for coordinating user-driven logic related to 
+ * selection and execution of {@link Command}. It select Command using {@link CommandView}.
+ * 
+ * @see CommandController
+ * @see Command
+ * @see CommandView
  */
 public class DefaultCommandController implements CommandController{
     private CommandView commandView;
@@ -27,39 +25,29 @@ public class DefaultCommandController implements CommandController{
     private Map<Integer, Command> commands;
 
     /**
-     * Constructs a DefaultCommandController with the specified views.
+     * Constructs a new {@code DefaultCommandController}.
      *
      * @param commandView  the view for displaying and selecting commands
-     * @param messageView  the view for displaying error/info messages
+     * @param messageView  the view for displaying general messages
+     * 
+     * @see CommandView
+     * @see MessageView
      */
     public DefaultCommandController(CommandView commandView, MessageView messageView){
         this.commandView = commandView;
         this.messageView = messageView;
     }
 
-    /**
-     * Sets the title shown above the list of commands.
-     *
-     * @param commandsTitle the title of the command group
-     */
     @Override
     public void setCommandsTitle(String commandsTitle) {
         this.commandsTitle = commandsTitle;
     }  
 
-    /**
-     * Sets the list of commands available to the user.
-     *
-     * @param commands a map of command indices to {@link Command} objects
-     */
     @Override
     public void setCommands(Map<Integer, Command> commands) {
         this.commands = commands;
     }
 
-    /**
-     * Displays the commands to the user, prompts for selection, and executes the selected command.
-     */
     public void executeCommand(){
         Command command = selectCommand();
         command.execute();
@@ -70,6 +58,8 @@ public class DefaultCommandController implements CommandController{
      * Repeats prompt until a valid selection is made.
      *
      * @return the selected {@link Command}
+     * 
+     * @see Command
      */
     private Command selectCommand(){
         commandView.showCommandSelection(commandsTitle, commands);

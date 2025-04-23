@@ -4,60 +4,66 @@ import model.BTOProject;
 import model.OfficerRegistration;
 
 /**
- * Interface for managing HDB officer registrations for BTO projects.
- * Provides methods for creating, approving, viewing, and retrieving officer registration records.
+ * A controller that processes {@link OfficerRegistration} in accordance with the MVC architecture.
+ * Entry point to actions such as create, approve, and others.
+ *
+ * @implNote This controller should remain lightweight, with the sole responsibility of 
+ * coordinating interactions between the service layer, view layer, and other components.
+ * All business logic should be delegated to other components.
+ * 
+ * @see OfficerRegistration
  */
 public interface OfficerRegistrationController {
-
-    /**
-     * Submits a new registration request for the currently logged-in officer
-     * to be assigned to the specified BTO project.
-     *
-     * @param btoProject the {@link BTOProject} the officer wants to register for.
-     */
-    void addOfficerRegistration(BTOProject btoProject);
-
-    /**
-     * Approves or rejects an officer registration request.
-     *
-     * @param officerRegistration the {@link OfficerRegistration} to be updated.
-     * @param isApproving         true to approve the registration, false to reject it.
-     */
-    void approveOfficerRegistration(OfficerRegistration officerRegistration, boolean isApproving);
-
-    /**
-     * Displays all registration records submitted by the currently logged-in officer.
+     /**
+     * Displays list of {@link OfficerRegistration} created by the logged-in user.
+     * 
+     * @see OfficerRegistration
      */
     void showOfficerRegistrationsByOfficer();
 
     /**
-     * Displays all officer registration requests associated with a specific BTO project.
+     * Displays list of {@link OfficerRegistration} associated with a specific {@link BTOProject}.
      *
-     * @param btoProject the {@link BTOProject} whose registrations should be shown.
+     * @param btoProject the {@code BTOProject} to filter {@code OfficerRegistration}.
+     * 
+     * @see OfficerRegistration
+     * @see BTOProject
      */
     void showOfficerRegistrationsByBTOProject(BTOProject btoProject);
+
+    /**
+     * Displays list of {@link OfficerRegistration} associated with a specific {@link BTOProject} and createdby the logged-in user.
+     *
+     * @param btoProject the {@code BTOProject} to filter {@code OfficerRegistration}.
+     * 
+     * @see OfficerRegistration
+     * @see BTOProject
+     */
     void showOfficerRegistrationByOfficerAndBTOProject(BTOProject btoProject);
 
     /**
-     * Displays a brief summary of a specific officer registration.
+     * Displays the details of a {@link OfficerRegistration} and its related action.
      *
-     * @param officerRegistration the {@link OfficerRegistration} to display.
+     * @param officerRegistration the {@code OfficerRegistration} to display.
+     * 
+     * @see OfficerRegistration
      */
     void showOfficerRegistration(OfficerRegistration officerRegistration);
 
     /**
-     * Displays full details of a specific officer registration,
+     * Creates an {@link OfficerRegistration} for a specific {@link BTOProject}.
      *
-     * @param officerRegistration the {@link OfficerRegistration} whose details are to be shown.
+     * @param btoProject the {@code BTOProject} the officer wants to register for.
      */
-    void showOfficerRegistrationDetail(OfficerRegistration officerRegistration);
+    void addOfficerRegistration(BTOProject btoProject);
 
     /**
-     * Retrieves the officer registration record for the currently logged-in officer
-     * and a specific BTO project, if it exists.
+     * Approves or rejects an {@link OfficerRegistration}.
      *
-     * @param btoProject the {@link BTOProject} in question.
-     * @return the {@link OfficerRegistration} matching the officer and project
+     * @param officerRegistration the {@code OfficerRegistration} to approve or reject.
+     * @param isApproving         {@code true} to approve, {@code false} to reject.
+     * 
+     * @see OfficerRegistration
      */
-    
+    void approveOfficerRegistration(OfficerRegistration officerRegistration, boolean isApproving);    
 }

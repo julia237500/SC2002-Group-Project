@@ -5,14 +5,15 @@ import java.util.Map;
 import command.Command;
 
 /**
- * Interface for handling user-interactive commands within the application.
- * <p>
- * This controller is responsible for managing command listings, assigning commands,
- * and executing the command selected by the user.
- * </p>
+ * A controller that executes {@link Command} objects in accordance with the MVC architecture.
+ * It prompts the user to select an action and executes it via the corresponding command.
+ *
+ * @implNote This controller is allowed to handle the selection logic directly.
+ * Since {@link Command} is not part of the model layer, it typically does not require access to a service.
+ *
+ * @see Command
  */
 public interface CommandController {
-
     /**
      * Sets the title displayed above the list of available commands.
      *
@@ -21,14 +22,18 @@ public interface CommandController {
     void setCommandsTitle(String commandsTitle);
 
     /**
-     * Assigns a list of commands to be made available for user interaction.
+     * Assigns a map of {@link Command} to be selected by user.
      *
-     * @param commands a map linking option numbers to their corresponding {@link Command} implementations.
+     * @param commands a map linking option numbers to their corresponding {@code Command} implementations.
+     * 
+     * @see Command
      */
     void setCommands(Map<Integer, Command> commands);
 
     /**
-     * Displays the list of commands (with titles) and executes the command selected by the user.
+     * Displays the list of {@link Command}, prompts user to select, and executes the {@link Command} selected by the user.
+     * 
+     * @see Command
      */
     void executeCommand();
 }

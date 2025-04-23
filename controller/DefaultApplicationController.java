@@ -30,10 +30,14 @@ import view.interfaces.MessageView;
 /**
  * Default implementation of the {@link ApplicationController} interface.
  * <p>
- * This controller is responsible for handling user-driven logic related to 
- * applications for BTO projects. It delegates core business logic to the 
- * {@link ApplicationService} and uses the {@link SessionManager} to retrieve 
- * the currently logged-in user.
+ * This controller is responsible for coordinating user-driven logic related to 
+ * {@link Application} for BTO projects. It delegates core business logic to the 
+ * {@link ApplicationService} and control UI using {@link ApplicationView}.
+ * 
+ * @see ApplicationController
+ * @see Application
+ * @see ApplicationController
+ * @see ApplicationView
  */
 public class DefaultApplicationController extends AbstractDefaultController implements ApplicationController{
     private final ApplicationService applicationService;
@@ -49,8 +53,24 @@ public class DefaultApplicationController extends AbstractDefaultController impl
      * Constructs a new {@code DefaultApplicationController}.
      *
      * @param applicationService the service that handles application-related logic
-     * @param messageView        the view used to display messages to the user
+     * @param applicationView    the view responsible for displaying application details
+     * @param messageView        the view used to display general messages to the user
      * @param sessionManager     the session manager that provides user session data
+     * @param menuManager        the manager responsible for handling menu navigation
+     * @param confirmationView   the view that handles user confirmation prompts
+     * @param receiptGenerator   generates receipts after application booked
+     * @param reportGenerator    generates reports related to booked applications
+     * @param formController     the controller used to handle user form input
+     * 
+     * @see ApplicationService
+     * @see ApplicationView
+     * @see MessageView
+     * @see SessionManager
+     * @see MenuManager
+     * @see ConfirmationView
+     * @see ReceiptGenerator
+     * @see ReportGenerator
+     * @see FormController
      */
     public DefaultApplicationController(ApplicationService applicationService, ApplicationView applicationView, MessageView messageView, SessionManager sessionManager, MenuManager menuManager, ConfirmationView confirmationView, ReceiptGenerator receiptGenerator, ReportGenerator reportGenerator, FormController formController) {
         super(messageView);
@@ -65,12 +85,108 @@ public class DefaultApplicationController extends AbstractDefaultController impl
         this.formController = formController;
     }
 
+    @Override
+    public void showAllApplications() {
+        final User user = sessionManager.getUser();
+        menuManager.addCommands("List of All Applications", () -> 
+            generateShowApplicationsCommand(() -> applicationService.getAllApplications(user))
+        );
+    }
+
+    @Override
+    public void showApplicationsByUser() {
+        final User user = sessionManager.getUser();
+        menuManager.addCommands("Your Applications", () -> 
+            generateShowApplicationsCommand(() -> applicationService.getApplicationsByUser(user))
+        );
+    }
+
+    @Override
+    public void showApplicationsByBTOProject(BTOProject btoProject) {
+        User user = sessionManager.getUser();
+        menuManager.addCommands("Applications of the Project ", () -> 
+            generateShowApplicationsCommand(() -> applicationService.getApplicationsByBTOProject(user, btoProject))
+        );
+    }
+
     /**
-     * Adds an application for the given BTO project and flat type using the currently logged-in user.
+     * Generates a mapping of {@link Command} to show lists of {@link Application}, 
+     * retrieved through the given supplier of {@link ServiceResponse}.
+     * <p>
+     * This method is intended to be passed as a {@code Supplier} to the {@link MenuManager}, allowing it to
+     * dynamically refresh the list of applications each time the menu is displayed. This supports auto-refresh
+     * behavior without needing to manually update the menu contents elsewhere.
+     * <p>
+     * If the service call does not return a successful response or yields no applications, a message will be shown
+     * and {@code null} will be returned.
      *
-     * @param btoProject the BTO project the user is applying for
-     * @param flatType   the type of flat the user is applying for
+     * @param serviceResponseSupplier a supplier that provides the latest {@code ServiceResponse} containing a list of applications
+     * @return a map of application indexes to their corresponding show-detail {@code Command}, or {@code null} if no data is available
+     * 
+     * @see MenuManager
+     * @see Command
+     * @see Application
+     * @see ServiceResponse
      */
+    private Map<Integer, Command> generateShowApplicationsCommand(Supplier<ServiceResponse<List<Application>>> serviceResponseSupplier) {
+        final ServiceResponse<List<Application>> serviceResponse = serviceResponseSupplier.get();
+        if(serviceResponse.getResponseStatus() != ResponseStatus.SUCCESS){
+            defaultShowServiceResponse(serviceResponse);
+            return null;
+        }
+
+        final List<Application> applications = serviceResponse.getData();
+        if(applications.isEmpty()){
+            messageView.info("No Applications found.");
+            return null;
+        }
+
+        return ApplicationCommandFactory.getShowApplicationsCommands(applications);
+    }
+
+    @Override
+    public void showApplicationByUserAndBTOProject(BTOProject btoProject) {
+        ServiceResponse<Application> serviceResponse = applicationService.getApplicationByUserAndBTOProject(sessionManager.getUser(), btoProject);
+        if(serviceResponse.getResponseStatus() != ResponseStatus.SUCCESS){
+            defaultShowServiceResponse(serviceResponse);
+            return;
+        }
+
+        final Application application = serviceResponse.getData();
+        if(application == null){
+            messageView.info("Application not found.");
+            return;
+        }
+        
+        showApplication(application);
+    }
+
+    @Override
+    public void showApplication(Application application) {
+        menuManager.addCommands("Operations", () -> 
+            generateShowApplicationCommand(application)
+        );
+    }
+
+    /**
+     * Generates a mapping of {@link Command} to show operations for a specific {@link Application}, 
+     * <p>
+     * This method is intended to be passed as a {@code Supplier} to the {@link MenuManager}, allowing it to
+     * dynamically refresh the operations each time the menu is displayed. This supports auto-refresh
+     * behavior without needing to manually update the menu contents elsewhere.
+     *
+     * @param application the application to generate {@code Command} on
+     * @return a map of operation indexes to their corresponding {@code Command}
+     * 
+     * @see MenuManager
+     * @see Command
+     * @see Application
+     */
+    private Map<Integer, Command> generateShowApplicationCommand(Application application) {
+        applicationView.showApplicationDetail(application);
+        return ApplicationCommandFactory.getApplicationOperationCommands(application);
+    }
+
     @Override
     public void addApplication(BTOProject btoProject, FlatType flatType) {
         final User user = sessionManager.getUser();
@@ -108,11 +224,6 @@ public class DefaultApplicationController extends AbstractDefaultController impl
     }
 
     @Override
-    public void generateReceipt(Application application) {
-        receiptGenerator.generateReceipt(application);
-    }
-
-    @Override
     public void withdrawApplication(Application application) {
         if(!confirmationView.confirm("Are you sure you want to withdraw from this application? This is irreversible.")){
             return;
@@ -136,78 +247,9 @@ public class DefaultApplicationController extends AbstractDefaultController impl
         defaultShowServiceResponse(serviceResponse);
     }
 
-    private Map<Integer, Command> generateShowApplicationsCommand(Supplier<ServiceResponse<List<Application>>> serviceResponseSupplier) {
-        final ServiceResponse<List<Application>> serviceResponse = serviceResponseSupplier.get();
-        if(serviceResponse.getResponseStatus() != ResponseStatus.SUCCESS){
-            defaultShowServiceResponse(serviceResponse);
-            return null;
-        }
-
-        final List<Application> applications = serviceResponse.getData();
-        if(applications.isEmpty()){
-            messageView.info("No Applications found.");
-            return null;
-        }
-
-        return ApplicationCommandFactory.getShowApplicationsCommands(applications);
-    }
-
     @Override
-    public void showAllApplications() {
-        final User user = sessionManager.getUser();
-        menuManager.addCommands("List of All Applications", () -> 
-            generateShowApplicationsCommand(() -> applicationService.getAllApplications(user))
-        );
-    }
-
-    @Override
-    public void showApplicationsByUser() {
-        final User user = sessionManager.getUser();
-        menuManager.addCommands("Your Applications", () -> 
-            generateShowApplicationsCommand(() -> applicationService.getApplicationsByUser(user))
-        );
-    }
-
-    @Override
-    public void showApplicationsByBTOProject(BTOProject btoProject) {
-        User user = sessionManager.getUser();
-        menuManager.addCommands("Applications of the Project ", () -> 
-            generateShowApplicationsCommand(() -> applicationService.getApplicationsByBTOProject(user, btoProject))
-        );
-    }
-
-    @Override
-    public void showApplicationByUserAndBTOProject(BTOProject btoProject) {
-        ServiceResponse<Application> serviceResponse = applicationService.getApplicationByUserAndBTOProject(sessionManager.getUser(), btoProject);
-        if(serviceResponse.getResponseStatus() != ResponseStatus.SUCCESS){
-            defaultShowServiceResponse(serviceResponse);
-            return;
-        }
-
-        final Application application = serviceResponse.getData();
-        if(application == null){
-            messageView.info("Application not found.");
-            return;
-        }
-        
-        showApplication(application);
-    }
-
-    @Override
-    public void showApplication(Application application) {
-        menuManager.addCommands("Operations", () -> 
-            generateShowApplicationCommand(application)
-        );
-    }
-
-    private Map<Integer, Command> generateShowApplicationCommand(Application application) {
-        showApplicationDetail(application);
-        return ApplicationCommandFactory.getApplicationOperationCommands(application);
-    }
-
-    @Override
-    public void showApplicationDetail(Application application) {
-        applicationView.showApplicationDetail(application);
+    public void generateReceipt(Application application) {
+        receiptGenerator.generateReceipt(application);
     }
 
     @Override
