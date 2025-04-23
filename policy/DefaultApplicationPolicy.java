@@ -209,7 +209,7 @@ public class DefaultApplicationPolicy implements ApplicationPolicy{
 
     private boolean hasNonUnsuccessfulApplications(User requestedUser) {
         return dataManager.countByQueries(Application.class, List.of(
-            application -> application.getApplicant() != requestedUser,
+            application -> application.getApplicant() == requestedUser,
             application -> application.getApplicationStatus() != ApplicationStatus.UNSUCCESSFUL
         )) > 0;
     }
