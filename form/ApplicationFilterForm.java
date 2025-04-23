@@ -4,6 +4,12 @@ import config.FlatType;
 import config.MaritalStatus;
 import form.field.BoolField;
 
+/**
+ * Implementation of {@link Form} to get input needed to filter {@code Application}.
+ * This form is for filtering using {@code MaritalStatus} and {@code FlatType}.
+ * 
+ * @see Form
+ */
 public class ApplicationFilterForm extends Form{
     @Override
     public String getTitle() {
@@ -13,11 +19,11 @@ public class ApplicationFilterForm extends Form{
     @Override
     public void initFields() {
         for(MaritalStatus maritalStatus:MaritalStatus.values()){
-            addFields(new BoolField("Is %s".formatted(maritalStatus.getStoredString()), maritalStatus.getFilterFormField()));
+            addField(new BoolField("Is %s".formatted(maritalStatus.getStoredString()), maritalStatus.getFilterFormField()));
         }
 
         for(FlatType flatType:FlatType.values()){
-            addFields(new BoolField("Applied for %s".formatted(flatType.getStoredString()), flatType.getFilterFormField()));
+            addField(new BoolField("Applied for %s".formatted(flatType.getStoredString()), flatType.getFilterFormField()));
         }
     }
 }

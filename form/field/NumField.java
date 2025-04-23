@@ -4,25 +4,29 @@ import config.FormField;
 import exception.FieldParsingException;
 
 /**
- * Represents a numeric field that handles Integer values in a form.
- * Supports optional minimum and maximum constraints.
+ * Implementation of {@link Field} for {@code Integer}.
+ * Support range constraint for validation.
+ * 
+ * @see Field
  */
 public class NumField extends Field<Integer>{
-    private Integer min;
-    private Integer max;
+    private final Integer min;
+    private final Integer max;
 
     /**
-     * Constructs a NumField with a name and associated {@link FormField}.
+     * Constructs a {@code NumField} with a name and associated {@link FormField}.
      *
      * @param name       the field's name
      * @param formField  the form field configuration
      */
     public NumField(String name, FormField formField){
         super(name, formField);
+        min = null;
+        max = null;
     }
 
     /**
-     * Constructs a NumField with a name, original value, and associated {@link FormField}.
+     * Constructs a {@code NumField} with a name, original value, and associated {@link FormField}.
      *
      * @param name          the field's name
      * @param originalValue the original integer value
@@ -30,10 +34,12 @@ public class NumField extends Field<Integer>{
      */
     public NumField(String name, int originalValue, FormField formField){
         super(name, originalValue, formField);
+        min = null;
+        max = null;
     }
 
     /**
-     * Constructs a NumField with minimum and maximum range constraints.
+     * Constructs a {@code NumField} with minimum and maximum range constraints.
      *
      * @param name       the field's name
      * @param formField  the form field configuration
@@ -47,7 +53,7 @@ public class NumField extends Field<Integer>{
     }
 
     /**
-     * Constructs a NumField with an original value and range constraints.
+     * Constructs a {@code NumField} with an original value and range constraints.
      *
      * @param name          the field's name
      * @param originalValue the original integer value
@@ -69,7 +75,7 @@ public class NumField extends Field<Integer>{
      * @throws FieldParsingException if the value is outside the allowed range
      */
     @Override
-    public void validate(Integer value) {
+    public void validate(Integer value) throws FieldParsingException{
         if(min == null || max == null) return;
         
         if(value < min || value > max){
@@ -85,7 +91,7 @@ public class NumField extends Field<Integer>{
      * @throws FieldParsingException if the input is not a valid integer
      */
     @Override
-    protected Integer parseData(String input) {
+    protected Integer parseData(String input) throws FieldParsingException{
         try {
             return Integer.parseInt(input);
         } catch (Exception e) {

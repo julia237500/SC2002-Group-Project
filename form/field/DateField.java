@@ -6,19 +6,17 @@ import config.FormField;
 import exception.FieldParsingException;
 
 /**
- * A form field that handles date input using {@link LocalDate}.
- * Provides optional validation to disallow past dates and handles parsing from String input.
+ * Implementation of {@link Field} for {@code LocalDate}.
+ * By default, it allow past LocalDate, but able to disallow.
+ * It parse String with default format specified by {@link LocalDate},
+ * which is ISO-8601 calendar system, such as 2007-12-03.
+ * 
+ * @see Field
  */
 public class DateField extends Field<LocalDate>{
-
-    /**
-     * Flag indicating whether past dates are allowed.
-     * Defaults to {@code true}.
-     */
     private boolean allowPast = true;
-
     /**
-     * Constructs a DateField with a field name and configuration.
+     * Constructs a {@code DateField} with a field name and configuration.
      *
      * @param name       The name of the field.
      * @param formField  The associated form field configuration.
@@ -28,7 +26,7 @@ public class DateField extends Field<LocalDate>{
     }
 
     /**
-     * Constructs a DateField with an initial value.
+     * Constructs a {@code DateField} with an initial value.
      *
      * @param name          The name of the field.
      * @param originalValue The original date value.
@@ -39,7 +37,7 @@ public class DateField extends Field<LocalDate>{
     }
 
     /**
-     * Constructs a DateField and specifies whether past dates are allowed.
+     * Constructs a {@code DateField} and specifies whether past dates are allowed.
      *
      * @param name       The name of the field.
      * @param formField  The associated form field configuration.
@@ -51,7 +49,8 @@ public class DateField extends Field<LocalDate>{
     }
     
     /**
-     *
+     * Constructs a {@code DateField} with an original value and and specifies whether past dates are allowed.
+     * 
      * @param name          The name of the field.
      * @param originalValue The original date value.
      * @param formField     The associated form field configuration.
@@ -80,7 +79,7 @@ public class DateField extends Field<LocalDate>{
      * @throws FieldParsingException if the date is not valid.
      */
     @Override
-    public void validate(LocalDate value) {
+    public void validate(LocalDate value) throws FieldParsingException{
         if(!allowPast && value.isBefore(LocalDate.now())){
             throw new FieldParsingException("Date inputted cannot be past.");
         }
@@ -91,10 +90,10 @@ public class DateField extends Field<LocalDate>{
      *
      * @param input The user input string.
      * @return The parsed {@link LocalDate}.
-     * @throws FieldParsingException if the input cannot be parsed.
+     * @throws FieldParsingException if parsing fail.
      */
     @Override
-    protected LocalDate parseData(String input) {
+    protected LocalDate parseData(String input) throws FieldParsingException{
         try{
             return LocalDate.parse(input);
         } catch (Exception e) {

@@ -4,11 +4,12 @@ import config.FormField;
 import form.field.TextField;
 
 /**
- * Represents the form used for submitting a reply.
- * <p>
- * This form is a simple implementation of the abstract {@link Form} class
- * and includes only a single text field for entering a reply.
+ * Implementation of {@link Form} to get input needed for for submitting a reply.
+ * Consists only reply field.
+ * 
+ * @see Form
  */
+
 public class ReplyForm extends Form{
 
     /**
@@ -31,7 +32,7 @@ public class ReplyForm extends Form{
      */
     @Override
     public void initFields() {
-        addFields(new TextField("Reply", FormField.REPLY));
+        addField(new TextField("Reply", FormField.REPLY));
     }
     
 }

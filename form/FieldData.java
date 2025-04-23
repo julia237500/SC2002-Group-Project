@@ -1,20 +1,35 @@
 package form;
 
+import form.field.Field;
 
 /**
- * A generic wrapper class that holds a single value of type {@code T}.
+ * A generic wrapper class that holds a single value of type {@code T}, representing
+ * parsed and validated data from a form input.
+ * <p>
+ * This class is used to encapsulate the result of processing a {@link Field},
+ * enabling consistent handling of form field values regardless of their type.
+ * </p>
+ * <p>
+ * Although full type safety is not always guaranteed when used with generic wildcards
+ * (e.g., {@code Map<FormField, FieldData<?>>}), this wrapper provides several benefits:
+ * </p>
+ * <ul>
+ *   <li><b>Semantic clarity</b>: Explicitly represents form data, not just raw values.</li>
+ *   <li><b>Extensibility</b>: Can be easily extended without breaking existing code.</li>
+ *   <li><b>Consistency</b>: Provides a uniform interface for handling different types of input data.</li>
+ *   <li><b>Alignment with HTML form design</b>: Separates the form field definition from the input data, 
+ *       similar to how input values are submitted in an HTML form.</li>
+ * </ul>
+ *
+ * @param <T> The type of the parsed value contained in this wrapper.
  * 
- * <p>This class is typically used to encapsulate the parsed result of a form field,
- * allowing consistent handling of field data across different field types.</p>
- * 
- * @param <T> The type of the data being wrapped.
+ * @see Field
  */
 public class FieldData<T> {
-
     /**
      * The data value wrapped by this object.
      */
-    private T data;
+    private final T data;
 
     /**
      * Constructs a {@code FieldData} object with the given data.
@@ -34,24 +49,3 @@ public class FieldData<T> {
         return data;
     }
 }
-
-/**
- * Why Wrap the Value in FieldData?
- * In our code, FieldData<T> serves as a wrapper class that holds a value of type T (the data). 
- * Instead of just returning or directly working with the raw value (T), 
- * it is wrapped in an object that provides a structured way to represent and work with that value. 
- * Here's why wrapping might be beneficial:
- * 1. Consistency and Encapsulation:
- * - Wrapping the value helps provide a consistent way of handling data across different field types (like String, LocalDate, etc.).
- * - It encapsulates the data and potentially additional metadata, such as validation results, error messages, or original vs modified values, in the future.
- * 2. Extensibility:
- * - With a wrapper class, we can easily add extra functionality later without breaking our existing code. 
- * 3. Data Processing and Maintainability:
- * - The wrapper makes it easier to handle the data in a unified way, 
- * - especially when working with collections of form fields. 
- * - We don't just deal with raw values but with a structured object that could contain more information, improving maintainability.
- * 4. Separation of Concerns:
- * - By using a wrapper, we keep the logic for parsing, validating, and interacting with the data separate from the data itself. 
- * - For instance, FieldData doesn't care about how the value is parsed or validated, it only holds the result.
- * - It allows us to separate concerns like formatting, validation, and the actual data.
- */

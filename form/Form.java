@@ -6,55 +6,56 @@ import java.util.List;
 import form.field.Field;
 
 /**
- * The base class representing a form in the application.
- * This class provides a template for creating forms with specific fields,
- * managing form fields, and initializing them for different form types.
+ * An abstract base class representing a form in the application.
+ * <p>
+ * This class is designed to mimic the behavior of an HTML form,
+ * allowing dynamic configuration of input fields ({@link Field}) 
+ * tailored to different types of data and use cases.
+ * <p>
+ * Subclasses should define and initialize the required form fields 
+ * based on their specific needs. This class provides the structure 
+ * for managing and accessing fields.
+ * 
+ * @see Field
  */
 public abstract class Form {
-    // List to store form fields 
-    private List<Field<?>> fields = new ArrayList<>();
+    private final List<Field<?>> fields = new ArrayList<>();
 
     /**
      * Returns the title of the form.
-     * Subclasses must implement this method to provide a specific title.
+     * @implSpec Subclasses must implement this method to provide a specific title.
      *
      * @return the title of the form.
      */
     public abstract String getTitle();
 
     /**
-     * Initializes the fields for the form.
-     * Subclasses must implement this method to initialize fields specific to the form type.
+     * Initializes the fields for the form. Must be called before accessing the fields.
+     * @implSpec Subclasses must implement this method to initialize fields specific to the form type.
      */
     public abstract void initFields();
     
     /**
-     * Adds a field to the form.
+     * Adds a {@link Field} to the form.
      * This method allows the addition of form fields
      *
      * @param field the field to add to the form.
+     * 
+     * @see Field
      */
-    protected void addFields(Field<?> field){
+    protected void addField(Field<?> field){
         fields.add(field);
     }
     
     /**
-     * Retrieves the list of fields associated with the form.
+     * Retrieves the list of {@link Field} associated with the form.
      * This method can be used to access the fields for validation, submission, or display purposes.
      *
      * @return a list of fields in the form.
+     * 
+     * @see Field
      */
     public List<Field<?>> getFields() {
         return fields;
     }
 }
-
-/**
- * This provides extensibility:
- * - By defining Form as an abstract base class, we enable the ability to easily extend the form class
- * - to add specific form types (e.g., BTOProjectForm, ChangePasswordForm, etc.). Each form can implement its own version of getTitle() and initFields() without affecting the base class.
- * - Design Consideration: This supports open-closed principle, meaning that new forms can be added without changing existing code.
- * This also provides Polymorphism and Flexibility:
- * - With the Form class being abstract and defining abstract methods (getTitle() and initFields()), 
- * - this is especially useful when working with multiple types of forms that all share a common behavior.
- */
