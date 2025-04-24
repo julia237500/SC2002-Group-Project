@@ -9,13 +9,37 @@ import model.DataModel;
 
 /**
  * Interface for managing data access and operations on various types of {@link DataModel}.
- * Provides generic CRUD (Create, Read, Update, Delete - 4 basic operations a software system should perform)
- * and query operations for any model extending {@code DataModel}.
+ * <p>
+ * Inspired by database systems, this manager operates on in-memory data that is initially loaded from files.
+ * It provides generic CRUD (Create, Read, Update, Delete) functionality, along with database-like query operations.
+ * Each {@code DataModel} is uniquely identified by a primary key and stored in a map for efficient lookup.
+ * </p>
+ * <p>
+ * Each {@code Class<T>} acts as a logical representation of a table name,
+ * associating a specific data type with its corresponding storage or dataset.
+ * </p>
+ * <p>
+ * Queries are supported via {@code Predicate} filters, enabling flexible and expressive
+ * data retrieval using the Stream API. This allows operations such as:
+ * </p>
+ * <ul>
+ *   <li>{@link #getByPK(String PK)} — Retrieve a specific model by its primary key.</li>
+ *   <li>{@link #getByQuery(Class, Predicate)} — Retrieve a list of models matching a query.</li>
+ *   <li>{@link #countByQuery(Class, Predicate)} — Count the number of matching records.</li>
+ * </ul>
+ * <p>
+ * Sorting are supported via {@code Comparator}, enabling flexible order for different query
+ * </p>
+ * <p>
+ * Data edited or deleted through the manager can be persisted back to file, supporting a file-based persistence model.
+ * 
+ * @param <T> the type of the {@code DataModel}
+ * 
+ * @see DataModel
  */
 public interface DataManager {
-
     /**
-     * Retrieves all records of a given data model type.
+     * Retrieves all records of a given {@link DataModel} type.
      *
      * @param <T>   the type of data model
      * @param clazz the class object of the data model
@@ -50,11 +74,6 @@ public interface DataManager {
      * @param clazz    the class object of the data model
      * @param predicate a predicate that defines the query condition
      * @return a list of records matching the condition
-     * A predicate in Java is basically a function that takes in a value and returns true or false — it's used to test or filter values.
-     * Predicates are great for filtering, matching, and validating data. 
-     * In our DataManager interface, we're using predicates to query/filter data models:
-     * <T extends DataModel> List<T> getByQuery(Class<T> clazz, Predicate<T> predicate);
-     * - This means the method will return only the data models that pass the test defined by the predicate.
      */
     <T extends DataModel> List<T> getByQuery(Class<T> clazz, Predicate<T> predicate);
 
@@ -90,7 +109,24 @@ public interface DataManager {
      */
     <T extends DataModel> List<T> getByQueries(Class<T> clazz, List<Predicate<T>> predicates, Comparator<T> comparator);
 
+    /**
+     * Counts records that match a specific query condition.
+     *
+     * @param <T>      the type of data model
+     * @param clazz    the class object of the data model
+     * @param predicate a predicate that defines the query condition
+     * @return a number of records matching the condition
+     */
     <T extends DataModel> long countByQuery(Class<T> clazz, Predicate<T> predicate);
+
+    /**
+     * Counts records that match all given query conditions.
+     *
+     * @param <T>      the type of data model
+     * @param clazz    the class object of the data model
+     * @param predicate a predicate that defines the query condition
+     * @return a number of records matching the condition
+     */
     <T extends DataModel> long countByQueries(Class<T> clazz, List<Predicate<T>> predicates);
 
     /**
@@ -98,7 +134,7 @@ public interface DataManager {
      *
      * @param <T>   the type of data model
      * @param model the data model to be saved
-     * @throws DataSavingException if saving fails due to I/O or logic error
+     * @throws DataSavingException if saving fails due to I/O or other error
      */
     <T extends DataModel> void save(T model) throws DataSavingException;
 
@@ -108,7 +144,7 @@ public interface DataManager {
      * @param <T>   the type of data model
      * @param model the data model to delete
      * @throws DataSavingException if deletion fails due to saving issues
-     * @throws Exception if the model cannot be deleted due to dependency or logic issues
+     * @throws Exception if the model cannot be deleted due to I/O or other error
      */
     <T extends DataModel> void delete(T model) throws DataSavingException;
 }

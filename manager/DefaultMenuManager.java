@@ -29,16 +29,13 @@ public class DefaultMenuManager implements MenuManager{
      * Constructs a DefaultMenuManager with the specified {@link CommandController}.
      *
      * @param commandController the controller responsible for handling command execution
+     * 
+     * @see CommandController
      */
     public DefaultMenuManager(CommandController commandController) {
         this.commandController = commandController;
     }
 
-     /**
-     * Starts the main dashboard loop by initializing the first set of commands from the
-     * {@link DashboardCommandFactory}, and continues running as long as the command stack is not empty.
-     * This loop allows navigation through nested menus via a stack-based approach.
-     */
     @Override
     public void startDashboardLoop() {
         addCommands("Dashboard", () -> DashboardCommandFactory.getCommands());
@@ -59,31 +56,16 @@ public class DefaultMenuManager implements MenuManager{
         }
     }
 
-     /**
-     * Adds a new command set and its associated title to the top of the stack.
-     * This is used for navigating into a submenu or a new context.
-     *
-     * @param commandTitle the title of the new command set/menu
-     * @param commands     the map of command options to be added to the stack
-     */
     public void addCommands(String commandTitle, Supplier<Map<Integer, Command>> commandGenerator){
         commandsTitleStack.add(commandTitle);
         commandGeneratorsStack.add(commandGenerator);
     }
 
-    /**
-     * Navigates back by removing the most recent command set and its title from the stack.
-     * This is used when a "Back" option is selected in the menu.
-     */
     public void back(){
         commandsTitleStack.pop();
         commandGeneratorsStack.pop();
     }
 
-    /**
-     * Stops the dashboard loop by clearing all stacked command sets and titles.
-     * This is invoked during logout or application exit.
-     */
     public void stopDashboardLoop(){
         commandsTitleStack.removeAllElements();
         commandGeneratorsStack.removeAllElements();

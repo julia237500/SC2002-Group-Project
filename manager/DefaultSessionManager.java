@@ -14,21 +14,11 @@ public class DefaultSessionManager implements SessionManager{
     private User user;
     private final Map<String, Object> sessionVariables = new HashMap<>();
 
-    /**
-     * Sets the current logged-in user for the session.
-     *
-     * @param user the {@link User} to be set in the session
-     */
     @Override
     public void setUser(User user) {
         this.user = user;
     }
 
-    /**
-     * Retrieves the currently logged-in user from the session.
-     *
-     * @return the current {@link User} in session
-     */
     @Override
     public User getUser() {
         return user;
@@ -46,10 +36,6 @@ public class DefaultSessionManager implements SessionManager{
     }
 
     @Override
-    /**
-     * Clears the current session by resetting the user to {@code null}.
-     * Typically used during logout.
-     */
     public void logout() {
         user = null;
         sessionVariables.clear();

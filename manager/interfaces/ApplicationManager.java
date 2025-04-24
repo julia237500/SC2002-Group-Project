@@ -1,12 +1,11 @@
 package manager.interfaces;
 
-
 /**
  * The {@code ApplicationManager} interface defines the core methods
  * for controlling the lifecycle of the application.
  * 
  * Implementing classes should provide functionality to start the application
- * and handle user logout.
+ * and handle user login and logout iteratively.
  */
 public interface ApplicationManager {
 
