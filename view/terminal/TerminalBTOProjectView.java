@@ -5,6 +5,11 @@ import model.BTOProject;
 import model.User;
 import view.interfaces.BTOProjectView;
 
+
+/**
+ * Terminal-based implementation of the {@link BTOProjectView} interface.
+ *
+ */
 public class TerminalBTOProjectView extends AbstractTerminalView implements BTOProjectView{
     public void showBTOProjectDetailRestricted(BTOProject btoProject){
         showTitle("BTO Project Detail");
@@ -54,6 +59,14 @@ public class TerminalBTOProjectView extends AbstractTerminalView implements BTOP
         return sb.toString();
     }
 
+    /**
+     * Displays detailed information for a single BTO project.
+     * <p>
+     * Includes the project's string representation and the names of HDB officers assigned to it.
+     * </p>
+     *
+     * @param btoProject the {@link BTOProject} instance to display.
+     */
     public void showBTOProjectDetailFull(BTOProject btoProject){
         showTitle("BTO Project Detail");
         System.out.println("""

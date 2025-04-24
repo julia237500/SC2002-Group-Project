@@ -3,6 +3,12 @@ package form;
 import config.FormField;
 import form.field.TextField;
 
+/**
+ * Implementation of {@link Form} to get input needed for user login.
+ * Consists fields such as NRIC and password input.
+ * 
+ * @see Form
+ */
 public class LoginForm extends Form{
     @Override
     public String getTitle() {
@@ -11,7 +17,7 @@ public class LoginForm extends Form{
 
     @Override
     public void initFields() {
-        addFields(new TextField("NRIC", FormField.NRIC));
-        addFields(new TextField("Password", FormField.PASSWORD));
+        addField(new TextField("NRIC", FormField.NRIC));
+        addField(new TextField("Password", FormField.PASSWORD));
     }
 }

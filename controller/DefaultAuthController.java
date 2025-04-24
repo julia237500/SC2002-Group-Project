@@ -15,11 +15,36 @@ import service.ServiceResponse;
 import service.interfaces.AuthService;
 import view.interfaces.MessageView;
 
+
+/**
+ * Default implementation of the {@link AuthController} interface.
+ * <p>
+ * This controller handles authentication logic such as logging in and changing passwords.
+ * It coordinates with the {@link AuthService} for business logic 
+ * and the {@link SessionManager} for session-related operations.
+ * 
+ * @see AuthController
+ * @see AuthService
+ * @see SessionManager
+ */
 public class DefaultAuthController extends AbstractDefaultController implements AuthController{
     private final AuthService authService;
     private final FormController formController;
     private final SessionManager sessionManager;
 
+    /**
+     * Constructs a new {@code DefaultAuthController}.
+     *
+     * @param authService     the authentication service that handles login and password changes
+     * @param messageView     the view used for displaying messages to the user
+     * @param formController  the form controller for handling input forms
+     * @param sessionManager  the session manager to access session information
+     * 
+     * @see AuthService
+     * @see MessageView
+     * @see FormController
+     * @see SessionManager
+     */
     public DefaultAuthController(AuthService AuthService, MessageView messageView, FormController formController, SessionManager sessionManager) {
         super(messageView);
 
@@ -28,6 +53,11 @@ public class DefaultAuthController extends AbstractDefaultController implements 
         this.sessionManager = sessionManager;
     }
 
+
+    /**
+     * {@inheritDoc}
+     * Continues prompting until successful login.
+     */
     public void handleLogin(){
         while(true){
             formController.setForm(new LoginForm());

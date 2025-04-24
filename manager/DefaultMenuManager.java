@@ -9,12 +9,29 @@ import controller.interfaces.CommandController;
 import factory.DashboardCommandFactory;
 import manager.interfaces.MenuManager;
 
+/**
+ * Default implementation of {@link MenuManager} that manages the command menus
+ * using a stack-based navigation system. It supports starting the main dashboard loop,
+ * adding nested command menus, navigating back, and stopping the loop.
+ * We are using a stack based approach here because stacks offer a Natural Back Navigation:
+ * The stack is a Last In, First Out (LIFO) data structure, 
+ * meaning that the most recently added item is the first one to be removed. 
+ * This is perfect for scenarios like menu navigation, where when we enter a submenu, it's added to the stack.
+ * When we press "Back" or want to return to the previous menu, the top item is popped off, and we're brought back to the last menu.
+ */
 public class DefaultMenuManager implements MenuManager{
     final private CommandController commandController;
 
     final private Stack<Supplier<Map<Integer, Command>>> commandGeneratorsStack = new Stack<>();
     final private Stack<String> commandsTitleStack = new Stack<>();
 
+    /**
+     * Constructs a DefaultMenuManager with the specified {@link CommandController}.
+     *
+     * @param commandController the controller responsible for handling command execution
+     * 
+     * @see CommandController
+     */
     public DefaultMenuManager(CommandController commandController) {
         this.commandController = commandController;
     }

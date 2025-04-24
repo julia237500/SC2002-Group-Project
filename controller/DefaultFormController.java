@@ -9,17 +9,38 @@ import exception.FieldParsingException;
 import form.FieldData;
 import form.Form;
 import form.field.Field;
-import manager.DIManager;
 import view.interfaces.FormView;
 import view.interfaces.MessageView;
 
+/**
+ * Default implementation of {@link FormController}.
+ * <p>
+ * This controller is responsible for coordinating user-driven logic related to 
+ * input and retrieval of data for {@link Form}. It display and prompts for input using {@link FormView}.
+ * 
+ * @see FormController
+ * @see Form
+ * @see FormView
+ */
 public class DefaultFormController implements FormController{
+    private final FormView formView;
+    private final MessageView messageView;
+
     private Form form;
-    private FormView formView;
-    private Map<FormField, FieldData<?>> formData = new HashMap<>();
+    private final Map<FormField, FieldData<?>> formData = new HashMap<>();
     
-    public DefaultFormController(FormView formView){
+    /**
+     * Constructs a {@code DefaultFormController}.
+     * 
+     * @param formView the view responsible for form rendering and user input
+     * @param messageView the view to display error message
+     * 
+     * @see FormView
+     * @see MessageView
+     */
+    public DefaultFormController(FormView formView, MessageView messageView){
         this.formView = formView;
+        this.messageView = messageView;
     }
 
     public void setForm(Form form){
@@ -27,7 +48,17 @@ public class DefaultFormController implements FormController{
         form.initFields();
     }
 
+    public Map<FormField, FieldData<?>> getFormData() {
+        inputFormData();
+        return formData;
+    }
+
+    /**
+     * Prompts user to input data for each field in the form and validates it.
+     * Successfully validated input is stored in the {@code formData} map.
+     */
     private void inputFormData() {
+        formData.clear();
         formView.show(form.getTitle());
 
         for(Field<?> field:form.getFields()){
@@ -40,15 +71,9 @@ public class DefaultFormController implements FormController{
                     break;
                 }
                 catch(FieldParsingException e){
-                    MessageView messageView = DIManager.getInstance().resolve(MessageView.class);
                     messageView.error(e.getMessage());
                 }
             }
         }
-    }
-
-    public Map<FormField, FieldData<?>> getFormData() {
-        inputFormData();
-        return formData;
     }
 }

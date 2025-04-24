@@ -5,35 +5,43 @@ import java.util.HashMap;
 import java.util.Map;
 
 import config.FlatType;
+import config.FormField;
+import form.FieldData;
 
 /**
- * This class encapsulates all relevant information about a BTO housing project,
- * including its name, location, flat details, application dates, and officer limit.
+ * A Data Transfer Object (DTO) representing a {@code BTOProject}.
+ * <p>
+ * This class facilitates communication between the Controller, Service, and Model layers.
+ * Changes in the underlying model structure require modifications only to this DTO, improving maintainability.
+ * <p>
+ * Contains project name, location, flat details, application dates, and officer limit.
+ * <p>
+ * It includes a factory method {@link #fromFormData(Map)} to create a DTO instance directly from form input.
  */
-
 public class BTOProjectDTO {
-    private String name;
-    private String neighborhood;
+    private final String name;
+    private final String neighborhood;
     
-    private Map<FlatType, Integer> flatNum = new HashMap<>();
-    private Map<FlatType, Integer> flatPrice = new HashMap<>();
+    private final Map<FlatType, Integer> flatNum;
+    private final Map<FlatType, Integer> flatPrice;
 
-    private LocalDate openingDate;
-    private LocalDate closingDate;
-    private int HDBOfficerLimit;
+    private final LocalDate openingDate;
+    private final LocalDate closingDate;
+    private final int HDBOfficerLimit;
 
     /**
      * Constructs a new BTOProjectDTO with the specified details.
      *
      * @param name the name of the BTO project
      * @param neighborhood the neighborhood where the project is located
-     * @param flatNum a map of flat types to their quantities available in this project
-     * @param flatPrice a map of flat types to their respective prices
+     * @param flatNum a map of {@code FlatType} to their quantities in this project
+     * @param flatPrice a map of {@code FlatType} to their respective prices
      * @param openingDate the date when applications for this project open
      * @param closingDate the date when applications for this project close
-     * @param HDBOfficerLimit the available HDB Officer Slots (max 10)
+     * @param HDBOfficerLimit the available HDB Officer Slots
+     * 
+     * @see FlatType
      */
-
 
     public BTOProjectDTO(String name, String neighborhood, Map<FlatType, Integer> flatNum, Map<FlatType, Integer> flatPrice, LocalDate openingDate, LocalDate closingDate, int HDBOfficerLimit){
         this.name = name;
@@ -44,7 +52,6 @@ public class BTOProjectDTO {
         this.closingDate = closingDate;
         this.HDBOfficerLimit = HDBOfficerLimit;
     }
-
 
     /**
      * Returns the name of the BTO project.
@@ -108,5 +115,43 @@ public class BTOProjectDTO {
      */
     public int getHDBOfficerLimit() {
         return HDBOfficerLimit;
+    }
+
+    /**
+     * Creates a {@code BTOProjectDTO} from the provided form data.
+     * <p>
+     * This method extracts relevant fields such as project name, neighborhood,
+     * flat numbers, flat prices, application period, and HDB officer limit
+     * from the form input map, and uses them to populate the DTO.
+     *
+     * @param data a map of {@code FormField} to {@code FieldData}, representing the user-submitted form values
+     * @return a populated {@code BTOProjectDTO} instance
+     *
+     * @throws ClassCastException if any form data is of unexpected type
+     * 
+     * @see Form
+     * @see FormField
+     * @see FieldData
+     */
+    public static BTOProjectDTO fromFormData(Map<FormField, FieldData<?>> data){
+        String name = (String) data.get(FormField.NAME).getData();
+        String neighbourhood = (String) data.get(FormField.NEIGHBORHOOD).getData();
+
+        Map<FlatType, Integer> flatNums = new HashMap<>();
+        Map<FlatType, Integer> flatPrices = new HashMap<>();
+
+        for(FlatType flatType:FlatType.values()){
+            int flatNum = (Integer) data.get(flatType.getNumFormField()).getData();
+            flatNums.put(flatType, flatNum);
+
+            int flatPrice = (Integer) data.get(flatType.getPriceFormField()).getData();
+            flatPrices.put(flatType, flatPrice);
+        }
+
+        LocalDate openingDate = (LocalDate) data.get(FormField.OPENING_DATE).getData();
+        LocalDate closingDate = (LocalDate) data.get(FormField.CLOSING_DATE).getData();
+        int HDBOfficerLimit = (Integer) data.get(FormField.HBD_OFFICER_LIMIT).getData();
+
+        return new BTOProjectDTO(name, neighbourhood, flatNums, flatPrices, openingDate, closingDate, HDBOfficerLimit);
     }
 }

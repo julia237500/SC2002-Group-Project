@@ -1,10 +1,14 @@
 package policy.interfaces;
 
+
 import model.BTOProject;
 import model.Enquiry;
 import model.User;
 import policy.PolicyResponse;
 
+/**
+ * Interface defining access control policies for operations related to Enquiries.
+ */
 public interface EnquiryPolicy {
     PolicyResponse canViewAllEnquiries(User requestedUser);
     PolicyResponse canViewEnquiriesByBTOProject(User requestedUser, BTOProject btoProject);

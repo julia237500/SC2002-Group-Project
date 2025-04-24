@@ -1,8 +1,0 @@
-Mandatory:
-Add readonly to FormField
-Add ToDTO to DTO
-
-Optional:
-Fix unread feature: Updated can be seen and mark as unread by Manager (Unintented)
-Add count to unprocessed registration/enquiry/application
-Change get__By___ method to use passed user instead of session user
