@@ -73,6 +73,7 @@ public class BTOProjectForm extends Form{
      * Pre-fills the form with the current values from the project.
      */
     private void initFieldsForEditForm(){
+        addField(new TextField("Name(Read only)", editingBTOProject.getName(), FormField.NAME));
         addField(new TextField("Neighbourhood", editingBTOProject.getNeighborhood(), FormField.NEIGHBORHOOD));
 
         for(FlatType flatType:FlatType.values()){
