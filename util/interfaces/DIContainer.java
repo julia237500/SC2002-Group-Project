@@ -33,12 +33,3 @@ public interface DIContainer {
      */
     <T> T resolve(Class<T> type);
 }
-
-/**
- * Design Principles involved:
- * 1. Inversion of Control (IoC) Principle:
- * - Instead of the application creating and managing its dependencies directly, 
- * - it delegates that responsibility to a container (the DI container).
- * - This inverts the control of dependency creation—from the application code to the container.
- * - This reduces tight coupling between classes.
- */

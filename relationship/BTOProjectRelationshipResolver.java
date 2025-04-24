@@ -9,6 +9,7 @@ import config.RegistrationStatus;
 import exception.DataModelException;
 import exception.RelationshipException;
 import manager.interfaces.DataManager;
+import model.Application;
 import model.BTOProject;
 import model.Enquiry;
 import model.FlatUnit;
@@ -83,7 +84,7 @@ public class BTOProjectRelationshipResolver implements LoadResolver, SaveResolve
             }
         }
 
-        List<OfficerRegistration> officerRegistrations = dataManager.getByQuery(
+        final List<OfficerRegistration> officerRegistrations = dataManager.getByQuery(
             OfficerRegistration.class, 
             registration -> registration.getBTOProject() == btoProject
         );
@@ -96,7 +97,7 @@ public class BTOProjectRelationshipResolver implements LoadResolver, SaveResolve
             }
         }
 
-        List<Enquiry> enquiries = dataManager.getByQuery(
+        final List<Enquiry> enquiries = dataManager.getByQuery(
             Enquiry.class, 
             enquiry -> enquiry.getBTOProject() == btoProject
         );
@@ -104,6 +105,19 @@ public class BTOProjectRelationshipResolver implements LoadResolver, SaveResolve
         for(Enquiry enquiry:enquiries){
             try{
                 dataManager.delete(enquiry);
+            } catch (Exception e){
+                throw new RelationshipException(e.getMessage());
+            }
+        }
+
+        final List<Application> applications = dataManager.getByQuery(
+            Application.class, 
+            application -> application.getBTOProject() == btoProject
+        );
+
+        for(Application application:applications){
+            try{
+                dataManager.delete(application);
             } catch (Exception e){
                 throw new RelationshipException(e.getMessage());
             }

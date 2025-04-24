@@ -13,6 +13,9 @@ import util.interfaces.DIContainer;
  * This container manages the registration and resolution of dependencies for a given interface and its corresponding implementation.
  * It uses reflection to instantiate objects and inject their dependencies automatically.
  * </p>
+ * <p>
+ * All instances created and stored in this container is singleton pattern.
+ * </p>
  */
 public class DefaultDIContainer implements DIContainer {
 
@@ -21,7 +24,6 @@ public class DefaultDIContainer implements DIContainer {
 
     /** A map for storing instantiated objects for reuse */
     private Map<Class<?>, Object> container = new HashMap<>();
-
 
     /**
      * Registers an interface to its implementation in the container.
@@ -86,24 +88,10 @@ public class DefaultDIContainer implements DIContainer {
             /** Store the instance in the container for future reuse */
             container.put(type, instance);
             return instance;
+        } catch (StackOverflowError e){
+            throw new StackOverflowError("Unable to create instance of " + type.getSimpleName() + " due to circular dependencies.");
         } catch (Exception e) {
             throw new DependencyInjectorException("Unable to create instance of %s: \n%s".formatted(type.getSimpleName(), e.getMessage()));
         }
     }
 }
-
-/**
- * What Is a Container in Software/ Dependency Injection?:
- * - A special object that creates, manages, and provides dependencies (i.e., objects) to the parts of your program that need them.
- * - It acts as a Factory + Storage:
- * - It constructs objects for us (using reflection in our case).
- * - It stores them (often as singletons or per-request).
- * - It injects them wherever needed (via constructor, setter, or field injection).
- * - For example, in our DIManager class, 'container.register(ApplicationManager.class, DefaultApplicationManager.class);'
- * - registers an interface ApplicationManager to its implementation DefaultApplicationManager in the container.
- * - It is called a "Container" because it:
- * - (a) Contains mappings of interface → implementation.
- * - (b) Contains created instances of those implementations.
- * - Just like a storage container organizes and manages physical objects,
- * - a DI container organizes and manages our application’s dependencies.
- */
