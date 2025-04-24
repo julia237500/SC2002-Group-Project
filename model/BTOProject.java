@@ -174,14 +174,29 @@ public class BTOProject implements DataModel{
         }
     }
 
+    /**
+     * Returns the name of the BTO project.
+     * 
+     * @return the project name
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     * Returns the neighborhood in which the BTO project is located.
+     * 
+     * @return the neighborhood name
+     */
     public String getNeighborhood() {
         return neighborhood;
     }
 
+    /**
+     * Sets the flat unit data for this project.
+     * 
+     * @param flatUnits the map of flat types to corresponding flat units
+     */
     public void setFlatUnits(Map<FlatType, FlatUnit> flatUnits){
         this.flatUnits = flatUnits;
     }
@@ -207,6 +222,13 @@ public class BTOProject implements DataModel{
         }
     }
 
+    /**
+     * Retrieves the {@link FlatUnit} associated with the specified flat type.
+     *
+     * @param flatType the flat type to retrieve
+     * @return the {@link FlatUnit} corresponding to the specified flat type
+     * @throws DataModelException if the flat type is not found
+     */
     private FlatUnit getFlatUnit(FlatType flatType) throws DataModelException {
         FlatUnit flatUnit = flatUnits.get(flatType);
         if(flatUnit == null){
@@ -215,48 +237,103 @@ public class BTOProject implements DataModel{
         return flatUnit;
     }
 
+    /**
+     * Returns an unmodifiable list of all flat units in the project.
+     *
+     * @return a {@link List} containing all {@link FlatUnit} objects
+     */
     public List<FlatUnit> getFlatUnits() {
         return List.copyOf(flatUnits.values());
     }
 
+    /**
+     * Retrieves the number of available flats for a specific flat type.
+     *
+     * @param flatType the flat type to check
+     * @return the number of available units of the given type, or {@code 0} if not found
+     */
     public int getFlatNum(FlatType flatType) {
         FlatUnit flatUnit = flatUnits.get(flatType);
         return flatUnit == null ? 0 : flatUnit.getFlatNum();
     }
 
+    /**
+     * Retrieves the price of flats for a specific flat type.
+     *
+     * @param flatType the flat type to check
+     * @return the price of the flat type, or {@code 0} if not found
+     */
     public int getFlatPrice(FlatType flatType) {
         FlatUnit flatUnit = flatUnits.get(flatType);
         return flatUnit == null ? 0 : flatUnit.getFlatPrice();
     }
 
+    /**
+     * Books one unit of the specified flat type by decrementing its available count.
+     *
+     * @param flatType the type of flat to book
+     * @throws DataModelException if the specified flat type does not exist or is unavailable
+     */
     public void bookFlat(FlatType flatType) throws DataModelException{
         FlatUnit flatUnit = getFlatUnit(flatType);
 
         flatUnit.adjustFlatNum(-1);
     }
 
+    /**
+     * Cancels a flat booking by incrementing the available count for the specified flat type.
+     *
+     * @param flatType the type of flat to unbook
+     * @throws DataModelException if the specified flat type does not exist
+     */
     public void unbookFlat(FlatType flatType) throws DataModelException{
         FlatUnit flatUnit = getFlatUnit(flatType);
 
         flatUnit.adjustFlatNum(1);
     }
 
+    /**
+     * Checks whether any units of the specified flat type are available for booking.
+     *
+     * @param flatType the flat type to check for availability
+     * @return {@code true} if there is at least one available unit of the specified type; {@code false} otherwise
+     */
     public boolean hasAvailableFlats(FlatType flatType){
         return getFlatNum(flatType) > 0;
     }
 
+    /**
+     * Returns the application opening date of the project.
+     * 
+     * @return the opening date
+     */
     public LocalDate getOpeningDate() {
         return openingDate;
     }
 
+    /**
+     * Returns the application closing date of the project.
+     * 
+     * @return the closing date
+     */
     public LocalDate getClosingDate() {
         return closingDate;
     }
 
+    /**
+     * Returns whether the project is visible to the public.
+     * 
+     * @return {@code true} if visible, otherwise {@code false}
+     */
     public boolean isVisible() {
         return visible;
     }
 
+    /**
+     * Returns whether the project is visible to the public.
+     * 
+     * @return {@code true} if visible, otherwise {@code false}
+     */
     public void toggleVisibility(){
         visible = visible ? false : true;
     }
@@ -266,22 +343,58 @@ public class BTOProject implements DataModel{
         return isOverlappingWith(LocalDate.now(), LocalDate.now()) && visible;
     }
 
+    /**
+     * Checks whether this BTO project's application period overlaps with another BTO project's period.
+     *
+     * @param btoProject the other BTO project to compare with
+     * @return {@code true} if the two projects' application periods overlap; {@code false} otherwise
+     */
     public boolean isOverlappingWith(BTOProject btoProject){
         return isOverlappingWith(btoProject.getOpeningDate(), btoProject.getClosingDate());
     }
 
+    /**
+     * Checks whether this BTO project's application period overlaps with a specified date range.
+     *
+     * @param openingDate the start date of the range to check
+     * @param closingDate the end date of the range to check
+     * @return {@code true} if the specified date range overlaps with this project's period; {@code false} otherwise
+     */
     public boolean isOverlappingWith(LocalDate openingDate, LocalDate closingDate){
         return !(openingDate.isAfter(this.closingDate) || closingDate.isBefore(this.openingDate));
     }
 
+    /**
+     * Returns the HDB Manager in charge of the project.
+     * 
+     * @return the HDB Manager
+     */
     public User getHDBManager() {
         return HDBManager;
     }
-    
+
+    /**
+     * Returns a list of HDB Officers assigned to the project.
+     * 
+     * @return list of HDB Officers
+     */
     public List<User> getHDBOfficers() {
         return HDBOfficers;
     }
 
+    /**
+     * Adds a HDB Officer to the list of officers managing this BTO project.
+     * <p>
+     * This method performs the following validations before adding:
+     * <ul>
+     *   <li>Ensures the user has the role {@code HDB_OFFICER}</li>
+     *   <li>Ensures that adding the user does not exceed the officer limit</li>
+     * </ul>
+     * </p>
+     *
+     * @param HDBOfficer the user to be added as a HDB Officer
+     * @throws DataModelException if the user is not an HDB Officer or if the officer limit is exceeded
+     */
     public void addHDBOfficer(User HDBOfficer) throws DataModelException{
         if(HDBOfficer.getUserRole() != UserRole.HDB_OFFICER){
             throw new DataModelException("User added is not HDB Officer.");
@@ -294,6 +407,11 @@ public class BTOProject implements DataModel{
         HDBOfficers.add(HDBOfficer);
     }
 
+    /**
+     * Returns the officer limit for the project.
+     * 
+     * @return the maximum number of HDB Officers allowed
+     */
     public int getHDBOfficerLimit() {
         return HDBOfficerLimit;
     }
@@ -317,6 +435,20 @@ public class BTOProject implements DataModel{
         return false;
     }
 
+    /**
+     * Checks whether a given user is eligible to apply for any available flat in this BTO project.
+     * <p>
+     * A user can apply if there is at least one flat type that:
+     * <ul>
+     *   <li>Has available units (i.e., the number of units > 0)</li>
+     *   <li>The user is eligible for, according to the flat type's eligibility rules</li>
+     * </ul>
+     * </p>
+     *
+     * @param user the user to check application eligibility for
+     * @return {@code true} if the user is eligible to apply for at least one available flat type;
+     *         {@code false} otherwise
+     */
     public boolean canBeAppliedBy(User user){
         for(FlatType flatType:FlatType.values()){
             if(hasAvailableFlats(flatType) && flatType.isEligible(user)){
@@ -335,11 +467,27 @@ public class BTOProject implements DataModel{
         return name;
     }
 
+    /**
+     * Creates a backup of the current state of the BTOProject.
+     * <p>
+     * This method uses the Memento design pattern to capture a snapshot
+     * of the project's editable fields, such as neighborhood, application period,
+     * officer limit, and flat unit states. This backup can later be restored
+     * using {@link #restore()} in case an edit needs to be reverted.
+     * </p>
+     */
     @Override
     public void backup(){
         memento = new Memento(this);
     }
 
+    /**
+     * Restores the BTOProject's state from the previously created backup.
+     * <p>
+     * This reverts any changes made since the last {@link #backup()} call.
+     * If no backup exists, this method does nothing.
+     * </p>
+     */
     @Override
     public void restore(){
         if(memento != null){
