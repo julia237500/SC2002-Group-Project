@@ -19,17 +19,20 @@ import policy.interfaces.EnquiryPolicy;
 import policy.interfaces.OfficerRegistrationPolicy;
 
 /**
- * Factory class that generates command maps for the main dashboard interface.
- * Creates role-specific command sets based on the current user's permissions.
- * 
- * <p><b>Command Numbering Scheme:</b>
- * <ul>
- *   <li><b>1-19:</b> Common user commands (change password, etc.)</li>
- *   <li><b>20-29:</b> BTO Project commands</li>
- *   <li><b>30-39:</b> Officer registration commands</li>
- *   <li><b>40-49:</b> Enquiry commands</li>
- *   <li><b>9:</b> Always logout command (reserved)</li>
- * </ul>
+ * A factory class for generating {@link Command} instances for the dashboard (main menu).
+ * <p>
+ * Commands are generated and stored in a {@code Map<Integer, Command>}.
+ * This factory can generate commands for the operations related to:
+ * <ol>
+ *   <li> {@code User}
+ *   <li> {@code BTOProject}
+ *   <li> {@code Application}
+ *   <li> {@code Enquiry}
+ *   <li> {@code OfficerRegistration} 
+ *   <li> System, such as logout
+ * </ol>
+ * <p>
+ * Commands are only generated if they are permissible by the user
  */
 public class DashboardCommandFactory extends AbstractCommandFactory {
     private static final int CHANGE_PASSWORD_CMD = getCommandID(USER_CMD, EDIT_CMD, 0);
@@ -46,6 +49,27 @@ public class DashboardCommandFactory extends AbstractCommandFactory {
 
     private static final int SHOW_OFFICER_REGISTRATIONS_BY_OFFICER_CMD = getCommandID(OFFICER_REGISTRATION_CMD, LIST_CMD, 0);
 
+    /**
+     * Generates a set of {@link Command} for dashboard.
+     * <p>
+     * Each command is mapped to a number that triggers a view action.
+     * A "Logout" command is also included at the end of the list.
+     * </p>
+     * 
+     * Generates commands for the operations related to:
+     * <ol>
+     *   <li> {@code User}
+     *   <li> {@code BTOProject}
+     *   <li> {@code Application}
+     *   <li> {@code Enquiry}
+     *   <li> {@code OfficerRegistration} 
+     *   <li> System, such as logout
+     * </ol>
+     *
+     * @return a map of command IDs to corresponding commands
+     * 
+     * @see Command
+     */
     public static Map<Integer, Command> getCommands() {
         final Map<Integer, Command> commands = new LinkedHashMap<>();
         
@@ -63,6 +87,16 @@ public class DashboardCommandFactory extends AbstractCommandFactory {
         return commands;
     }
 
+    /**
+     * Adds {@link Command} related to {@code User} 
+     * such as change password.
+     * <p>
+     *
+     * @param user the current user
+     * @param commands the command map to add to
+     * 
+     * @see Command
+     */
     private static void addUserRelatedCommands(User user, Map<Integer, Command> commands) {
         final AuthController authController = diManager.resolve(AuthController.class);
         final ApplicationManager applicationManager = diManager.resolve(ApplicationManager.class);
@@ -76,6 +110,19 @@ public class DashboardCommandFactory extends AbstractCommandFactory {
         commands.put(CHANGE_PASSWORD_CMD, changePasswordCommand);
     }
 
+    /**
+     * Adds {@link Command} related {@code BTOProject} 
+     * such as displaying a list of project and creating new project.
+     * <p>
+     * Each command is added conditionally based on the current user’s permissions
+     * as determined by the {@link BTOProjectPolicy}.
+     *
+     * @param user the current user
+     * @param commands the command map to add to
+     * 
+     * @see Command
+     * @see BTOProjectPolicy
+     */
     private static void addBTOProjectsRelatedCommands(User user, Map<Integer, Command> commands) {
         final BTOProjectController btoProjectController = diManager.resolve(BTOProjectController.class);
         final BTOProjectPolicy btoProjectPolicy = diManager.resolve(BTOProjectPolicy.class);
@@ -105,6 +152,19 @@ public class DashboardCommandFactory extends AbstractCommandFactory {
         }
     }
 
+    /**
+     * Adds {@link Command} related {@code Application} 
+     * such as displaying a list of applications.
+     * <p>
+     * Each command is added conditionally based on the current user’s permissions
+     * as determined by the {@link ApplicationPolicy}.
+     *
+     * @param user the current user
+     * @param commands the command map to add to
+     * 
+     * @see Command
+     * @see ApplicationPolicy
+     */
     private static void addApplicationRelatedCommands(User user, Map<Integer, Command> commands) {
         final ApplicationController applicationController = diManager.resolve(ApplicationController.class);
         final ApplicationPolicy applicationPolicy = diManager.resolve(ApplicationPolicy.class);
@@ -126,6 +186,19 @@ public class DashboardCommandFactory extends AbstractCommandFactory {
         }
     }
 
+    /**
+     * Adds {@link Command} related {@code Enquiry} 
+     * such as displaying a list of enquiries.
+     * <p>
+     * Each command is added conditionally based on the current user’s permissions
+     * as determined by the {@link EnquiryPolicy}.
+     *
+     * @param user the current user
+     * @param commands the command map to add to
+     * 
+     * @see Command
+     * @see EnquiryPolicy
+     */
     private static void addEnquiryRelatedCommands(User user, Map<Integer, Command> commands) {
         final EnquiryController enquiryController = diManager.resolve(EnquiryController.class);
         final EnquiryPolicy enquiryPolicy = diManager.resolve(EnquiryPolicy.class);
@@ -147,6 +220,19 @@ public class DashboardCommandFactory extends AbstractCommandFactory {
         }
     }
 
+    /**
+     * Adds {@link Command} related {@code OfficerRegistration} 
+     * such as displaying a list of registrations.
+     * <p>
+     * Each command is added conditionally based on the current user’s permissions
+     * as determined by the {@link OfficerRegistrationPolicy}.
+     *
+     * @param user the current user
+     * @param commands the command map to add to
+     * 
+     * @see Command
+     * @see OfficerRegistrationPolicy
+     */
     private static void addOfficerRegistrationRelatedCommands(User user, Map<Integer, Command> commands) {
         final OfficerRegistrationController officerRegistrationController = diManager.resolve(OfficerRegistrationController.class);
         final OfficerRegistrationPolicy officerRegistrationPolicy = diManager.resolve(OfficerRegistrationPolicy.class);
