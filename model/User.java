@@ -2,24 +2,16 @@ package model;
 
 import config.MaritalStatus;
 import config.UserRole;
+import manager.CSVDataManager;
 
 /**
  * Represents a user in the system. This class stores all essential information
  * about a user, such as personal details, credentials, and their role within the system.
- * <p>
- * Each user is uniquely identified by their NRIC.
- * This class implements the {@link DataModel} interface to support
- * uniform data operations.
- * </p>
  */
 public class User implements DataModel{
     @CSVField(index = 0) 
     private String name;
 
-    /**
-     * The National Registration Identity Card (NRIC) number of the user,
-     * which serves as the unique primary key.
-     */
     @CSVField(index = 1)
     private String NRIC;
 
@@ -33,12 +25,14 @@ public class User implements DataModel{
     private String password;
     private String backupPassword;
 
-    /**
-     * The role of the user in the system (e.g., applicant, HDB officer, HDB manager).
-     */
     @CSVField(index = 5)
     private UserRole userRole;
 
+    /**
+     * Default no-argument constructor used exclusively for reflective instantiation.
+     * This constructor is necessary for classes like {@link CSVDataManager} 
+     * to create model objects via reflection.
+     */
     @SuppressWarnings("unused")
     private User() {}
 
@@ -61,54 +55,68 @@ public class User implements DataModel{
         this.userRole = userRole;
     }
 
+    /**
+     * Retrieve the name of user.
+     * @return the name of user
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     * Retrieve the NRIC of user.
+     * @return the NRIC of user
+     */
     public String getNRIC() {
         return NRIC;
     }
 
+    /**
+     * Retrieve the age of user.
+     * @return the age of user
+     */
     public int getAge() {
         return age;
     }
 
+    /**
+     * Retrieve the marital status of user.
+     * @return the marital status of user
+     * 
+     * @see MaritalStatus
+     */
     public MaritalStatus getMaritalStatus() {
         return maritalStatus;
     }
     
+    /**
+     * Retrieve the password of user.
+     * @return the password of user
+     */
     public String getPassword() {
         return password;
     }
 
+    /**
+     * Set the password of user.
+     * The current state is backup and can be revert by {@link #restore()}.
+     * @param password new password
+     */
     public void setPassword(String password) {
         backup();
         this.password = password;
     }
 
+    /**
+     * Retrieve the role of user.
+     * @return the role of user
+     * 
+     * @see UserRole
+     */
     public UserRole getUserRole() {
         return userRole;
     }
 
-    /**
-     * Returns the primary key of this data model, which is the NRIC.
-     *
-     * @return The NRIC of the user.
-     *  getPK() returning NRIC in User
-     * Unlike other model classes like Enquiry.java and FlatUnit.java, User.java does not need UUID
-     * Users are real people, and their NRIC is already a unique, natural identifier (in a Singapore context).
-     * No need to generate a synthetic UUID when the NRIC is:
-     * - Already guaranteed to be unique,
-     * - Constant (doesn’t change over time),
-     * - Understandable and traceable (we can look up someone by NRIC easily).
-     * So it makes sense for User.getPK() to return the NRIC.
-     * getPK() returning UUID in other models (e.g. Enquiry, FlatUnit, etc.):
-     * These entities don’t naturally come with a unique, guaranteed ID like an NRIC.
-     * We need to generate a UUID for each new instance to ensure:
-     * - No two records clash,
-     * - Data integrity across operations like save, load, update,
-     * - Easy reference in foreign keys (like in @CSVField(foreignKey = true) fields).
-     */
     @Override
     public String getPK() {
         return NRIC;

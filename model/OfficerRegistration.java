@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import config.RegistrationStatus;
 import exception.DataModelException;
+import manager.CSVDataManager;
 
 /**
  * Represents a registration request from an HDB officer to manage a BTO project.
@@ -14,7 +15,11 @@ import exception.DataModelException;
  * The registration includes status tracking, timestamps, and notification flags for updates.
  * </p>
  * 
- * <p>This class implements the {@link DataModel} interface for standardized data handling.</p>
+ * In addition to its data, this class encapsulates business logic related to the
+ * application process, adhering to the principles of a rich domain model. 
+ * It ensures that the application state and behaviors are consistent with the 
+ * domain rules, and manipulates its data through methods that enforce business 
+ * rules rather than relying solely on external procedures.
  */
 public class OfficerRegistration implements DataModel{
     /**
@@ -37,13 +42,12 @@ public class OfficerRegistration implements DataModel{
     private RegistrationStatus backupRegistrationStatus;
 
     @CSVField(index = 4)
-    private boolean updated;
-
-    @CSVField(index = 5)
     private LocalDateTime createdAt;
 
     /**
-     * Private no-argument constructor for reflective instantiation.
+     * Default no-argument constructor used exclusively for reflective instantiation.
+     * This constructor is necessary for classes like {@link CSVDataManager} 
+     * to create model objects via reflection.
      */
     @SuppressWarnings("unused")
     private OfficerRegistration() {}
@@ -59,7 +63,6 @@ public class OfficerRegistration implements DataModel{
         UUID uuid = UUID.randomUUID();
         this.uuid = uuid.toString();
         this.registrationStatus = RegistrationStatus.PENDING;
-        this.updated = false;
         this.createdAt = LocalDateTime.now();
         
         this.btoProject = btoProject;
@@ -94,29 +97,6 @@ public class OfficerRegistration implements DataModel{
     }
 
     /**
-     * Indicates whether the registration has an unread update.
-     *
-     * @return true if there is an unread update, false otherwise
-     */
-    public boolean hasUnreadUpdate() {
-        return updated;
-    }
-
-    /**
-     * Marks the registration as having an unread update.
-     */
-    public void markAsUnread(){
-        updated = true;
-    }
-
-    /**
-     * Marks the registration as read (no unread update).
-     */
-    public void markAsRead(){
-        updated = false;
-    }
-
-    /**
      * Returns the timestamp when this registration was created.
      *
      * @return the creation time
@@ -124,20 +104,26 @@ public class OfficerRegistration implements DataModel{
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
-
     
+    /**
+     * Checks if the registration is in a state where it can be approved.
+     * The application is approvable its status is currently pending.
+     *
+     * @return {@code true} if the application can be approved, {@code false} otherwise
+     */
     public boolean isApprovable(){
         return registrationStatus == RegistrationStatus.PENDING;
     }
 
     /**
      * Updates the registration status based on approval or rejection.
+     * The current state is backup and can be revert by {@link #restore()}.
      *
      * @param isApproving true to approve the registration, false to reject
      * @throws DataModelException if the registration has already been processed,
      *                            or if approving would exceed project officer limits
      */
-    public void updateRegistrationStatus(boolean isApproving){
+    public void updateRegistrationStatus(boolean isApproving) throws DataModelException{
         backup();
         
         if(!isApprovable()){
@@ -156,11 +142,6 @@ public class OfficerRegistration implements DataModel{
         }
     }
 
-    /**
-     * Returns the primary key (UUID) of the registration.
-     *
-     * @return the UUID string
-     */
     @Override
     public String getPK() {
         return uuid;
@@ -174,19 +155,5 @@ public class OfficerRegistration implements DataModel{
     @Override
     public void restore() {
         this.registrationStatus = backupRegistrationStatus;
-    }
-
-    /**
-     * Returns a string representation of the officer registration.
-     *
-     * @return a formatted string of UUID, project ID, and officer ID
-     */
-    @Override
-    public String toString() {
-        return "%s, %s, %s".formatted(
-            uuid,
-            btoProject.getPK(),
-            HDBOfficer.getPK()
-        );
     }
 }

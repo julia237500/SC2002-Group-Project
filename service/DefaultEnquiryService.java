@@ -29,6 +29,7 @@ public class DefaultEnquiryService implements EnquiryService{
      */
     public DefaultEnquiryService(DataManager dataManager, EnquiryPolicy enquiryPolicy){
         this.dataManager = dataManager;
+        this.enquiryPolicy = enquiryPolicy;
     }
 
     /**
@@ -124,8 +125,6 @@ public class DefaultEnquiryService implements EnquiryService{
         try {
             Enquiry enquiry = new Enquiry(btoProject, requestedUser, subject, enquiryString);
             dataManager.save(enquiry);
-        } catch (DataModelException e) {
-            return new ServiceResponse<>(ResponseStatus.ERROR, e.getMessage());
         } catch (DataSavingException e) {
             return new ServiceResponse<>(ResponseStatus.ERROR, "Internal error. %s".formatted(e.getMessage()));
         } 
@@ -156,7 +155,9 @@ public class DefaultEnquiryService implements EnquiryService{
             enquiry.setSubject(subject);
             enquiry.setEnquiry(enquiryString);
             dataManager.save(enquiry);
-        } catch (DataSavingException e) {
+        } catch (DataModelException e) {
+            return new ServiceResponse<>(ResponseStatus.ERROR, e.getMessage());
+        }catch (DataSavingException e) {
             enquiry.restore();
             return new ServiceResponse<>(ResponseStatus.ERROR, "Internal error. %s".formatted(e.getMessage()));
         } 

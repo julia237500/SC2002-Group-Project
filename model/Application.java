@@ -8,50 +8,31 @@ import config.ApplicationStatus;
 import config.FlatType;
 import config.WithdrawalStatus;
 import exception.DataModelException;
-
-/**
- * A model class in Java is a class that represents data — usually real-world objects or database records. 
- * It's part of the MVC pattern (Model-View-Controller).
- * In our application,
- * Application, User, BTOProject are all model classes because they represent entities in our system.
- * They store data: e.g., String uuid, FlatType flatType
- * They are not responsible for displaying info (view) or controlling the program flow (controller)
- * They mainly only have getters (and setters if needed)
- * They may have validation logic, like checking flat eligibility 
- */
+import manager.CSVDataManager;
 
 /**
  * Represents a BTO flat application submitted by a user.
  * Each application contains information about the applicant, the project,
  * the flat type, application status, and its creation timestamp.
+ * <p>
+ * In addition to its data, this class encapsulates business logic related to the
+ * application process, adhering to the principles of a rich domain model. 
+ * It ensures that the application state and behaviors are consistent with the 
+ * domain rules, and manipulates its data through methods that enforce business 
+ * rules rather than relying solely on external procedures.
  */
 public class Application implements DataModel{
+    /**
+     * Comparator for sorting {@link Application} objects by their creation timestamp in descending order.
+     * This comparator compares applications based on the {@link Application#getCreatedAt()} method and 
+     * sorts them in reverse order, so that the most recently created applications appear first.
+     */
     public static final Comparator<Application> SORT_BY_CREATED_AT_DESC =
         Comparator.comparing(Application::getCreatedAt).reversed();
 
-    /**
-     * @CSVField is an annotation that is custom and used for mapping the fields of the object to columns in a CSV file 
-     * (like Excel but in plain text).
-     * So, @CSVField(index = 0) means: “This field (uuid) should be at the first column when saving/loading the object as a CSV row.”
-     */
     @CSVField(index = 0)
     private String uuid;
 
-    /**
-     * In model classes, a foreign key is a reference to another object.
-     * A foreign key is a field in a data model that links to another model — it forms a relationship between two entities.
-     * Separation of Concerns:
-     * - Using foreign keys ensures that:
-     * - Application doesn’t mix in logic for how users or projects work
-     * - It just links to those other concerns
-     * - User, BTOProject, and Application are decoupled, and can evolve independently
-     * - This keeps the code modular and easy to maintain.
-     * Single Responsibility Principle:
-     * - We're keeping Application focused on its job:
-     * - It doesn't store raw data like user names or project names
-     * - It stores object references, leaving the User and BTOProject classes to manage their own data
-     * - Each class does only one thing and is responsible for its own logic and data.
-     */
     @CSVField(index = 1, foreignKey = true)
     private User applicant;
 
@@ -73,11 +54,9 @@ public class Application implements DataModel{
     private LocalDateTime createdAt;
 
     /**
-     * Default no-argument constructor for reflective instantiation.
-     * Useful in other classes like CSVDataManager (@see CSVDataManager) where we use reflection 
-     * to instantiate model classes (like User, Application, BTOProject etc.) 
-     * from CSV data without hardcoding how each object is created.
-     * annotated with @SuppressWarnings("unused") — tells the compiler “yes I know it’s unused, please don’t complain”
+     * Default no-argument constructor used exclusively for reflective instantiation.
+     * This constructor is necessary for classes like {@link CSVDataManager} 
+     * to create model objects via reflection.
      */
     @SuppressWarnings("unused")
     private Application(){}
@@ -89,8 +68,13 @@ public class Application implements DataModel{
      * @param applicant the user applying for a flat
      * @param btoProject the BTO project applied for
      * @param flatType the type of flat applied for
+     * @throws DataModelException if validation fail, like user is not eligible for the flat type
+     * 
+     * @see User
+     * @see BTOProject
+     * @see FlatType
      */
-    public Application(User applicant, BTOProject btoProject, FlatType flatType){
+    public Application(User applicant, BTOProject btoProject, FlatType flatType) throws DataModelException{
         checkFlatTypeEligibility(applicant, btoProject, flatType);
 
         this.applicant = applicant;
@@ -103,6 +87,24 @@ public class Application implements DataModel{
         this.applicationStatus = ApplicationStatus.PENDING;
         this.withdrawalStatus = WithdrawalStatus.NOT_APPLICABLE;
         this.createdAt = LocalDateTime.now();
+    }
+
+    /**
+     * Validates the eligibility of the user to apply for the given flat type in the BTO project.
+     *
+     * @param applicant the applicant user
+     * @param btoProject the BTO project
+     * @param flatType the flat type
+     * @throws DataModelException if the flat type is unavailable or the user is not eligible
+     */
+    private void checkFlatTypeEligibility(User applicant, BTOProject btoProject, FlatType flatType) throws DataModelException {
+        if(!btoProject.hasAvailableFlats(flatType)){
+            throw new DataModelException("%s is not available for the project %s".formatted(flatType.getStoredString(), btoProject.getName()));
+        }
+
+        if(!flatType.isEligible(applicant)){
+            throw new DataModelException("You are not eligible to apply for %s".formatted(flatType.getStoredString()));
+        }
     }
 
     /**
@@ -142,15 +144,40 @@ public class Application implements DataModel{
         return applicationStatus;
     }
 
+    /**
+     * Sets the current {@link ApplicationStatus} and creates a backup of the previous status.
+     * This allows tracking the previous status for potential rollback or audit purposes.
+     * It is always recommended to call this method to change application status internally.
+     * 
+     * @param applicationStatus The new {@code ApplicationStatus} to be set.
+     * 
+     * @see ApplicationStatus
+     */
     private void setApplicationStatus(ApplicationStatus applicationStatus) {
         this.backupApplicationStatus = this.applicationStatus;
         this.applicationStatus = applicationStatus;
     }
 
+    /**
+     * Retrieves the current {@link WithdrawalStatus}.
+     * 
+     * @return The current {@code WithdrawalStatus} of the application.
+     * 
+     * @see WithdrawalStatus
+     */
     public WithdrawalStatus getWithdrawalStatus() {
         return withdrawalStatus;
     }
 
+    /**
+     * Sets the current {@link WithdrawalStatus} and creates a backup of the previous status.
+     * This allows tracking the previous status for potential rollback or audit purposes.
+     * It is always recommended to call this method to change withdrawal status internally.
+     * 
+     * @param withdrawalStatus The new {@link WithdrawalStatus} to be set.
+     * 
+     * @see WithdrawalStatus
+     */
     private void setWithdrawalStatus(WithdrawalStatus withdrawalStatus) {
         this.backupWithdrawalStatus = this.withdrawalStatus;
         this.withdrawalStatus = withdrawalStatus;
@@ -164,42 +191,56 @@ public class Application implements DataModel{
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
-
+    /**
+     * Retrieves the number of flats available for the specified flat type in the BTO project.
+     * This method simplifies access to the flat number and prevents messy chaining of methods.
+     */
     public int getFlatNum() {
         return btoProject.getFlatNum(flatType);
     }
-
-    public int getFlatNum() {
-        return btoProject.getFlatNum(flatType);
-    } 
 
     /**
-     * Checks if the user is eligible to apply for the given flat type in the BTO project.
+     * Checks if the application is in a state where it can be approved.
+     * The application is approvable if it is updatable
+     * and its status is currently pending.
      *
-     * @param applicant the applicant user
-     * @param btoProject the BTO project
-     * @param flatType the flat type
-     * @throws DataModelException if the flat type is unavailable or the user is not eligible
+     * @return {@code true} if the application can be approved, {@code false} otherwise
      */
-    private void checkFlatTypeEligibility(User applicant, BTOProject btoProject, FlatType flatType) {
-        if(!btoProject.hasAvailableFlats(flatType)){
-            throw new DataModelException("%s is not available for the project %s".formatted(flatType.getStoredString(), btoProject.getName()));
-        }
-
-        if(!flatType.isEligible(applicant)){
-            throw new DataModelException("You are not eligible to apply for %s".formatted(flatType.getStoredString()));
-        }
-    }
-
-    private boolean isUpdatable() {
-        return withdrawalStatus == WithdrawalStatus.NOT_APPLICABLE || withdrawalStatus == WithdrawalStatus.UNSUCCESSFUL;
-    }
-
     public boolean isApprovable() {
         return isUpdatable() && applicationStatus == ApplicationStatus.PENDING;
     }
 
-    public void approveApplication(boolean isApproving) {
+    /**
+     * Checks if the application is in a state where it can be booked.
+     * The application is bookable if it is updatable
+     * and its status is marked as successful.
+     *
+     * @return {@code true} if the application can be booked, {@code false} otherwise
+     */
+    public boolean isBookable() {
+        return isUpdatable() && applicationStatus == ApplicationStatus.SUCCESSFUL;
+    }
+
+    /**
+     * Determines if the application can be updated.
+     * The application is considered updatable if its withdrawal status is either 
+     * not applicable or unsuccessful, meaning it has not been withdrawn or it was unsuccessful 
+     * in the past and can be modified.
+     *
+     * @return {@code true} if the application can be updated, {@code false} otherwise
+     */
+    private boolean isUpdatable() {
+        return withdrawalStatus == WithdrawalStatus.NOT_APPLICABLE || withdrawalStatus == WithdrawalStatus.UNSUCCESSFUL;
+    }
+
+    /**
+     * Approve or reject an application based on the provided flag.
+     * The current state is backup and can be revert by {@link #restore()}.
+     *
+     * @param isApproving if {@code true}, approves the application; otherwise, rejects it
+     * @throws DataModelException if the application is not in a valid state to be approved or rejected
+     */
+    public void approveApplication(boolean isApproving) throws DataModelException {
         if(applicationStatus != ApplicationStatus.PENDING){
             throw new DataModelException("Application approval unsuccessful. The project is not under pending.");
         }
@@ -216,11 +257,13 @@ public class Application implements DataModel{
         else setApplicationStatus(ApplicationStatus.UNSUCCESSFUL);
     }
 
-    public boolean isBookable() {
-        return isUpdatable() && applicationStatus == ApplicationStatus.SUCCESSFUL;
-    }
-
-    public void bookApplication(){
+    /**
+     * Book the flat for this application.
+     * The current state is backup and can be revert by {@link #restore()}.
+     *
+     * @throws DataModelException if the application is not in a valid state for booking
+     */
+    public void bookApplication() throws DataModelException{
         if(applicationStatus == ApplicationStatus.BOOKED){
             throw new DataModelException("Application booking unsuccessful. The application is already booked.");
         }
@@ -238,14 +281,37 @@ public class Application implements DataModel{
         }
         
         setApplicationStatus(ApplicationStatus.BOOKED);
+        backup();
         btoProject.bookFlat(flatType);
     }
 
+     /**
+     * Checks if the application is in a state where it can be withdrawed.
+     * The application is withdrawable if its withdrawal status is unsuccessful or not applicable.
+     *
+     * @return {@code true} if the application can be approved, {@code false} otherwise
+     */
     public boolean isWithdrawable() {
         return withdrawalStatus == WithdrawalStatus.UNSUCCESSFUL || withdrawalStatus == WithdrawalStatus.NOT_APPLICABLE;
     }
 
-    public void requestWithdrawal() {
+    /**
+     * Checks if the application is in a state where the withdrawal can be approved.
+     * The withdrawal is approvable and its withdrawal status is currently pending.
+     *
+     * @return {@code true} if the application can be approved, {@code false} otherwise
+     */
+    public boolean isWithdrawApprovable() {
+        return withdrawalStatus == WithdrawalStatus.PENDING;
+    }
+
+    /**
+     * Requests withdrawal for the application.
+     * The current state is backup and can be revert by {@link #restore()}.
+     *
+     * @throws DataModelException if the application is not withdrawable.
+     */
+    public void requestWithdrawal() throws DataModelException {
         if(withdrawalStatus == WithdrawalStatus.PENDING){
             throw new DataModelException("Withdrawal requested unsuccessful. The project is already under pending withdrawal.");
         }
@@ -257,12 +323,21 @@ public class Application implements DataModel{
         setWithdrawalStatus(WithdrawalStatus.PENDING);
     }
 
-    public void approveWithdrawal(boolean isApproving) {
+    /**
+     * Approves or rejects a pending withdrawal request.
+     * The current state is backup and can be revert by {@link #restore()}.
+     *
+     * @param isApproving true to approve, false to reject the withdrawal
+     * @throws DataModelException if the application is not under pending withdrawal.
+     */
+    public void approveWithdrawal(boolean isApproving) throws DataModelException {
         if(withdrawalStatus != WithdrawalStatus.PENDING){
             throw new DataModelException("Withdrawal approval unsuccessful. The project is not under pending withdrawal.");
         }
 
         if(isApproving){
+            backup();
+            
             if(applicationStatus == ApplicationStatus.BOOKED){
                 btoProject.unbookFlat(flatType);
             }
@@ -272,19 +347,6 @@ public class Application implements DataModel{
         }
         else setWithdrawalStatus(WithdrawalStatus.UNSUCCESSFUL);    
     }
-
-    public boolean isWithdrawApprovable() {
-        return withdrawalStatus == WithdrawalStatus.PENDING;
-    }
-
-        /**
-     * Returns the primary key (UUID) of the application.
-     * A UUID stands for Universally Unique Identifier.
-     * It's a 128-bit number that is guaranteed to be unique, often used as a primary key (getPK() in this class).
-     * In our application, UUID is used as the ID for the application 
-     * so it can be stored, retrieved, or referenced without confusion.
-     * @return the UUID as a string
-     */
 
     @Override
     public String getPK() {
@@ -305,34 +367,3 @@ public class Application implements DataModel{
         btoProject.restore();
     }
 }
-    
-
-/**
- * Here are the following design principles for this class:
- * 1. Single Responsibility Principle (SRP)
- * - The Application class is focused only on application-related data and rules:
- * - Storing the applicant and their choices
- * - Validating eligibility
- * - Managing the application status
- * - It doesn't handle user interface, persistence, or command logic — just the domain rules of applying for a BTO flat.
- * 2. Encapsulation: "Hide internal logic and expose only what’s necessary."
- * - The fields are private; exposing data only through getters
- * The UUID is auto-generated — users can’t (and shouldn’t) manually assign it
- * Business logic like checkFlatTypeEligibility is internal, not exposed externally
- * This keeps the object safe and predictable.
- * 3. Separation of Concerns (part of MVC):
- * - The Application class is in the Model layer — its job is to:
- * - Represent application data
- * - Contain business logic (e.g., eligibility checking)
- * - It doesn’t deal with: How data is saved (CSVDataManager handles that), How users input data (View/Controller handle that), Menu or command logic
- * - We are cleanly separating what the data is from how it’s used.
- * 4. Law of Demeter (Principle of Least Knowledge):
- * - The Application class isn’t directly calling other unrelated classes. It interacts with: User (applicant), BTOProject, FlatType
- * - It doesn't go off accessing unrelated services or utilities.
- * 5. Robust Domain Modeling:
- * - The class also uses:
- * - Enums (ApplicationStatus, FlatType) to limit possible values
- * - UUID for unique identification
- * - Validations to ensure only correct applications are created
- * - This makes the class self-validating and hard to misuse.
- */

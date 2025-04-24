@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import config.FlatType;
 import exception.DataModelException;
+import manager.CSVDataManager;
 
 /**
  * Represents a flat unit available under a BTO project.
@@ -12,7 +13,11 @@ import exception.DataModelException;
  * and has information such as its flat type, number, and price.
  * </p>
  *
- * <p>This class implements the {@link DataModel} interface to support generic data handling operations.</p>
+ * In addition to its data, this class encapsulates business logic related to the
+ * application process, adhering to the principles of a rich domain model. 
+ * It ensures that the application state and behaviors are consistent with the 
+ * domain rules, and manipulates its data through methods that enforce business 
+ * rules rather than relying solely on external procedures.
  */
 public class FlatUnit implements DataModel{
     @CSVField(index = 0)
@@ -33,7 +38,9 @@ public class FlatUnit implements DataModel{
     private int backupFlatPrice;
 
     /**
-     * Private no-args constructor for reflective instantiation.
+     * Default no-argument constructor used exclusively for reflective instantiation.
+     * This constructor is necessary for classes like {@link CSVDataManager} 
+     * to create model objects via reflection.
      */
     @SuppressWarnings("unused")
     private FlatUnit() {}
@@ -69,8 +76,9 @@ public class FlatUnit implements DataModel{
      * Updates the flat number.
      *
      * @param flatNum the new flat number
+     * @throws DataModelException if flat number is negative
      */
-    public void setFlatNum(int flatNum) {
+    public void setFlatNum(int flatNum) throws DataModelException {
         if(flatNum < 0) {
             throw new DataModelException("Flat number cannot be negative.");
         }
@@ -79,7 +87,13 @@ public class FlatUnit implements DataModel{
         this.flatNum = flatNum;
     }
 
-    public void adjustFlatNum(int change) {
+    /**
+     * Updates the flat number by adding a change.
+     *
+     * @param flatNum the change to add, can be negative
+     * @throws DataModelException if new flat number is negative
+     */
+    public void adjustFlatNum(int change) throws DataModelException {
         if(flatNum + change < 0) {
             throw new DataModelException("Flat number cannot be negative.");
         }
@@ -100,8 +114,9 @@ public class FlatUnit implements DataModel{
      * Updates the price of the flat.
      *
      * @param flatPrice the new flat price
+     * @throws DataModelException if flat price is negative
      */
-    public void setFlatPrice(int flatPrice) {
+    public void setFlatPrice(int flatPrice) throws DataModelException {
         if(flatPrice < 0) {
             throw new DataModelException("Flat price cannot be negative.");
         }
@@ -120,16 +135,6 @@ public class FlatUnit implements DataModel{
     }
 
     /**
-     * Returns the primary key (UUID string) of this flat unit.
-     *
-     * @return the UUID of the flat unit
-     */
-    @Override
-    public String getPK() {
-        return uuid;
-    }
-
-    /**
      * Returns the BTO project associated with this flat unit.
      *
      * @return the related BTOProject object
@@ -139,18 +144,13 @@ public class FlatUnit implements DataModel{
     }
 
     /**
-     * Returns a formatted string representation of this flat unit.
+     * Returns the primary key (UUID string) of this flat unit.
      *
-     * @return a string containing UUID, project ID, flat number, and price
+     * @return the UUID of the flat unit
      */
     @Override
-    public String toString() {
-        return "%s, %s, %d, %d".formatted(
-            uuid,
-            btoProject.getPK(),
-            flatNum,
-            flatPrice
-        );
+    public String getPK() {
+        return uuid;
     }
 
     public void backup(){

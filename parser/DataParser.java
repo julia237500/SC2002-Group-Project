@@ -29,7 +29,6 @@ public class DataParser {
 
     // Static initializer block for setting up parsers and stringifiers
     static {
-        
         configParsers();
         configStringifiers();
     }

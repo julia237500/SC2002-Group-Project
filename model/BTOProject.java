@@ -11,20 +11,31 @@ import config.FlatType;
 import config.UserRole;
 import dto.BTOProjectDTO;
 import exception.DataModelException;
+import manager.CSVDataManager;
 
 /**
  * Represents a Build-To-Order (BTO) project managed by HDB.
  * Stores details such as project name, neighborhood, flat types available,
  * application periods, assigned HDB officers, and visibility.
- * Supports validation, editing, and state management through Memento.
+ * <p>
+ * In addition to its data, this class encapsulates business logic related to the
+ * application process, adhering to the principles of a rich domain model. 
+ * It ensures that the application state and behaviors are consistent with the 
+ * domain rules, and manipulates its data through methods that enforce business 
+ * rules rather than relying solely on external procedures.
  */
 public class BTOProject implements DataModel{
+    /**
+     * Default comparator for sorting BTO projects.
+     * Projects are sorted with active ones first (descending by isActive),
+     * and then alphabetically by project name.
+     */
     public static final Comparator<BTOProject> DEFAULT_COMPARATOR = 
         Comparator.comparing(BTOProject::isActive, Comparator.reverseOrder())
-        .thenComparing(BTOProject::getOpeningDate);
+                .thenComparing(BTOProject::getName);
 
-    public static int MIN_HDB_OFFICER_LIMIT = 1;
-    public static int MAX_HDB_OFFICER_LIMIT = 10;
+    public static final int MIN_HDB_OFFICER_LIMIT = 1;
+    public static final int MAX_HDB_OFFICER_LIMIT = 10;
 
     @CSVField(index = 0)
     private String name;
@@ -50,8 +61,10 @@ public class BTOProject implements DataModel{
 
     private Memento memento;
 
-    /**
-     * Required for reflective instantiation in CSVDataManager.
+     /**
+     * Default no-argument constructor used exclusively for reflective instantiation.
+     * This constructor is necessary for classes like {@link CSVDataManager} 
+     * to create model objects via reflection.
      */
     @SuppressWarnings("unused")
     private BTOProject(){}
@@ -76,13 +89,16 @@ public class BTOProject implements DataModel{
     }
     
     /**
-     * Factory method to create a BTOProject from a DTO.
+     * Factory method to create a BTOProject from a {@link BTOProjectDTO}.
      * 
      * @param HBDManager      HDB Manager initiating the project
      * @param btoProjectDTO   Data transfer object containing project details
      * @return                a constructed BTOProject instance
+     * @throws DataModelException if the creation fail due to invalid data, such as closing dat is before opening date
+     * 
+     * @see BTOProjectDTO
      */
-    public static BTOProject fromDTO(User HBDManager, BTOProjectDTO btoProjectDTO){
+    public static BTOProject fromDTO(User HBDManager, BTOProjectDTO btoProjectDTO) throws DataModelException{
         if(HBDManager.getUserRole() != UserRole.HDB_MANAGER){
             throw new DataModelException("Access Denied. Only HDB Manager can open new project.");
         }
@@ -93,7 +109,7 @@ public class BTOProject implements DataModel{
         
         validate(btoProjectDTO);
 
-        BTOProject btoProject = new BTOProject(
+        final BTOProject btoProject = new BTOProject(
             HBDManager,
             btoProjectDTO.getName(), 
             btoProjectDTO.getNeighborhood(), 
@@ -108,18 +124,19 @@ public class BTOProject implements DataModel{
     }
 
     /**
-     * Edits the current BTOProject using data from a DTO.
-     * Preserves the current state in a Memento before changes.
-     * 
-     * @param btoProjectDTO updated project details
+     * Updates the current BTOProject with values from the given DTO (Data Transfer Object).
+     * The current state is backup and can be revert by {@link #restore()}.
+     *
+     * @param btoProjectDTO the DTO containing the updated project details
+     * @throws DataModelException if any validation or update logic fails during the edit process
      */
-    public void edit(BTOProjectDTO btoProjectDTO){
+    public void edit(BTOProjectDTO btoProjectDTO) throws DataModelException{
         validate(btoProjectDTO);
         if(btoProjectDTO.getHDBOfficerLimit() < HDBOfficers.size()){
             throw new DataModelException("New number of HDB Officers cannot be smaller than current number of HDB Officers in charge (%d)".formatted(HDBOfficers.size()));
         }
 
-        memento = new Memento(this); // Save current state before editing
+        backup();
 
         this.neighborhood = btoProjectDTO.getNeighborhood();
         this.openingDate = btoProjectDTO.getOpeningDate();
@@ -130,11 +147,13 @@ public class BTOProject implements DataModel{
     }
 
     /**
-     * Validates a BTOProjectDTO for logical consistency and constraints.
+     * Validates a BTOProjectDTO with domain rules such as closing date cannot be before opening date.
+     * 
+     * @throws DataModelException if validation fail
      */
-    private static void validate(BTOProjectDTO btoProjectDTO){
-        Map<FlatType, Integer> flatNum = btoProjectDTO.getFlatNum();
-        Map<FlatType, Integer> flatPrice = btoProjectDTO.getFlatPrice();
+    private static void validate(BTOProjectDTO btoProjectDTO) throws DataModelException{
+        final Map<FlatType, Integer> flatNum = btoProjectDTO.getFlatNum();
+        final Map<FlatType, Integer> flatPrice = btoProjectDTO.getFlatPrice();
 
         for(FlatType flatType:FlatType.values()){
             if(flatNum.get(flatType) < 0){
@@ -155,9 +174,6 @@ public class BTOProject implements DataModel{
         }
     }
 
-    /**
-     * Getters and setters
-     */
     public String getName() {
         return name;
     }
@@ -172,8 +188,9 @@ public class BTOProject implements DataModel{
 
     /**
      * Updates or creates FlatUnits with new quantity and price data.
+     * @throws DataModelException 
      */
-    public void changeFlatUnits(Map<FlatType, Integer> flatNums, Map<FlatType, Integer> flatPrices){
+    public void changeFlatUnits(Map<FlatType, Integer> flatNums, Map<FlatType, Integer> flatPrices) throws DataModelException{
         for(FlatType flatType:FlatType.values()){
             FlatUnit flatUnit = flatUnits.get(flatType);
             int flatNum = flatNums.getOrDefault(flatType, 0);
@@ -190,7 +207,7 @@ public class BTOProject implements DataModel{
         }
     }
 
-    private FlatUnit getFlatUnit(FlatType flatType) {
+    private FlatUnit getFlatUnit(FlatType flatType) throws DataModelException {
         FlatUnit flatUnit = flatUnits.get(flatType);
         if(flatUnit == null){
             throw new DataModelException("Flat type %s not found".formatted(flatType.getStoredString()));
@@ -212,17 +229,13 @@ public class BTOProject implements DataModel{
         return flatUnit == null ? 0 : flatUnit.getFlatPrice();
     }
 
-    public void bookFlat(FlatType flatType){
+    public void bookFlat(FlatType flatType) throws DataModelException{
         FlatUnit flatUnit = getFlatUnit(flatType);
 
-        try {
-            flatUnit.adjustFlatNum(-1);
-        } catch (DataModelException e) {
-            throw new DataModelException("Flat type %s is not available.".formatted(flatType.getStoredString()));
-        }
+        flatUnit.adjustFlatNum(-1);
     }
 
-    public void unbookFlat(FlatType flatType){
+    public void unbookFlat(FlatType flatType) throws DataModelException{
         FlatUnit flatUnit = getFlatUnit(flatType);
 
         flatUnit.adjustFlatNum(1);
@@ -269,7 +282,7 @@ public class BTOProject implements DataModel{
         return HDBOfficers;
     }
 
-    public void addHDBOfficer(User HDBOfficer){
+    public void addHDBOfficer(User HDBOfficer) throws DataModelException{
         if(HDBOfficer.getUserRole() != UserRole.HDB_OFFICER){
             throw new DataModelException("User added is not HDB Officer.");
         }
@@ -304,6 +317,16 @@ public class BTOProject implements DataModel{
         return false;
     }
 
+    public boolean canBeAppliedBy(User user){
+        for(FlatType flatType:FlatType.values()){
+            if(hasAvailableFlats(flatType) && flatType.isEligible(user)){
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /**
      * Returns the primary key for this data model (project name).
      */
@@ -325,35 +348,24 @@ public class BTOProject implements DataModel{
     }
 
     /**
-     * Memento class for storing a backup copy of BTOProject state during edits.
-     */
-    /**
-     * A Memento is a design pattern used in OOP to capture and restore an object's state 
-     * without exposing its internal structure. 
-     * It is especially useful for implementing features like undo/redo, rollback, or state history.
-     * In Simple Terms, a memento stores a snapshot of an object’s state so that the object can be restored to that state later.
-     * This is the inner class: private static class Memento 
-     * And it’s used here: memento = new Memento(this);  // Save current state before editing
-     * Then later, we do: memento.restore(this);  // Restore the previous state
-     * This allows our BTOProject object to:
-     * - Save a version of itself before being edited
-     * - Restore that version if something goes wrong or if the user wants to cancel the edit
-     * In our Memento class, we're storing:
-     * - neighborhood
-     * - openingDate and closingDate
-     * - HDBOfficerLimit
-     * - Number and price of flats (for each FlatType)
-     * So, if someone edits a BTO project and changes the flat prices, officer limit, or dates
-     * but later decides to revert, we can roll everything back cleanly using the memento.
-     * Maintains encapsulation (internal state isn't exposed)
-     * Keeps code clean and modular
-     * Drawbacks of using mementos:
-     * - Can increase memory usage (especially if many states are saved)
-     * - If the object's state is large, copying might be expensive
-     * - Can lead to complexity if not managed properly (e.g., when to discard old mementos?)
-     * 
-     * Memento is an inner class, private and only usable by the originator: private static class Memento {...}
-     * - This encapsulation is key to the pattern: no external class can mess with the stored state.
+     * Memento class for storing a backup copy of a BTOProject's state.
+     * <p>
+     * This inner class implements the Memento design pattern, allowing the 
+     * BTOProject to save and later restore its internal state without violating 
+     * encapsulation. It's used to support rollback functionality in case 
+     * an edit operation needs to be undone.
+     * </p>
+     * <p>
+     * The state captured includes:
+     * - Neighborhood
+     * - Opening and closing dates
+     * - HDB officer limit
+     * - State of all associated FlatUnits
+     * </p>
+     * <p>
+     * <strong>Note</strong>: Memento is private and only accessible by BTOProject to preserve 
+     * encapsulation and prevent external modification.
+     * </p>
      */
     private static class Memento {
         private final String neighborhood;
@@ -382,30 +394,5 @@ public class BTOProject implements DataModel{
                 flatUnit.backup();
             }
         }
-    }
-
-    public String toString(){
-        return String.format("""
-                Name                  : %s
-                Neighbourhood         : %s
-                Number of 2-Room Flat : %d
-                Price of 2-Room Flat  : %d
-                Number of 3-Room Flat : %d
-                Price of 3-Room Flat  : %d
-                Opening Date          : %s
-                Closing Date          : %s
-                HDB Officer Limit     : %d
-                Visibility            : %s
-                """, name, neighborhood, getFlatNum(FlatType.TWO_ROOM_FLAT), getFlatPrice(FlatType.TWO_ROOM_FLAT), getFlatNum(FlatType.THREE_ROOM_FLAT), getFlatPrice(FlatType.THREE_ROOM_FLAT), openingDate, closingDate, HDBOfficerLimit, visible ? "Visible" : "Hidden");
-    }
-
-    public boolean canBeAppliedBy(User user){
-        for(FlatType flatType:FlatType.values()){
-            if(hasAvailableFlats(flatType) && flatType.isEligible(user)){
-                return true;
-            }
-        }
-
-        return false;
     }
 }

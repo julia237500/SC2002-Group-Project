@@ -5,6 +5,8 @@ import java.util.Comparator;
 import java.util.UUID;
 
 import config.EnquiryStatus;
+import exception.DataModelException;
+import manager.CSVDataManager;
 
 /**
  * Represents an enquiry submitted by a user regarding a specific BTO project.
@@ -13,14 +15,17 @@ import config.EnquiryStatus;
  * a status (replied or unreplied), and a timestamp of when it was created.
  * </p>
  *
- * <p>Implements the {@link DataModel} interface to provide a primary key
- * for data persistence and retrieval operations.</p>
+ * In addition to its data, this class encapsulates business logic related to the
+ * application process, adhering to the principles of a rich domain model. 
+ * It ensures that the application state and behaviors are consistent with the 
+ * domain rules, and manipulates its data through methods that enforce business 
+ * rules rather than relying solely on external procedures.
  */
 public class Enquiry implements DataModel{
-
     /**
-     * A comparator to sort enquiries in descending order of creation time.
-     * Useful for displaying recent enquiries first.
+     * Comparator for sorting {@link Enquiry} objects by their creation timestamp in descending order.
+     * This comparator compares enquiries based on the {@link Enquiry#getCreatedAt()} method and 
+     * sorts them in reverse order, so that the most recently created enquiry appear first.
      */
     public static final Comparator<Enquiry> SORT_BY_CREATED_AT_DESC =
         Comparator.comparing(Enquiry::getCreatedAt).reversed();
@@ -53,8 +58,10 @@ public class Enquiry implements DataModel{
     @CSVField(index = 7)
     private LocalDateTime createdAt;
 
-     /**
-     * Private no-arguments constructor for reflective instantiation.
+    /**
+     * Default no-argument constructor used exclusively for reflective instantiation.
+     * This constructor is necessary for classes like {@link CSVDataManager} 
+     * to create model objects via reflection.
      */
     @SuppressWarnings("unused")
     private Enquiry(){};
@@ -105,8 +112,13 @@ public class Enquiry implements DataModel{
      * Updates the subject of the enquiry.
      *
      * @param subject the new subject
+     * @throws DataModelException if this enquiry cannot be edited
      */
-    public void setSubject(String subject) {
+    public void setSubject(String subject) throws DataModelException {
+        if(!canBeAltered()){
+            throw new DataModelException("This enquiry cannot be edited.");
+        }
+        
         backup();
         this.subject = subject;
     }
@@ -122,10 +134,16 @@ public class Enquiry implements DataModel{
 
     /**
      * Updates the content of the enquiry.
+     * The current state is backup and can be revert by {@link #restore()}.
      *
      * @param enquiry the new enquiry message
+     * @throws DataModelException it this enquiry cannot be edited
      */
-    public void setEnquiry(String enquiry) {
+    public void setEnquiry(String enquiry) throws DataModelException {
+        if(!canBeAltered()){
+            throw new DataModelException("This enquiry cannot be edited.");
+        }
+        
         backup();
         this.enquiry = enquiry;
     }
@@ -141,18 +159,21 @@ public class Enquiry implements DataModel{
 
     /**
      * Sets the reply for this enquiry and marks it as replied.
+     * The current state is backup and can be revert by {@link #restore()}.
      *
      * @param reply the reply content
+     * @throws DataModelException if reply cannot be editted
      */
-    public void setReply(String reply) {
+    public void setReply(String reply) throws DataModelException {
+        if(!canBeAltered()){
+            throw new DataModelException("This enquiry cannot be replied.");
+        }
+
         backup();
         this.reply = reply;
         this.enquiryStatus = EnquiryStatus.REPLIED;
     }
 
-    /**
-     * Reverts the reply, removing the content and marking the enquiry as unreplied.
-     */
     /**
      * Returns the BTO project associated with this enquiry.
      *
@@ -188,13 +209,6 @@ public class Enquiry implements DataModel{
     public boolean canBeAltered(){
         return enquiryStatus == EnquiryStatus.UNREPLIED;
     }
-
-
-    /**
-     * Returns the unique identifier of the enquiry.
-     *
-     * @return the primary key (UUID as string)
-     */
 
     @Override
     public String getPK() {

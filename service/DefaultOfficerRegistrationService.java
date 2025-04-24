@@ -2,9 +2,7 @@ package service;
 
 import java.util.List;
 
-import config.RegistrationStatus;
 import config.ResponseStatus;
-import config.UserRole;
 import exception.DataModelException;
 import exception.DataSavingException;
 import manager.interfaces.DataManager;

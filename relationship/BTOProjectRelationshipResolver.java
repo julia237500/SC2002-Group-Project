@@ -6,6 +6,7 @@ import java.util.Map;
 
 import config.FlatType;
 import config.RegistrationStatus;
+import exception.DataModelException;
 import exception.RelationshipException;
 import manager.interfaces.DataManager;
 import model.BTOProject;
@@ -53,7 +54,11 @@ public class BTOProjectRelationshipResolver implements LoadResolver, SaveResolve
             ));
 
             for(OfficerRegistration officerRegistration:officerRegistrations){
-                btoProject.addHDBOfficer(officerRegistration.getHDBOfficer());
+                try {
+                    btoProject.addHDBOfficer(officerRegistration.getHDBOfficer());
+                } catch (DataModelException e) {
+                    throw new RelationshipException(e.getMessage());
+                }
             }
         }
     }
