@@ -62,7 +62,7 @@ public class DefaultApplicationPolicy implements ApplicationPolicy{
             requestedUser.getUserRole() != UserRole.HDB_OFFICER){
                 return PolicyResponse.deny("Access denied. Only HDB Manager or HDB Officer can view applications of BTO Project.");
         }
-        if(requestedUser.getUserRole() != UserRole.HDB_OFFICER && 
+        if(requestedUser.getUserRole() == UserRole.HDB_OFFICER && 
             !btoProject.isHandlingBy(requestedUser)){
                 return PolicyResponse.deny("Access denied. Only HDB Officer handling the project can view applications of BTO Project.");
         }
