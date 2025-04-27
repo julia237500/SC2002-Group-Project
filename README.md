@@ -1,6 +1,4 @@
 # SC2002-Group-Project
-
-=======
 ## Title: BTO System
 
 This project simulates a Build-To-Order (BTO) system, similar to the real-world HDB BTO process. It allows **applicants** to apply for housing projects, and provides **HDB officers** and **managers** tools to manage these projects.  
